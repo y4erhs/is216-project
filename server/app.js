@@ -8,7 +8,6 @@ const cors = require("cors");
 const eventRoutes = require('./routes/eventRoutes');
 const userRoutes = require('./routes/userRoutes');
 
-
 // const blogsRoutes = require('./routes/blogs-routes');
 
 const server = express();
