@@ -4,11 +4,18 @@ const mongoose = require('mongoose');
 const fs = require('fs');
 const cors = require("cors");
 
+// Import routes
+const eventRoutes = require('./routes/eventRoutes');
+const userRoutes = require('./routes/userRoutes');
+
+
 // const blogsRoutes = require('./routes/blogs-routes');
 
 const server = express();
 
 server.use(express.urlencoded({ extended: true }));
+server.use('/events', eventRoutes);
+server.use('/users', userRoutes);
 
 const allowedLocalhost = /^http:\/\/localhost(:\d+)?$/;
 
