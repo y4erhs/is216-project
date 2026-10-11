@@ -24,9 +24,10 @@ const userSchema = new mongoose.Schema({
         default: null 
     },
     preferences:{
-        type: Array,
+        type: [String],
+        default: []
     },
-     bio: {
+    bio: {
         type: String,
         default: ''
     },
@@ -40,11 +41,37 @@ const userSchema = new mongoose.Schema({
     },
     Calendar:{
         
+    },
+    major: { 
+        type: String, 
+        default: '' 
+    },
+    year: {
+        type: Number,
+        default: null,
+    },
+    ccas: {
+        type: [String],
+        default: [],
+    },
+    notificationPreferences: {
+        push: {
+            type: Boolean,
+            default: true,
+        },
+        email: {
+            type: Boolean,
+            default: true,
+        },
+        reminndMinutesBefore: {
+            type: Number,
+            default: 15
+        }
     }
 })
 
 const User = mongoose.model('User', userSchema, 'users');
 
-exports.createUser = function({username, email, password, dob, perferences,role, avatar, bio}){
+exports.createUser = function({username, email, password, dob, preferences, role, avatar, bio}){
     return User.create({username, email, password, dob, role, avatar, bio});
 }
