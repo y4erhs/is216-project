@@ -2,10 +2,10 @@
   "name": "campus-events-server",
   "version": "1.0.0",
   "description": "Backend for Campus Events project",
-  "main": "src/app.js",
+  "main": "app.js",
   "scripts": {
-    "start": "node src/app.js",
-    "dev": "nodemon src/app.js"
+    "start": "node app.js",
+    "dev": "nodemon app.js"
   },
   "dependencies": {
     "express": "^4.18.2",

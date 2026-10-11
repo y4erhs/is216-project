@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 const fs = require('fs');
 const cors = require("cors");
 
-const blogsRoutes = require('./routes/blogs-routes');
+// const blogsRoutes = require('./routes/blogs-routes');
 
 const server = express();
 
@@ -32,7 +32,7 @@ server.use(express.json());
 
 server.set("view engine", "ejs"); 
 
-server.use('/posts', blogsRoutes);
+// server.use('/posts', blogsRoutes);
 
 dotenv.config({ path: './config.env' });
 
