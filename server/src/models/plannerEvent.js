@@ -24,6 +24,6 @@ const plannerSchema = new mongoose.Schema({
 },
 {timestamps: true})
 
-const PlannerEvent = mongoose.model('PlannerEvent', plannerEventSchema, 'plannerEvents')
+const PlannerEvent = mongoose.model('PlannerEvent', plannerSchema, 'plannerEvents')
 
 module.exports = PlannerEvent
