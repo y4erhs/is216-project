@@ -5,13 +5,17 @@ const fs = require('fs');
 const cors = require("cors");
 
 
-//routes (only added recommendations and user so far)
-const recommendationRoutes = require('./src/routes/recommendation-routes');
-const userRoutes = require('./src/routes/user-routes');
+// Import routes
+const recommendationRoutes = require('./src/routes/recommendationRoutes');
+const eventRoutes = require('./src/routes/eventRoutes');
+const userRoutes = require('./src/routes/userRoutes');
+
 
 const server = express();
 
 server.use(express.urlencoded({ extended: true }));
+server.use('/events', eventRoutes);
+server.use('/users', userRoutes);
 
 const allowedLocalhost = /^http:\/\/localhost(:\d+)?$/;
 
