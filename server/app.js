@@ -4,7 +4,10 @@ const mongoose = require('mongoose');
 const fs = require('fs');
 const cors = require("cors");
 
-// const blogsRoutes = require('./routes/blogs-routes');
+
+//routes (only added recommendations and user so far)
+const recommendationRoutes = require('./src/routes/recommendation-routes');
+const userRoutes = require('./src/routes/user-routes');
 
 const server = express();
 
@@ -32,7 +35,9 @@ server.use(express.json());
 
 server.set("view engine", "ejs"); 
 
-// server.use('/posts', blogsRoutes);
+//use routes
+server.use('/api/recommendations', recommendationRoutes);
+server.use('/api/users', userRoutes);
 
 dotenv.config({ path: './config.env' });
 
@@ -44,7 +49,7 @@ async function connectDB() {
     console.error("MongoDB connection failed:", error.message);
     process.exit(1);
   }
-};
+}
 
 function startServer() {
   const hostname = "localhost"; 
