@@ -3,6 +3,9 @@
 import 'bootstrap/dist/css/bootstrap.min.css'
 import 'bootstrap/dist/js/bootstrap.bundle.min.js'
 
+import BaseButton from '../components/BaseButton.vue'
+
+
 </script>
 
 <template>
@@ -16,7 +19,7 @@ import 'bootstrap/dist/js/bootstrap.bundle.min.js'
                     <br>
                     <input id="password" type="text" placeholder="Password"> <br>
                     <br>
-                    <button class="btn rounded-pill px-4"> Log In </button>
+                    <BaseButton class="w-100" variant="primary">Sign In</BaseButton>
                 </form>
             </div>
         </div> 
@@ -53,12 +56,6 @@ input {
 
 input::placeholder {
     color: #0a1d2b;
-}
-
-.btn {
-    color: #f1f2f7;
-    background-color: #0a1d2b;
-    width: 100%;
 }
     
 </style>

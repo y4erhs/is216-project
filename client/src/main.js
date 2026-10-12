@@ -1,6 +1,7 @@
 // src/main.js
 import { createApp } from 'vue'
 import App from '@/App.vue'
+import './assets/theme.css'
 
 // Router (if you have a router folder)
 import router from './router'
