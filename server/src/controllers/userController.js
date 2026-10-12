@@ -1,5 +1,4 @@
-
-const User = require('../models/User');
+const User = require('../models/user');
 const bcrypt = require('bcryptjs');
 
 // CREATE a user
@@ -127,3 +126,21 @@ exports.deleteUser = async (req, res) => {
         return res.status(400).json({ message: err.message });
     }
 };
+
+//get all the interests indicated by user
+exports.getPreferences = async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id).select('preferences');
+
+        if (!user) {
+            return res.status(404).json({
+                message: 'User not found'
+            });
+        }
+
+        return res.status(200).json(user.preferences);
+    } catch (err) {
+        return res.status(400).json({ message: err.message });
+    }
+};
+

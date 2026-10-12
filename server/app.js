@@ -4,11 +4,12 @@ const mongoose = require('mongoose');
 const fs = require('fs');
 const cors = require("cors");
 
-// Import routes
-const eventRoutes = require('./routes/eventRoutes');
-const userRoutes = require('./routes/userRoutes');
 
-// const blogsRoutes = require('./routes/blogs-routes');
+// Import routes
+const recommendationRoutes = require('./src/routes/recommendationRoutes');
+const eventRoutes = require('./src/routes/eventRoutes');
+const userRoutes = require('./src/routes/userRoutes');
+
 
 const server = express();
 
@@ -38,7 +39,9 @@ server.use(express.json());
 
 server.set("view engine", "ejs"); 
 
-// server.use('/posts', blogsRoutes);
+//use routes
+server.use('/api/recommendations', recommendationRoutes);
+server.use('/api/users', userRoutes);
 
 dotenv.config({ path: './config.env' });
 
@@ -50,7 +53,7 @@ async function connectDB() {
     console.error("MongoDB connection failed:", error.message);
     process.exit(1);
   }
-};
+}
 
 function startServer() {
   const hostname = "localhost"; 
