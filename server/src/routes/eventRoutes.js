@@ -5,8 +5,6 @@ const eventController = require('../controllers/eventController');
 const router = express.Router();
 
 
-const eventController = require('../controllers/eventController');
-
 // CREATE
 router.post('/', eventController.createEvent);
 

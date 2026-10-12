@@ -70,8 +70,10 @@ const userSchema = new mongoose.Schema({
     }
 })
 
-const User = mongoose.model('User', userSchema, 'users');
+const User = mongoose.model('User', userSchema, 'users')
 
-exports.createUser = function({username, email, password, dob, preferences, role, avatar, bio}){
-    return User.create({username, email, password, dob, role, avatar, bio});
-}
+module.exports = User
+
+// exports.createUser = function({username, email, password, dob, preferences, role, avatar, bio}){
+//     return User.create({username, email, password, dob, role, avatar, bio});
+// }
