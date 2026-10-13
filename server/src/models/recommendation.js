@@ -24,11 +24,11 @@ const recommendationSchema = new mongoose.Schema({
         enum: ['daily', 'weekly'],
         default: 'weekly'
     },
-    isInterested: {
+    hidden: {
         type: Boolean,
-        default: true
+        default: false
     },
-    lesslikethis: {
+    feedback: {
         type: Boolean,
         default: false
     },
@@ -39,7 +39,7 @@ const recommendationSchema = new mongoose.Schema({
 }, {timestamps: true})
 
 // One recommendation per user per event
-recommendationSchema.index({ user: 1, event: 1 }, { unique: true })
+recommendationSchema.index({ user: 1, event: 1, feedType: 1 }, { unique: true })
 
 // MongoDB automatically deletes the recommendation once expiresAt passes
 recommendationSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 })
