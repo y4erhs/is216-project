@@ -1,11 +1,14 @@
-@import './theme.css';
+@import "./theme.css";
 
 body {
-  font-family: 'TextFont';
+  background-color: var(--color-blue);
   letter-spacing: -0.8px;
 }
 
 .bi {
-    padding-top: 10px;
+  padding-top: 7px;
 }
 
+*:not(i):not([class*="bi-"]) {
+  font-family: 'TextFont', sans-serif;
+}
