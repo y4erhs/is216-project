@@ -14,8 +14,6 @@ const userRoutes = require('./src/routes/userRoutes');
 const server = express();
 
 server.use(express.urlencoded({ extended: true }));
-server.use('/events', eventRoutes);
-server.use('/users', userRoutes);
 
 const allowedLocalhost = /^http:\/\/localhost(:\d+)?$/;
 
@@ -42,6 +40,7 @@ server.set("view engine", "ejs");
 //use routes
 server.use('/api/recommendations', recommendationRoutes);
 server.use('/api/users', userRoutes);
+server.use('/api/events', eventRoutes);
 
 dotenv.config({ path: './config.env' });
 

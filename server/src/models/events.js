@@ -10,7 +10,8 @@ const eventSchema = new mongoose.Schema({
         required: true
     },
     organiser: {
-
+        type: String,
+        required:true
     },
     //if got same evets on diff days
     sessions: [{
