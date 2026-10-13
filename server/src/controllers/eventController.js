@@ -14,9 +14,7 @@ exports.createEvent = async (req, res) => {
 // READ all events
 exports.getEvents = async (req, res) => {
     try {
-        const events = await Event.find()
-            .populate('organiser', 'username avatar')
-            .sort({ createdAt: -1 });
+        const events = await Event.find().sort({ createdAt: -1 });
 
         return res.status(200).json(events);
     } catch (err) {
@@ -28,7 +26,6 @@ exports.getEvents = async (req, res) => {
 exports.getEventById = async (req, res) => {
     try {
         const event = await Event.findById(req.params.id)
-            .populate('organiser', 'username avatar');
 
         if (!event) {
             return res.status(404).json({
