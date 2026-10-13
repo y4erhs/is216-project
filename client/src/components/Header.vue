@@ -63,9 +63,9 @@ const mobileDate = computed(() => {
 
             <!-- Date Pill -->
             <div class="pill-badge date-pill text-nowrap">
-                <span class="d-none d-lg-inline">{{ currentDate }}</span>
-                <span class="d-none d-md-inline d-lg-none">{{ shortDate }}</span>
-                <span class="d-inline d-md-none">{{ mobileDate }}</span>
+                <span class="d-none d-lg-inline date-text">{{ currentDate }}</span>
+                <span class="d-none d-md-inline d-lg-none date-text">{{ shortDate }}</span>
+                <span class="d-inline d-md-none date-text">{{ mobileDate }}</span>
             </div>
 
             <!-- Notification Pill -->
@@ -91,6 +91,8 @@ const mobileDate = computed(() => {
 .topbar-container {
     width: 100%;
 }
+
+
 
 /* --- Hamburger Button --- */
 .btn-hamburger {
@@ -127,6 +129,15 @@ const mobileDate = computed(() => {
     color: var(--color-black);
 }
 
+.bell-icon{
+    padding-top: 5px;
+    padding-right: 1px;
+}
+
+.bi-search {
+    padding-top: 6px;
+}
+
 .search-input {
     min-width: 0;
     width: 100%;
@@ -135,6 +146,7 @@ const mobileDate = computed(() => {
     outline: none;
     font-size: 13px;
     color: var(--color-black);
+    padding-top: 6px;
 }
 
 .search-input::placeholder {
@@ -171,6 +183,10 @@ const mobileDate = computed(() => {
     font-size: 13px;
     font-weight: 500;
     color: var(--color-white, #ffffff);
+}
+
+.date-text {
+    padding-top: 3px;
 }
 
 /* --- Notification Pill --- */
@@ -215,7 +231,6 @@ const mobileDate = computed(() => {
     }
 
     .date-pill {
-        padding: 6px 10px;
         font-size: 12px;
     }
 }

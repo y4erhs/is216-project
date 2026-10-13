@@ -1,0 +1,11 @@
+@import './theme.css';
+
+body {
+  font-family: 'TextFont';
+  letter-spacing: -0.8px;
+}
+
+.bi {
+    padding-top: 10px;
+}
+

@@ -1,5 +1,7 @@
 <script setup>
-// to accept styling variants and states from the parent
+
+import '../assets/theme.css'
+
 defineProps({
   variant: {
     type: String,
@@ -26,8 +28,9 @@ defineEmits(['click'])
     :class="['btn-pill', `btn-${variant}`]"
     @click="$emit('click',$event)"
   >
-    <!-- passing custom text or icons from parent -->
-    <slot>Click here</slot>
+    <span class="header-style">
+      <slot>Click here</slot>
+    </span>
   </button>
 </template>
 
@@ -36,13 +39,16 @@ defineEmits(['click'])
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 10px 24px;
-  font-size: 15px;
+  padding: 7px 24px 10px 24px;
+  font-size: 11px;
   border-radius: 9999px;
   border: solid 1px transparent;
   cursor: pointer;
   transition: all 0.2s ease-in-out;
   outline: none;
+
+  background-color: var(--bg);
+  color: var(--text);
 }
 
 .btn-pill:hover:not(:disabled) {

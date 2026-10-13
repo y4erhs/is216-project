@@ -27,8 +27,7 @@ const isCollapsed = ref(false)
         <!-- Header & Toggle -->
         <div class="header px-2">
             <div v-if="!isCollapsed" class="logo-section d-flex align-items-center gap-2">
-                <img :src="logo" class="logo" style="width: 32px; height: 32px;" />
-                <p class="logo-text">Campus <br> Compass</p>
+                <img :src="logo" class="logo" style="height: 50px;" />
             </div>
 
             <button class="toggle-btn hamburger d-none d-md-flex" @click="isCollapsed = !isCollapsed">
@@ -42,19 +41,19 @@ const isCollapsed = ref(false)
 
         <!-- Campus Info -->
         <div v-if="!isCollapsed" class="campus px-2">
-            <p class="your-campus m-0">YOUR CAMPUS</p>
-            <p class="mb-0">Singapore Management University</p>
+            <p class="your-campus header-style m-0">YOUR CAMPUS</p>
+            <p class="mb-0 header-style">Singapore Management University</p>
         </div>
 
         <!-- Navigation Menu -->
         <div class="menu" @click="emit('close')">
             <RouterLink to="/" class="tab-pill theme-light-blue" :title="isCollapsed ? 'Discover' : ''">
                 <div class="pill-icon">
-                    <span class="menu-icon"></span>
+                    <i class="bi bi-compass fs-5"></i>
                 </div>
                 <span v-if="!isCollapsed" class="pill-neck"></span>
                 <div v-if="!isCollapsed" class="pill-label">
-                    <span>Discover</span>
+                    <span class="header-style">Discover</span>
                 </div>
             </RouterLink>
 
@@ -64,7 +63,7 @@ const isCollapsed = ref(false)
                 </div>
                 <span v-if="!isCollapsed" class="pill-neck"></span>
                 <div v-if="!isCollapsed" class="pill-label">
-                    <span>My Calendar</span>
+                    <span class="header-style">My Calendar</span>
                 </div>
             </RouterLink>
 
@@ -74,7 +73,7 @@ const isCollapsed = ref(false)
                 </div>
                 <span v-if="!isCollapsed" class="pill-neck"></span>
                 <div v-if="!isCollapsed" class="pill-label">
-                    <span>Friends & Groups</span>
+                    <span class="header-style">Friends & Groups</span>
                 </div>
             </RouterLink>
 
@@ -84,7 +83,7 @@ const isCollapsed = ref(false)
                 </div>
                 <span v-if="!isCollapsed" class="pill-neck"></span>
                 <div v-if="!isCollapsed" class="pill-label">
-                    <span>My Activity</span>
+                    <span class="header-style">My Activity</span>
                 </div>
             </RouterLink>
 
@@ -94,7 +93,7 @@ const isCollapsed = ref(false)
                 </div>
                 <span v-if="!isCollapsed" class="pill-neck"></span>
                 <div v-if="!isCollapsed" class="pill-label">
-                    <span>Profile & Alerts</span>
+                    <span class="header-style">Profile & Alerts</span>
                 </div>
             </RouterLink>
         </div>
@@ -159,6 +158,7 @@ aside.collapsed .user-profile {
     font-weight: 600;
     font-size: 13px;
     line-height: 1.2;
+    font-family: 'HeaderFont';
 }
 
 .toggle-btn {

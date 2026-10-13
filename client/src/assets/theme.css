@@ -1,3 +1,13 @@
+@font-face {
+  font-family: 'HeaderFont';
+  src: url('./fonts/MrMamoulianBlather.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'TextFont';
+  src: url('./fonts/ProvidenceSansRegular.ttf') format('truetype');
+}
+
 :root {
   --color-black: #0a1d2b;
   --color-white: #f1f2f7;
@@ -63,4 +73,10 @@
 .btn-outline {
   background-color: transparent;
   border: 1px solid;
+}
+
+.header-style {
+  text-transform: uppercase;
+  font-weight: 600;
+  padding-top: 7px;
 }
