@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import '../assets/theme.css'
 
-import BaseButton from '@/components/BaseButton.vue'
+import BaseButton from '../components/BaseButton.vue';
 
 </script>
 
@@ -10,6 +10,9 @@ import BaseButton from '@/components/BaseButton.vue'
   <div class="profile-container">
     <h1>User Profile</h1>
   </div>
+
+  <BaseButton class="theme-green"/>
+
 </template>
 
 <style scoped>

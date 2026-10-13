@@ -3,6 +3,7 @@
     import axios from 'axios'
     import InterestChips from '../components/InterestChips.vue'
     import RecommendationCards from '../components/RecommendationCards.vue';
+import BaseButton from '../components/BaseButton.vue';
 
     //change after login and sign up done
     const userId = '6acd9e65046b9013f579fc79'
@@ -50,12 +51,12 @@
     <div class="d-flex justify-content-between align-items-center mt-4 mb-3">
         <h5 class="mb-0 text-dark">Picked for your {{ feedType === 'daily' ? 'day' : 'week' }}</h5>
         <div>
-            <button class="btn btn-sm rounded-pill"
+            <BaseButton class="btn btn-sm rounded-pill"
                 v-bind:class="feedType === 'daily' ? 'btn-primary' : 'btn-outline-secondary'"
-                v-on:click="switchFeed('daily')">Today</button>
-            <button class="btn btn-sm rounded-pill ms-1"
+                v-on:click="switchFeed('daily')">Today</BaseButton>
+            <BaseButton class="btn btn-sm rounded-pill ms-1"
                 v-bind:class="feedType === 'weekly' ? 'btn-primary' : 'btn-outline-secondary'"
-                v-on:click="switchFeed('weekly')">This week</button>
+                v-on:click="switchFeed('weekly')">This week</BaseButton>
         </div>
     </div>
 

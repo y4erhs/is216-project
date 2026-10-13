@@ -1,6 +1,8 @@
 <script setup>
     import {ref, computed, onMounted} from 'vue'
     import axios from 'axios'
+    import BaseButton from '../components/BaseButton.vue';
+
 
     // for GET requests (to get all entries/specific entry)
     const interests = ref([]) 
@@ -73,17 +75,17 @@
     <div class="d-flex align-items-center flex-wrap gap-2">
     <span class="text-muted me-1">Your interests</span>
 
-    <button class="btn btn-sm rounded-pill" v-bind:class="selected == 'for-you' ? 'btn-primary' : 'btn-outline-secondary'" v-on:click="selected = 'for-you'">
+    <BaseButton class="btn btn-sm rounded-pill" v-bind:class="selected == 'for-you' ? 'btn-primary' : 'btn-outline-secondary'" v-on:click="selected = 'for-you'">
       For you
-    </button>
+    </BaseButton>
 
-    <button v-for="interest in interests" v-bind:key="interest" class="btn btn-sm rounded-pill" v-bind:class="selected == interest ? 'btn-primary' : 'btn-outline-secondary'" v-on:click="selected = interest">
+    <BaseButton v-for="interest in interests" v-bind:key="interest" class="btn btn-sm rounded-pill" v-bind:class="selected == interest ? 'btn-primary' : 'btn-outline-secondary'" v-on:click="selected = interest">
       {{ interest }}
-    </button>
+    </BaseButton>
 
-    <button class="btn btn-sm btn-link text-decoration-none" v-on:click="loadAllInterests" v-if="hidden == false">
+    <BaseButton class="btn btn-sm btn-link text-decoration-none" v-on:click="loadAllInterests" v-if="hidden == false">
       + Edit interests
-    </button>
+    </BaseButton>
 
     <div v-else>
         <div class="form-check" v-for="interest in allInterests" :key="interest">
@@ -91,12 +93,12 @@
             <label class="form-check-label text-dark" v-bind:for="interest">{{ interest }}</label>
         </div>
 
-        <button class="btn btn-sm btn-primary mt-2" v-on:click="saveInterests">
+        <BaseButton class="btn btn-sm btn-primary mt-2" v-on:click="saveInterests">
             Save
-        </button>
-        <button class="btn btn-sm btn-link mt-2" v-on:click="hidden = false">
+        </BaseButton>
+        <BaseButton class="btn btn-sm btn-link mt-2" v-on:click="hidden = false">
             Cancel
-        </button>        
+        </BaseButton>        
     </div>
   </div>
 </template>
