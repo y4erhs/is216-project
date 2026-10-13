@@ -4,4 +4,7 @@ const recommendationController = require('../controllers/recommendationControlle
 
 const router = express.Router();
 
+router.get('/user/:id', recommendationController.getRecommendationsByUser);
+router.post('/generate', recommendationController.generateRecommendations);
+
 module.exports = router
