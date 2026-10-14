@@ -75,11 +75,11 @@
     <div class="d-flex align-items-center flex-wrap gap-2">
     <span class="text-muted me-1">Your interests</span>
 
-    <BaseButton class="btn btn-sm rounded-pill" v-bind:class="selected == 'for-you' ? 'btn-primary' : 'btn-outline-secondary'" v-on:click="selected = 'for-you'">
+    <BaseButton class="btn btn-sm " v-bind:class="selected == 'for-you' ? 'btn-primary' : 'btn-outline-secondary'" v-on:click="selected = 'for-you'">
       For you
     </BaseButton>
 
-    <BaseButton v-for="interest in interests" v-bind:key="interest" class="btn btn-sm rounded-pill" v-bind:class="selected == interest ? 'btn-primary' : 'btn-outline-secondary'" v-on:click="selected = interest">
+    <BaseButton v-for="interest in interests" v-bind:key="interest" class="btn btn-sm " v-bind:class="selected == interest ? 'btn-primary' : 'btn-outline-secondary'" v-on:click="selected = interest">
       {{ interest }}
     </BaseButton>
 
@@ -87,16 +87,16 @@
       + Edit interests
     </BaseButton>
 
-    <div v-else>
+    <div class="d-flex flex-wrap gap-2" v-else>
         <div class="form-check" v-for="interest in allInterests" :key="interest">
             <input class="form-check-input" type="checkbox" v-bind:id="interest" v-bind:value="interest" v-model="selectedInterests">
             <label class="form-check-label text-dark" v-bind:for="interest">{{ interest }}</label>
         </div>
 
-        <BaseButton class="btn btn-sm btn-primary mt-2" v-on:click="saveInterests">
+        <BaseButton class="btn mt-2" v-on:click="saveInterests">
             Save
         </BaseButton>
-        <BaseButton class="btn btn-sm btn-link mt-2" v-on:click="hidden = false">
+        <BaseButton class="btn btn-link mt-2" v-on:click="hidden = false">
             Cancel
         </BaseButton>        
     </div>

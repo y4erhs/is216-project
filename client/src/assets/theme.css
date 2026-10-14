@@ -11,15 +11,15 @@
 :root {
   --color-black: #0a1d2b;
   --color-white: #f1f2f7;
-  --color-off-white: #dde1f1;;
-  --color-red: #e83224;
-  --color-orange: #ff7c50;
-  --color-green: #d6fe5f;
-  --color-dark-green: #728e20;
-  --color-blue: #4c74fa;
+  --color-grey: #d1dbec;;
+  --color-red: #e63c25;
+  --color-orange: #ff7b4f;
+  --color-yellow: #f6bc3f;
+  --color-green: #c8ec5c;
+  --color-dark-green: #a4ba48;
+  --color-blue: #496eec;
   --color-dark-blue: #4051d8;
-  --color-light-blue: #c3d1f4;
-  --color-purple: #e682ff;
+  --color-purple: #e781ff;
 }
 
 .theme-light {
@@ -55,8 +55,8 @@
   color: var(--color-white);
 }
 
-.theme-light-blue {
-  --bg: var(--color-light-blue);
+.theme-grey {
+  --bg: var(--color-grey);
   --text: var(--color-black);
 }
 
@@ -68,11 +68,6 @@
 .theme-purple {
   --bg: var(--color-purple);
   --text: var(--color-black);
-}
-
-.btn-outline {
-  background-color: transparent;
-  border: 1px solid;
 }
 
 .header-style {

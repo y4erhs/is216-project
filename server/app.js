@@ -1,5 +1,8 @@
 const express = require('express');
 const dotenv = require('dotenv');
+
+dotenv.config({ path: './config.env' });
+
 const mongoose = require('mongoose');
 const fs = require('fs');
 const cors = require("cors");
@@ -42,7 +45,6 @@ server.use('/api/recommendations', recommendationRoutes);
 server.use('/api/users', userRoutes);
 server.use('/api/events', eventRoutes);
 
-dotenv.config({ path: './config.env' });
 
 async function connectDB() {
   try {

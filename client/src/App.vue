@@ -46,7 +46,7 @@ function closeMobileNav() {
 }
 
 .content-scroll {
-  background-color: #f6f5f0;
+  background-color: var(--color-white);
   border-radius: 25px;
   overflow-y: auto;
   overflow-x: hidden;

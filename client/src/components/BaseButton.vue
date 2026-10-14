@@ -25,7 +25,7 @@ defineEmits(['click'])
   <button
     :type="type"
     :disabled="disabled"
-    :class="['btn-pill', `btn-${variant}`]"
+    :class="['btn-custom', `btn-${variant}`]"
     @click="$emit('click',$event)"
   >
     <span class="header-style">
@@ -35,13 +35,13 @@ defineEmits(['click'])
 </template>
 
 <style scoped>
-.btn-pill {
+.btn-custom {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 7px 24px 10px 24px;
+  padding: 3px 16px 6px 16px;
   font-size: 11px;
-  border-radius: 9999px;
+  border-radius: 25px;
   border: solid 1px transparent;
   cursor: pointer;
   transition: all 0.2s ease-in-out;
@@ -51,15 +51,23 @@ defineEmits(['click'])
   color: var(--text);
 }
 
-.btn-pill:hover:not(:disabled) {
+/* Outline Variant */
+.btn-outline-main {
+  background-color: transparent;
+  border: 1px solid;
+  border-color: #8f9aae;
+  color: #8f9aae;
+}
+
+.btn-custom:hover:not(:disabled) {
   transform: scale(1.03);
 }
 
-.btn-pill:active:not(:disabled) {
+.btn-custom:active:not(:disabled) {
     transform: scale(0.97);
 }
 
-.btn-pill:disabled {
+.btn-custom:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
