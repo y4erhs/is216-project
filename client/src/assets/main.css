@@ -3,6 +3,7 @@
 body {
   background-color: var(--color-blue);
   letter-spacing: -0.6px;
+  font-weight: 600;
 }
 
 .bi {
