@@ -93,7 +93,7 @@ onBeforeUnmount(() => {
         <span :class="{ 'placeholder-text': !modelValue }">
           {{ getSelectedLabel() || placeholder || 'Select an option...' }}
         </span>
-        <span class="dropdown-chevron" :class="{ 'rotate': isDropdownOpen }">▾</span>
+        <span class="dropdown-chevron" :class="{ 'rotate': isDropdownOpen }"></span>
       </div>
 
       <!-- Menu list -->
@@ -149,7 +149,7 @@ onBeforeUnmount(() => {
 .base-field {
   background-color: var(--color-grey);
   border: 1px solid transparent;
-  border-radius: 15px;
+  border-radius: 13px;
   min-height: 35px;
   color: var(--color-black);
   padding: 5px 16px;
@@ -197,16 +197,28 @@ onBeforeUnmount(() => {
 }
 
 .dropdown-chevron {
-  font-size: 14px;
-  transition: transform 0.2s ease;
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-right: 2px solid var(--color-black); 
+  border-bottom: 2px solid var(--color-black); 
+  transform: rotate(45deg);          
+  transition: transform 0.25s ease;
+  margin-right: 2px;
+  margin-top: -5px;        
+  opacity: 60%;    
+  border-radius: 2px;
+  border-bottom-right-radius: 3px;     
 }
 
 .dropdown-chevron.rotate {
-  transform: rotate(180deg);
+  transform: rotate(-135deg);
+  margin-top: 1px;
 }
 
 .dropdown-options-menu {
-  position: absolute;
+  position: relative;
+  margin-top: 6px;
   top: calc(100% + 6px);
   left: 0;
   width: 100%;
@@ -235,9 +247,8 @@ onBeforeUnmount(() => {
 }
 
 .dropdown-option-item.is-active {
-  background-color: #4b74f6;
-  color: #ffffff;
-  font-weight: 600;
+  background-color: var(--color-grey);
+  color: var(--color-black);
 }
 
 .is-disabled {

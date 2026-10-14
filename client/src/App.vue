@@ -60,11 +60,9 @@ function closeMobileNav() {
 
 .content-scroll {
   flex: 1;
-  background-color: var(--color-white, #ffffff);
-  border-radius: 25px;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 24px;
+  padding-top: 25px;
 }
 
 @media (max-width: 767.98px) {

@@ -11,7 +11,7 @@
 
 .header-style {
   text-transform: uppercase;
-  font-weight: 600;
+  font-weight: 700;
   padding-top: 7px;
 }
 
@@ -21,13 +21,16 @@
   --color-white: #f1f2f7;
   --color-grey: #d1dbec;;
   --color-red: #e63c25;
+  --color-dark-red: #912222;
   --color-orange: #ff7b4f;
+  --color-dark-orange: #ac3323;
   --color-yellow: #f6bc3f;
   --color-green: #c8ec5c;
-  --color-dark-green: #a4ba48;
+  --color-dark-green: #617029;
   --color-blue: #496eec;
-  --color-dark-blue: #4051d8;
+  --color-dark-blue: #272f71;
   --color-purple: #e781ff;
+  --color-dark-purple: #6f2e7f;
 }
 
 

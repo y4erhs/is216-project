@@ -46,6 +46,7 @@ defineEmits(['click'])
   cursor: pointer;
   transition: all 0.2s ease-in-out;
   outline: none;
+  min-height: 40px;
 
   background-color: var(--bg);
   color: var(--text);
@@ -57,6 +58,16 @@ defineEmits(['click'])
   border: 1px solid;
   border-color: #8f9aae;
   color: #8f9aae;
+}
+
+.btn-small {
+  background-color: var(--bg);
+  color: var(--text);
+  font-size: 11px !important;
+  min-height: 0px !important; 
+  height: 22px;
+  width: 22px !important;
+  padding: 0 0 2 0 !important;
 }
 
 .btn-custom:hover:not(:disabled) {

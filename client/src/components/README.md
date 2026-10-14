@@ -1,8 +1,9 @@
 # UI Components Guide
 
 ## General Rules
-* **Boxes**: `border-radius: 25px`, `padding: 20px` (outer), `15px` (inner)
-* **Pill Buttons**: `border-radius: 9999px`
+* Boxes: `border-radius: 25px`, `padding: 20px` (outer), `15px` (inner)
+* Pill Buttons: `border-radius: 9999px`
+* Page title: `font-size: 25px`
 
 ---
 
@@ -94,9 +95,10 @@
 
 ### Examples
 ```html
-<!-- Primary & Outline -->
+<!-- Primary, Outline, Small -->
 <BaseButton @click="save">Save</BaseButton>
 <BaseButton variant="outline-main" @click="cancel">Cancel</BaseButton>
+<BaseButton variant="small">Cancel</BaseButton>
 
 <!-- Submit / Disabled -->
 <BaseButton type="submit" :disabled="isLoading">
