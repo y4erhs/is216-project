@@ -37,7 +37,7 @@ const mobileDate = computed(() => {
 </script>
 
 <template>
-    <header class="topbar-container d-flex justify-content-between align-items-center px-3 px-md-3 pt-3 pb-2 gap-2">
+    <header class="topbar-container d-flex justify-content-between align-items-center px-3 px-md-3 pt-3 pb-3 gap-2">
 
         <!-- Mobile Hamburger Toggle (only visible on mobile) -->
         <button class="btn-hamburger d-md-none" type="button" @click="emit('toggle-menu')">

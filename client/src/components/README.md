@@ -1,9 +1,12 @@
 # UI Components Guide
 
 ## General Rules
-* Boxes: `border-radius: 25px`, `padding: 20px` (outer), `15px` (inner)
-* Pill Buttons: `border-radius: 9999px`
+* Boxes:
+  * `border-radius: 25px`(outer)
+  * `border-radius: 15px`(inner)
+  * `padding: 15px`
 * Page title: `font-size: 25px`
+* Default text `font-size: 11px`
 
 ---
 

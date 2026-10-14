@@ -62,7 +62,7 @@ function closeMobileNav() {
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  padding-top: 25px;
+  padding-top: 20px;
 }
 
 @media (max-width: 767.98px) {
