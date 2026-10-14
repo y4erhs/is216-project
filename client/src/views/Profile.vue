@@ -13,6 +13,8 @@ import BaseButton from '../components/BaseButton.vue';
 
   <BaseButton class="theme-green"/>
 
+  <BaseButton class="theme-red"/>
+
 </template>
 
 <style scoped>

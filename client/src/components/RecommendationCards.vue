@@ -2,6 +2,9 @@
     import {ref, computed, onMounted} from 'vue'
     import axios from 'axios'
 
+    import BaseButton from '../components/BaseButton.vue';
+
+
     const props = defineProps({
         recommendation: {
             type: Object,
@@ -54,11 +57,11 @@
                 <span v-if="seatsLeft !== null"> · {{ seatsLeft }} seats left</span>
             </p>
             <div class="d-flex justify-content-between align-items-center mt-auto">
-                <button class="btn btn-sm btn-outline-secondary rounded-3" v-on:click="emit('toggle-status')">
+                <BaseButton class="btn-outline-main" v-on:click="emit('toggle-status')">
                     <span v-if="status === 'attending'">✓ Attending</span>
                     <span v-else-if="status === 'interested'">♡ Interested</span>
                     <span v-else>+ Add to planner</span>
-                </button>
+                </BaseButton>   dsdsds
                 <div class="small text-muted">
                     <a href="#" class="text-muted text-decoration-none" v-on:click.prevent="emit('hide')">Hide</a>
                     ·

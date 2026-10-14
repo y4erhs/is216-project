@@ -116,10 +116,11 @@ const mobileDate = computed(() => {
     min-width: 0;
     height: 40px;
     background-color: var(--color-white);
-    border-radius: 15px;
+    border-radius: 25px;
     box-shadow: 0 4px 15px rgba(10, 29, 43, 0.04);
     flex-shrink: 1;
     transition: all 0.2s ease;
+    max-width: 400px;
 }
 
 .search-icon {
@@ -159,7 +160,7 @@ const mobileDate = computed(() => {
 .pill-badge {
     height: 40px;
     background-color: var(--color-dark-blue);
-    border-radius: 15px;
+    border-radius: 25px;
     display: flex;
     align-items: center;
     justify-content: center;

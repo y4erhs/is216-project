@@ -42,7 +42,7 @@ const isCollapsed = ref(false)
         </div>
 
         <div class="menu" @click="emit('close')">
-            <RouterLink to="/" class="tab-pill theme-light-blue" :title="isCollapsed ? 'Discover' : ''">
+            <RouterLink to="/" class="tab-pill theme-grey" :title="isCollapsed ? 'Discover' : ''">
                 <div class="pill-icon">
                     <i class="bi bi-compass fs-5"></i>
                 </div>
@@ -52,7 +52,7 @@ const isCollapsed = ref(false)
                 </div>
             </RouterLink>
 
-            <RouterLink to="/calendar" class="tab-pill theme-light-blue" :title="isCollapsed ? 'My Calendar' : ''">
+            <RouterLink to="/calendar" class="tab-pill theme-grey" :title="isCollapsed ? 'My Calendar' : ''">
                 <div class="pill-icon">
                     <i class="bi bi-calendar-event fs-5"></i>
                 </div>
@@ -62,7 +62,7 @@ const isCollapsed = ref(false)
                 </div>
             </RouterLink>
 
-            <RouterLink to="/groups" class="tab-pill theme-light-blue" :title="isCollapsed ? 'Friends & Groups' : ''">
+            <RouterLink to="/groups" class="tab-pill theme-grey" :title="isCollapsed ? 'Friends & Groups' : ''">
                 <div class="pill-icon">
                     <i class="bi bi-people fs-5"></i>
                 </div>
@@ -72,7 +72,7 @@ const isCollapsed = ref(false)
                 </div>
             </RouterLink>
 
-            <RouterLink to="/events" class="tab-pill theme-light-blue" :title="isCollapsed ? 'My Activity' : ''">
+            <RouterLink to="/events" class="tab-pill theme-grey" :title="isCollapsed ? 'My Activity' : ''">
                 <div class="pill-icon">
                     <i class="bi bi-lightning fs-5"></i>
                 </div>
@@ -82,7 +82,7 @@ const isCollapsed = ref(false)
                 </div>
             </RouterLink>
 
-            <RouterLink to="/profile" class="tab-pill theme-light-blue" :title="isCollapsed ? 'Profile & alerts' : ''">
+            <RouterLink to="/profile" class="tab-pill theme-grey" :title="isCollapsed ? 'Profile & alerts' : ''">
                 <div class="pill-icon">
                     <i class="bi bi-person-circle fs-5"></i>
                 </div>
@@ -106,10 +106,10 @@ const isCollapsed = ref(false)
 
 <style scoped>
 aside {
-    width: 250px;
+    width: 220px;
     height: calc(100vh - 30px);
     padding: 16px 12px;
-    background-color: #f1f2f7;
+    background-color: var(--color-white);
     color: #0a1d2b;
     display: flex;
     flex-direction: column;
@@ -187,7 +187,7 @@ aside.collapsed .user-profile {
 }
 
 .toggle-btn:hover {
-    background-color: #dee4f4;
+    background-color: #d1dbec;
 }
 
 .campus {
