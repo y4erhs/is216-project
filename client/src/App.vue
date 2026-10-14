@@ -5,7 +5,6 @@ import Header from '@/components/Header.vue'
 
 import '@/assets/theme.css'
 
-// --- State Coordinator ---
 const isMobileNavOpen = ref(false)
 
 function toggleMobileNav() {
@@ -18,19 +17,14 @@ function closeMobileNav() {
 </script>
 
 <template>
-  <div class="d-flex min-vh-100 w-100 overflow-hidden">
-    <!-- Sidebar Navbar -->
+  <div class="app-layout">
     <Navbar :is-open="isMobileNavOpen" @close="closeMobileNav" />
 
-    <!-- Main Container -->
-    <main class="flex-grow-1 d-flex flex-column theme-blue" style="min-width: 0;">
-      <!-- Header -->
+    <main class="main-container theme-blue">
       <Header @toggle-menu="toggleMobileNav" />
 
-      <!-- Content Wrapper -->
-      <div class="content-wrapper flex-grow-1 d-flex flex-column px-3 pb-3 p-md-3">
-        <!-- Content Box -->
-        <div class="content-scroll flex-grow-1 p-3 p-md-4">
+      <div class="content-wrapper">
+        <div class="content-scroll">
           <router-view />
         </div>
       </div>
@@ -39,23 +33,47 @@ function closeMobileNav() {
 </template>
 
 <style scoped>
-/* --- Content Wrapper & Box --- */
+.app-layout {
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.main-container {
+  flex: 1;
+  min-width: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
 .content-wrapper {
+  flex: 1;
   min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 0 16px 16px 16px;
   overflow: hidden;
 }
 
 .content-scroll {
-  background-color: var(--color-white);
+  flex: 1;
+  background-color: var(--color-white, #ffffff);
   border-radius: 25px;
   overflow-y: auto;
   overflow-x: hidden;
-  height: 100%;
+  padding: 24px;
 }
 
 @media (max-width: 767.98px) {
+  .content-wrapper {
+    padding: 0 12px 12px 12px;
+  }
   .content-scroll {
-    border-radius: 24px;
+    border-radius: 20px;
+    padding: 16px;
   }
 }
 </style>
