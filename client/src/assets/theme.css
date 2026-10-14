@@ -1,3 +1,4 @@
+/* TEXT STYLES */
 @font-face {
   font-family: 'HeaderFont';
   src: url('./fonts/MrMamoulianBlather.ttf') format('truetype');
@@ -8,6 +9,13 @@
   src: url('./fonts/ProvidenceSansRegular.ttf') format('truetype');
 }
 
+.header-style {
+  text-transform: uppercase;
+  font-weight: 600;
+  padding-top: 7px;
+}
+
+/* COLOR PALETTE */
 :root {
   --color-black: #0a1d2b;
   --color-white: #f1f2f7;
@@ -22,6 +30,8 @@
   --color-purple: #e781ff;
 }
 
+
+/* COLOR THEMES */
 .theme-light {
   --bg: var(--color-white);
   --text: var(--color-black);
@@ -70,8 +80,5 @@
   --text: var(--color-black);
 }
 
-.header-style {
-  text-transform: uppercase;
-  font-weight: 600;
-  padding-top: 7px;
-}
+
+

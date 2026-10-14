@@ -28,7 +28,7 @@ const isCollapsed = ref(false)
             </div>
 
             <button class="toggle-btn hamburger d-none d-md-flex" @click="isCollapsed = !isCollapsed">
-                {{ isCollapsed ? '☰' : '✕' }}
+                {{ isCollapsed ? '☰' : 'X' }}
             </button>
 
             <button class="toggle-btn d-md-none" @click="emit('close')">
@@ -164,7 +164,8 @@ aside {
 .hamburger {
     width: 36px;
     height: 36px;
-    padding: 0;
+    padding-top: 6px;
+    font-size: 20px;
 }
 
 .toggle-btn:hover {
@@ -316,6 +317,7 @@ aside {
     font-weight: 700;
     font-size: 13px;
     flex-shrink: 0;
+    padding-top: 6px;
 }
 
 .user-info {

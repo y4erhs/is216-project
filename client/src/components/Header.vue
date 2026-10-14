@@ -213,6 +213,7 @@ const mobileDate = computed(() => {
     color: #4338ca;
     font-weight: 700;
     font-size: 12px;
+    padding-top: 3px;
 }
 
 /* --- Mobile Responsiveness --- */
