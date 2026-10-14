@@ -4,11 +4,14 @@
     import BaseButton from '../components/BaseButton.vue';
 
 
-    // for GET requests (to get all entries/specific entry)
+    const props = defineProps({
+        showAll: { type: Boolean, default: false }
+    })
+    const emit = defineEmits(['select', 'interests-updated', 'interests-loaded'])
     const interests = ref([]) 
     //RMB TO CHANGE AFT LOGIN AND SIGN UP IS DONE
     const userId = '6acd9e65046b9013f579fc79'
-    const selected = ref('for-you')
+    const selected = ref(props.showAll ? 'all' : 'for-you')
     const allInterests = ref([])
     const hidden = ref(false)
     const selectedInterests = ref([])
@@ -23,6 +26,7 @@
             console.log(response.data)
 
             interests.value = response.data
+            emit('interests-loaded', response.data)
         } catch(error) {
             console.log(error.message)
         }
@@ -31,6 +35,7 @@
     onMounted(loadPreferences)
 
     async function loadAllInterests (){
+        selectedInterests.value = [...interests.value]
         hidden.value = true
         let url = "http://localhost:8000/api/events/"
 
@@ -68,6 +73,13 @@
 
         loadPreferences()
         hidden.value = false
+        selectChip(props.showAll ? 'all' : 'for-you')
+        emit('interests-updated')
+    }
+
+    function selectChip (value) {
+        selected.value = value
+        emit('select', value)
     }
 </script>
 
@@ -75,16 +87,20 @@
     <div class="d-flex align-items-center flex-wrap gap-2">
     <span class="text-muted me-1">Your interests</span>
 
-    <BaseButton class="btn btn-sm rounded-pill" v-bind:class="selected == 'for-you' ? 'btn-primary' : 'btn-outline-secondary'" v-on:click="selected = 'for-you'">
-      For you
+    <BaseButton v-if="showAll" class="btn btn-sm rounded-pill" v-bind:class="selected == 'all' ? 'btn-primary' : 'btn-outline-secondary'" v-on:click="selectChip('all')">
+        All
     </BaseButton>
 
-    <BaseButton v-for="interest in interests" v-bind:key="interest" class="btn btn-sm rounded-pill" v-bind:class="selected == interest ? 'btn-primary' : 'btn-outline-secondary'" v-on:click="selected = interest">
-      {{ interest }}
+    <BaseButton class="btn btn-sm rounded-pill" v-bind:class="selected == 'for-you' ? 'btn-primary' : 'btn-outline-secondary'" v-on:click="selectChip('for-you')">
+        For you
+    </BaseButton>
+
+    <BaseButton v-for="interest in interests" v-bind:key="interest" class="btn btn-sm rounded-pill" v-bind:class="selected == interest ? 'btn-primary' : 'btn-outline-secondary'" v-on:click="selectChip(interest)">
+        {{ interest }}
     </BaseButton>
 
     <BaseButton class="btn btn-sm btn-link text-decoration-none" v-on:click="loadAllInterests" v-if="hidden == false">
-      + Edit interests
+        + Edit interests
     </BaseButton>
 
     <div v-else>
