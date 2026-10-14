@@ -11,10 +11,38 @@ exports.createEvent = async (req, res) => {
     }
 };
 
-// READ all events
+
+// READ all events, with optional search:
 exports.getEvents = async (req, res) => {
     try {
-        const events = await Event.find().sort({ createdAt: -1 });
+        const { q, tags, from, to } = req.query;
+        const filter = {};
+
+        //For search in smart recommendations feature
+        // Keyword: match title, description, organiser or venue
+        if (q) {
+            const safe = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const regex = new RegExp(safe, 'i');
+            filter.$or = [
+                { title: regex },
+                { description: regex },
+                { organiser: regex },
+                { venue: regex }
+            ];
+        }
+        // Category: event has at least one of these tags
+        if (tags) {
+            filter.tags = { $in: tags.split(',') };
+        }
+        // Date: at least one session starts within the range (Singapore time)
+        if (from || to) {
+            const startTime = {};
+            if (from) startTime.$gte = new Date(from + 'T00:00:00+08:00');
+            if (to) startTime.$lte = new Date(to + 'T23:59:59+08:00');
+            filter.sessions = { $elemMatch: { startTime } };
+        }
+
+        const events = await Event.find(filter).sort({ 'sessions.startTime': 1 });
 
         return res.status(200).json(events);
     } catch (err) {

@@ -12,6 +12,15 @@ import BaseButton from '../components/BaseButton.vue';
     const recommendations = ref([])
     const feedType = ref('weekly')
     const loading = ref(false)
+    const updating = ref(false)
+
+    const selectedChip = ref('for-you')
+    const filteredRecommendations = computed(() => {
+        if (selectedChip.value == 'for-you') {
+            return recommendations.value
+        }
+        return recommendations.value.filter(r => r.event.tags.includes(selectedChip.value))
+    })
 
     async function loadRecommendations() {
         loading.value = true
@@ -43,11 +52,27 @@ import BaseButton from '../components/BaseButton.vue';
     function toggleStatus(event) {}
 
     onMounted(loadRecommendations)
+
+    async function regenerateRecommendations() {
+        updating.value = true
+        try {
+            await axios.post("http://localhost:8000/api/recommendations/generate", {
+                userId: userId,
+                feedType: feedType.value
+            })
+
+            let url = "http://localhost:8000/api/recommendations/user/" + userId + "?feedType=" + feedType.value
+            let response = await axios.get(url)
+            recommendations.value = response.data
+        } catch (error) {
+            console.log('There was an error: ' + error.message)
+        }
+        updating.value = false
+    }
 </script>
 
 <template>
-    <InterestChips />
-
+    <InterestChips v-on:select="selectedChip = $event" v-on:interests-updated="regenerateRecommendations"/>
     <div class="d-flex justify-content-between align-items-center mt-4 mb-3">
         <h5 class="mb-0 text-dark">Picked for your {{ feedType === 'daily' ? 'day' : 'week' }}</h5>
         <div>
@@ -60,14 +85,18 @@ import BaseButton from '../components/BaseButton.vue';
         </div>
     </div>
 
+    <p v-if="updating" class="small text-muted mb-2">
+        ✨ Updating your picks...
+    </p>
+
     <p v-if="loading" class="text-muted">Finding events for you...</p>
 
     <p v-else-if="recommendations.length === 0" class="text-muted">
         No recommendations right now. Check back soon!
     </p>
 
-    <div v-else class="row g-3">
-        <div class="col-md-6" v-for="rec in recommendations" v-bind:key="rec._id">
+    <div v-else class="row g-3" v-bind:style="updating ? 'opacity: 0.5' : ''">
+        <div class="col-md-6" v-for="rec in filteredRecommendations" v-bind:key="rec._id">
             <RecommendationCards 
                 v-bind:recommendation="rec" 
                 v-bind:status="plannerStatus[rec.event._id] || ''"
