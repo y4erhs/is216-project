@@ -109,7 +109,7 @@ aside {
     width: 220px;
     height: calc(100vh - 30px);
     padding: 16px 12px;
-    background-color: var(--color-white);
+    background-color: var(--color-white, #ffffff);
     color: #0a1d2b;
     display: flex;
     flex-direction: column;
@@ -122,25 +122,6 @@ aside {
     overflow-x: hidden;
     overflow-y: auto;
     position: relative;
-}
-
-aside.collapsed {
-    width: 66px;
-    padding: 16px 8px;
-    align-items: center;
-}
-
-aside.collapsed .header {
-    justify-content: center;
-    width: 100%;
-    margin-bottom: 20px;
-    padding: 0 !important;
-}
-
-aside.collapsed .tab-pill,
-aside.collapsed .user-profile {
-    justify-content: center;
-    width: 100%;
 }
 
 .header {
@@ -183,7 +164,7 @@ aside.collapsed .user-profile {
 .hamburger {
     width: 36px;
     height: 36px;
-    padding-top: 7px;
+    padding: 0;
 }
 
 .toggle-btn:hover {
@@ -212,9 +193,10 @@ aside.collapsed .user-profile {
     text-decoration: none;
     color: #0a1d2b;
     font-weight: 600;
-    transition: transform 0.15s ease;
+    transition: transform 0.15s ease, background-color 0.2s ease;
     position: relative;
     border-radius: 10px;
+    width: 100%;
 }
 
 .tab-pill:hover {
@@ -350,6 +332,36 @@ aside.collapsed .user-profile {
 .user-desc {
     font-size: 11px;
     color: #64748b;
+}
+
+aside.collapsed {
+    width: 66px !important;
+    padding: 16px 8px;
+    align-items: center;
+}
+
+aside.collapsed .header {
+    justify-content: center !important;
+    margin-bottom: 20px;
+    padding: 0 !important;
+}
+
+aside.collapsed .menu {
+    align-items: center;
+}
+
+aside.collapsed .tab-pill {
+    justify-content: center !important;
+    width: 42px;
+}
+
+aside.collapsed .tab-pill:hover {
+    transform: none;
+}
+
+aside.collapsed .user-profile {
+    justify-content: center !important;
+    width: 100%;
 }
 
 @media (max-width: 767.98px) {

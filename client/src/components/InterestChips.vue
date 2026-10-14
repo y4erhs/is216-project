@@ -87,29 +87,15 @@
     <div class="d-flex align-items-center flex-wrap gap-2">
     <span class="text-muted me-1">Your interests</span>
 
-<<<<<<< HEAD
-    <BaseButton class="btn btn-sm " v-bind:class="selected == 'for-you' ? 'btn-primary' : 'btn-outline-secondary'" v-on:click="selected = 'for-you'">
+    <BaseButton v-bind:class="selected == 'for-you' ? 'btn-custom' : 'btn-outline-main'" v-on:click="selected = 'for-you'">
       For you
     </BaseButton>
 
     <BaseButton v-for="interest in interests" v-bind:key="interest" class="btn btn-sm " v-bind:class="selected == interest ? 'btn-primary' : 'btn-outline-secondary'" v-on:click="selected = interest">
       {{ interest }}
-      </BaseButton>
-=======
-    <BaseButton v-if="showAll" class="btn btn-sm rounded-pill" v-bind:class="selected == 'all' ? 'btn-primary' : 'btn-outline-secondary'" v-on:click="selectChip('all')">
-        All
     </BaseButton>
 
-    <BaseButton class="btn btn-sm rounded-pill" v-bind:class="selected == 'for-you' ? 'btn-primary' : 'btn-outline-secondary'" v-on:click="selectChip('for-you')">
-        For you
-    </BaseButton>
-
-    <BaseButton v-for="interest in interests" v-bind:key="interest" class="btn btn-sm rounded-pill" v-bind:class="selected == interest ? 'btn-primary' : 'btn-outline-secondary'" v-on:click="selectChip(interest)">
-        {{ interest }}
->>>>>>> a9c3bf6883e7595faf32bc6e77b4913b296ff4a7
-    </BaseButton>
-
-    <BaseButton class="btn btn-sm btn-link text-decoration-none" v-on:click="loadAllInterests" v-if="hidden == false">
+    <BaseButton class="btn-link text-decoration-none" v-on:click="loadAllInterests" v-if="hidden == false">
         + Edit interests
     </BaseButton>
 
