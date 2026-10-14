@@ -3,6 +3,8 @@ import { ref } from 'vue'
 import '../assets/theme.css'
 
 import BaseButton from '../components/BaseButton.vue';
+import BaseInput from '../components/BaseInput.vue';
+
 
 </script>
 
@@ -11,9 +13,7 @@ import BaseButton from '../components/BaseButton.vue';
     <h1>User Profile</h1>
   </div>
 
-  <BaseButton class="theme-green"/>
 
-  <BaseButton class="theme-red"/>
 
 </template>
 
