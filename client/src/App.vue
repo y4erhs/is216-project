@@ -28,7 +28,7 @@ function closeMobileNav() {
       <Header @toggle-menu="toggleMobileNav" />
 
       <!-- Content Wrapper -->
-      <div class="content-wrapper flex-grow-1 d-flex flex-column px-3 pb-3 p-md-4">
+      <div class="content-wrapper flex-grow-1 d-flex flex-column px-3 pb-3 p-md-3">
         <!-- Content Box -->
         <div class="content-scroll flex-grow-1 p-3 p-md-4">
           <router-view />

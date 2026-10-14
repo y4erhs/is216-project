@@ -37,7 +37,7 @@ const mobileDate = computed(() => {
 </script>
 
 <template>
-    <header class="topbar-container d-flex justify-content-between align-items-center px-3 px-md-4 pt-3 pb-2 gap-2">
+    <header class="topbar-container d-flex justify-content-between align-items-center px-3 px-md-3 pt-3 pb-2 gap-2">
 
         <!-- Mobile Hamburger Toggle (only visible on mobile) -->
         <button class="btn-hamburger d-md-none" type="button" @click="emit('toggle-menu')">
@@ -98,7 +98,7 @@ const mobileDate = computed(() => {
 .btn-hamburger {
     width: 40px;
     height: 40px;
-    border-radius: 50%;
+    border-radius: 10px;
     border: none;
     background-color: var(--color-white);
     color: var(--color-black);
@@ -116,7 +116,7 @@ const mobileDate = computed(() => {
     min-width: 0;
     height: 40px;
     background-color: var(--color-white);
-    border-radius: 9999px;
+    border-radius: 15px;
     box-shadow: 0 4px 15px rgba(10, 29, 43, 0.04);
     flex-shrink: 1;
     transition: all 0.2s ease;
@@ -155,20 +155,11 @@ const mobileDate = computed(() => {
     font-size: 13px;
 }
 
-.shortcut-badge {
-    font-size: 11px;
-    color: rgba(255, 255, 255, 0.6);
-    background-color: rgba(255, 255, 255, 0.12);
-    padding: 2px 6px;
-    border-radius: 6px;
-    white-space: nowrap;
-}
-
 /* --- Base Pill Badge --- */
 .pill-badge {
     height: 40px;
     background-color: var(--color-dark-blue);
-    border-radius: 9999px;
+    border-radius: 15px;
     display: flex;
     align-items: center;
     justify-content: center;

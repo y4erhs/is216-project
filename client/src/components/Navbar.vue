@@ -7,7 +7,6 @@ import 'bootstrap/dist/js/bootstrap.bundle.min.js'
 
 import logo from '@/assets/logo.png'
 
-// --- Props & Emits ---
 defineProps({
     isOpen: {
         type: Boolean,
@@ -17,14 +16,12 @@ defineProps({
 
 const emit = defineEmits(['close'])
 
-// --- State ---
 const isCollapsed = ref(false)
 </script>
 
 <template>
     <aside :class="{ 'collapsed': isCollapsed, 'mobile-open': isOpen }">
 
-        <!-- Header & Toggle -->
         <div class="header px-2">
             <div v-if="!isCollapsed" class="logo-section d-flex align-items-center gap-2">
                 <img :src="logo" class="logo" style="height: 50px;" />
@@ -39,13 +36,11 @@ const isCollapsed = ref(false)
             </button>
         </div>
 
-        <!-- Campus Info -->
         <div v-if="!isCollapsed" class="campus px-2">
             <p class="your-campus header-style m-0">YOUR CAMPUS</p>
             <p class="mb-0 header-style">Singapore Management University</p>
         </div>
 
-        <!-- Navigation Menu -->
         <div class="menu" @click="emit('close')">
             <RouterLink to="/" class="tab-pill theme-light-blue" :title="isCollapsed ? 'Discover' : ''">
                 <div class="pill-icon">
@@ -98,7 +93,6 @@ const isCollapsed = ref(false)
             </RouterLink>
         </div>
 
-        <!-- User Profile Footer -->
         <div class="user-profile mt-auto pt-3 border-top">
             <div class="avatar-badge">PH</div>
             <div v-if="!isCollapsed" class="user-info">
@@ -111,41 +105,52 @@ const isCollapsed = ref(false)
 </template>
 
 <style scoped>
-/* --- Sidebar Base --- */
 aside {
     width: 250px;
-    min-height: 100vh;
-    padding: 12px;
+    height: calc(100vh - 30px);
+    padding: 16px 12px;
     background-color: #f1f2f7;
     color: #0a1d2b;
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
     font-size: 13px;
-    transition: width 0.25s ease, transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 1050;
+    margin: 15px 0 15px 15px;
+    border-radius: 25px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    position: relative;
 }
 
 aside.collapsed {
-    width: 75px;
-    padding: 12px 8px;
+    width: 66px;
+    padding: 16px 8px;
     align-items: center;
 }
 
-aside.collapsed .header,
+aside.collapsed .header {
+    justify-content: center;
+    width: 100%;
+    margin-bottom: 20px;
+    padding: 0 !important;
+}
+
 aside.collapsed .tab-pill,
 aside.collapsed .user-profile {
     justify-content: center;
     width: 100%;
 }
 
-/* --- Header Section --- */
 .header {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     justify-content: space-between;
     margin-bottom: 20px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .logo-section {
@@ -164,26 +169,27 @@ aside.collapsed .user-profile {
 .toggle-btn {
     background: transparent;
     border: none;
-    font-size: 14px;
+    font-size: 16px;
     cursor: pointer;
-    padding: 4px 6px;
-    border-radius: 6px;
+    border-radius: 8px;
     color: #0a1d2b;
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: background-color 0.2s ease;
+    flex-shrink: 0;
 }
 
 .hamburger {
-    font-size: 20px;
-    width: 42px;
+    width: 36px;
+    height: 36px;
+    padding-top: 7px;
 }
 
 .toggle-btn:hover {
     background-color: #dee4f4;
 }
 
-/* --- Campus Info --- */
 .campus {
     margin-bottom: 16px;
 }
@@ -193,7 +199,6 @@ aside.collapsed .user-profile {
     font-size: x-small;
 }
 
-/* --- Menu Links --- */
 .menu {
     display: flex;
     flex-direction: column;
@@ -209,6 +214,7 @@ aside.collapsed .user-profile {
     font-weight: 600;
     transition: transform 0.15s ease;
     position: relative;
+    border-radius: 10px;
 }
 
 .tab-pill:hover {
@@ -292,7 +298,6 @@ aside.collapsed .user-profile {
     font-size: 13px;
 }
 
-/* --- Active State --- */
 .tab-pill.router-link-active .pill-icon,
 .tab-pill.router-link-active .pill-neck,
 .tab-pill.router-link-active .pill-label {
@@ -311,28 +316,6 @@ aside.collapsed .user-profile {
     color: var(--text, #0a1d2b) !important;
 }
 
-/* --- Theme Modifiers --- */
-.theme-green {
-    --bg: var(--color-green, #d6fe5f);
-    --text: var(--color-black, #0a1d2b);
-}
-
-.theme-orange {
-    --bg: var(--color-orange, #ff7c50);
-    --text: var(--color-black, #0a1d2b);
-}
-
-.theme-blue {
-    --bg: var(--color-blue, #4c74fa);
-    --text: var(--color-white, #f1f2f7);
-}
-
-.theme-red {
-    --bg: var(--color-red, #e83224);
-    --text: var(--color-white, #f1f2f7);
-}
-
-/* --- User Profile --- */
 .user-profile {
     display: flex;
     align-items: center;
@@ -369,16 +352,20 @@ aside.collapsed .user-profile {
     color: #64748b;
 }
 
-/* --- Mobile Responsiveness --- */
 @media (max-width: 767.98px) {
     aside {
         position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw !important;
-        height: 100vh;
+        top: 12px;
+        left: 12px;
+        bottom: 12px;
+        width: calc(100vw - 24px) !important;
+        height: calc(100vh - 24px) !important;
+        margin: 0 !important;
         padding: 20px 16px;
-        transform: translateX(-100%);
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        transform: translateX(calc(-100% - 20px));
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     aside.mobile-open {
