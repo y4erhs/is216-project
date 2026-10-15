@@ -13,3 +13,41 @@ body {
 *:not(i):not([class*="bi-"]) {
   font-family: 'TextFont', sans-serif;
 }
+
+* {
+  scrollbar-width: thin;
+  /* scrollbar-color: var(--folder-bg, var(--color-dark-blue)) transparent; */
+  scrollbar-color: rgba(44, 44, 146, 0.5) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 12px;   /* tebal vertical scrollbar */
+  height: 6px;  /* tebal horizontal scrollbar */
+}
+
+/* HILANGIN PANAH KECIL DI ATAS & BAWAH / KIRI & KANAN */
+::-webkit-scrollbar-button {
+  display: block;
+  background-color: transparent; /* atau kasih warna background box, misal: rgba(0,0,0,0.1) */
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 6px 6px;
+  width: 10px;
+  height: 10px;
+}
+
+/* background track invisible */
+::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 0 16px;
+}
+
+/* garis pill thumb floating */
+::-webkit-scrollbar-thumb {
+  background-color: var(--folder-bg, var(--color-blue));
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  filter: brightness(0.85);
+}
