@@ -110,3 +110,48 @@
 ```
 
 
+## 5. `FolderTabs.vue`
+
+`src/components/FolderTabs.vue`
+
+| Prop / Event | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `tabs` | `Array` | *required* | Array of tab objects: `[{ id, label, theme }]` |
+| `defaultActive` | `String` | `''` | Initial active tab `id` (defaults to first item) |
+| `@tab-change` | `Event` | — | Emitted with new `tabId` when active tab changes |
+| `#[tab.id]` | `Slot` | — | Named slot for tab-specific body content |
+
+### Examples
+```html
+<!-- Basic Usage with Array -->
+<script setup>
+const categories = [
+  { id: 'cultural', label: 'CULTURAL CLUBS', theme: 'theme-green' },
+  { id: 'workshops', label: 'WORKSHOPS', theme: 'theme-orange' },
+  { id: 'career', label: 'CAREER', theme: 'theme-purple' }
+]
+</script>
+
+<template>
+  <!-- Multi-tab Folder with Named Slots -->
+  <FolderTabs :tabs="categories" defaultActive="cultural">
+    <template #cultural>
+      <div class="cards-list">
+        <!-- Cultural event cards -->
+      </div>
+    </template>
+
+    <template #workshops>
+      <div class="cards-list">
+        <!-- Workshops event cards -->
+      </div>
+    </template>
+
+    <template #career>
+      <div class="cards-list">
+        <!-- Career event cards -->
+      </div>
+    </template>
+  </FolderTabs>
+</template>
+```
