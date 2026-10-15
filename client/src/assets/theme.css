@@ -19,7 +19,8 @@
 :root {
   --color-black: #0a1d2b;
   --color-white: #f1f2f7;
-  --color-grey: #d1dbec;;
+  --color-grey: #d1dbec;
+  --color-dark-grey: #6b7b96;
   --color-red: #e63c25;
   --color-dark-red: #912222;
   --color-orange: #ff7b4f;
@@ -37,11 +38,7 @@
 /* COLOR THEMES */
 .theme-light {
   --bg: var(--color-white);
-  --text: var(--color-black);
-}
-
-.theme-light-secondary {
-  --bg: var(--color-off-white);
+  --bg-dark: var(--color-grey);
   --text: var(--color-black);
 }
 
@@ -52,16 +49,19 @@
 
 .theme-green {
   --bg: var(--color-green);
-  --text: var(--color-black);
+  --bg-dark: var(--color-dark-green);
+  --text: var(--color-dark-green);
 }
 
 .theme-orange {
   --bg: var(--color-orange);
-  --text: var(--color-black);
+  --bg-dark: var(--color-dark-orange);
+  --text: var(--color-dark-orange);
 }
 
 .theme-blue {
   --bg: var(--color-blue);
+  --bg-dark: var(--color-dark-blue);
   --text: var(--color-white);
 
   background-color: var(--color-blue);
@@ -70,17 +70,20 @@
 
 .theme-grey {
   --bg: var(--color-grey);
+  --bg-dark: var(--color-dark-grey);
   --text: var(--color-black);
 }
 
 .theme-red {
   --bg: var(--color-red);
+  --bg-dark: var(--color-dark-red);
   --text: var(--color-white);
 }
 
 .theme-purple {
   --bg: var(--color-purple);
-  --text: var(--color-black);
+  --bg-dark: var(--color-dark-purple);
+  --text: var(--color-dark-purple);
 }
 
 
