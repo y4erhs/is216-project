@@ -1,5 +1,5 @@
 const mongoose = require('mongoose')
-
+const User = require('./user')
 const eventSchema = new mongoose.Schema({
     title: {
         type: String,
@@ -55,6 +55,10 @@ const eventSchema = new mongoose.Schema({
         type: String,
         default: ''
     },
+    attendees: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    }]
 },
 {timestamps: true})
 
