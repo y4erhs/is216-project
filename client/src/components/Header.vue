@@ -148,12 +148,14 @@ const mobileDate = computed(() => {
     font-size: 13px;
     color: var(--color-black);
     padding-top: 6px;
+    font-weight: 600;
 }
 
 .search-input::placeholder {
     color: var(--color-black);
     opacity: 60%;
     font-size: 13px;
+    font-weight: 600;
 }
 
 /* --- Base Pill Badge --- */
@@ -173,7 +175,6 @@ const mobileDate = computed(() => {
     flex-shrink: 0;
     padding: 8px 16px;
     font-size: 13px;
-    font-weight: 500;
     color: var(--color-white, #ffffff);
 }
 
