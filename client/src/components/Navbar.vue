@@ -88,7 +88,7 @@ const isCollapsed = ref(false)
                 </div>
                 <span v-if="!isCollapsed" class="pill-neck"></span>
                 <div v-if="!isCollapsed" class="pill-label">
-                    <span class="header-style">Profile & Alerts</span>
+                    <span class="header-style">Profile & Settings</span>
                 </div>
             </RouterLink>
         </div>
