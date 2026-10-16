@@ -12,7 +12,8 @@ const cors = require("cors");
 const recommendationRoutes = require('./src/routes/recommendationRoutes');
 const eventRoutes = require('./src/routes/eventRoutes');
 const userRoutes = require('./src/routes/userRoutes');
-
+const friendsRoutes = require('./src/routes/friendsRoutes');
+const lobbyRoutes = require('./src/routes/lobbyRoutes');
 
 const server = express();
 
@@ -44,6 +45,8 @@ server.set("view engine", "ejs");
 server.use('/api/recommendations', recommendationRoutes);
 server.use('/api/users', userRoutes);
 server.use('/api/events', eventRoutes);
+server.use('/api/friends', friendsRoutes);
+server.use('/api/lobbies', lobbyRoutes);
 
 
 async function connectDB() {
