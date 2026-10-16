@@ -62,7 +62,7 @@ const isCollapsed = ref(false)
                 </div>
             </RouterLink>
 
-            <RouterLink to="/groups" class="tab-pill theme-grey" :title="isCollapsed ? 'Friends & Groups' : ''">
+            <RouterLink to="/lobby" class="tab-pill theme-grey" :title="isCollapsed ? 'Friends & Groups' : ''">
                 <div class="pill-icon">
                     <i class="bi bi-people fs-5"></i>
                 </div>

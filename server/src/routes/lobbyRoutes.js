@@ -1,0 +1,21 @@
+const express = require('express');
+const lobbyController = require('../controllers/lobbyController');
+const router = express.Router();
+
+router.post('/', lobbyController.createLobby);
+
+router.get('/:userId', lobbyController.getLobbyForUser);
+
+router.put('/invite', lobbyController.inviteUser);
+
+router.put('/accept', lobbyController.acceptInvite);
+
+router.put('/decline', lobbyController.declineInvite);
+
+router.post('/:lobbyId/signup', lobbyController.signUpLobbyForEvent);
+
+router.put('/remove', lobbyController.removeUser);
+
+router.delete('/:lobbyId', lobbyController.deleteLobby);
+
+module.exports = router;
