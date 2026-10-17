@@ -9,13 +9,35 @@ import Calendar from '@/views/Calendar.vue'
 import Lobby from '@/views/Lobby.vue'
 
 const routes = [
-  { path: '/', name: 'Home', component: Home },
-  { path: '/login', name: 'Login', component: Login },
-  { path: '/signup', name: 'Signup', component: Signup },
-  { path: '/profile', name: 'Profile', component: Profile },
-  { path: '/events', name: 'Events', component: Events },
-  { path: '/calendar', name: 'Calendar', component: Calendar },
-  { path: '/lobby', name: 'Lobby', component: Lobby },
+  { path: '/', 
+    name: 'Home', 
+    component: Home },
+
+  { path: '/login', 
+    name: 'Login', 
+    component: Login,
+    meta: {hideLayout: true } },
+
+  { path: '/signup', 
+    name: 'Signup', 
+    component: Signup,
+    meta: {hideLayout: true }},
+
+  { path: '/profile', 
+    name: 'Profile', 
+    component: Profile },
+
+  { path: '/events', 
+    name: 'Events', 
+    component: Events },
+
+  { path: '/calendar', 
+    name: 'Calendar', 
+    component: Calendar },
+
+  { path: '/lobby', 
+    name: 'Lobby', 
+    component: Lobby },
 ]
 
 const router = createRouter({

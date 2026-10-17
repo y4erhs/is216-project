@@ -11,7 +11,7 @@ import BaseButton from '../components/BaseButton.vue'
 <template>
 
     <div class="page-wrapper">
-        <div class="container my-5" style="max-width: 400px;">
+        <div class="container-fluid d-flex justify-content-end p-0">
             <div class="sign-in">
             <h1>Sign In</h1>
                 <form>
@@ -31,6 +31,8 @@ import BaseButton from '../components/BaseButton.vue'
 
 .page-wrapper {
     font-family: Arial, Helvetica, sans-serif;
+    background-color: #f1f2f7;
+    min-height: 100vh;
 }
 
 h1 {
@@ -49,9 +51,13 @@ input {
 }
 
 .sign-in {
-    background-color: #f1f2f7;
+    background-color: #496eec;
     padding: 40px;
     border-radius: 10px;
+    height: 830px;
+    width: 350px;
+    margin-right: 0;
+    
 }
 
 input::placeholder {

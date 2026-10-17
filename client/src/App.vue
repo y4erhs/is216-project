@@ -1,11 +1,13 @@
 <script setup>
 import { ref } from 'vue'
+import { useRoute } from 'vue-router'
 import Navbar from '@/components/Navbar.vue'
 import Header from '@/components/Header.vue'
 
 import '@/assets/theme.css'
 
 const isMobileNavOpen = ref(false)
+const route = useRoute()
 
 function toggleMobileNav() {
   isMobileNavOpen.value = !isMobileNavOpen.value
@@ -17,7 +19,8 @@ function closeMobileNav() {
 </script>
 
 <template>
-  <div class="app-layout">
+  <router-view v-if ="route.meta.hideLayout" class="standalone-page"/>
+  <div v-else class="app-layout">
     <Navbar :is-open="isMobileNavOpen" @close="closeMobileNav" />
 
     <main class="main-container theme-blue">
