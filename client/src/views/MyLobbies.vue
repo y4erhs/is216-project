@@ -213,7 +213,7 @@ function clear() {
 .name { font: 400 16px/1.15 'HeaderFont', sans-serif; letter-spacing: 0.03em; overflow-wrap: anywhere; }
 .tag { padding: 2px 8px; border-radius: 999px; background: var(--cream); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; flex: none; }
 .lobby.reply .tag { background: var(--tile); }
-.desc { display: -webkit-box !important; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.4; min-height: 2.8em; }
+.desc { display: -webkit-box !important; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.4; min-height: 2.8em; }
 .events { display: flex !important; flex-wrap: wrap; gap: 6px; }
 .event-chip { padding: 4px 10px; border-radius: 999px; background: #fff; font-weight: 700; letter-spacing: 0.04em; }
 .event-chip.done { background: var(--lime); }

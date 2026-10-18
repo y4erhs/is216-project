@@ -142,7 +142,7 @@ function submit() {
 .top { display: flex !important; align-items: center; justify-content: space-between; gap: 8px; }
 .name { font: 400 16px/1.15 'HeaderFont', sans-serif; letter-spacing: 0.03em; overflow-wrap: anywhere; }
 .tag { padding: 2px 8px; border-radius: 999px; background: var(--cream); letter-spacing: 0.08em; text-transform: uppercase; flex: none; }
-.desc { display: -webkit-box !important; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.4; }
+.desc { display: -webkit-box !important; -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.4; }
 .event-chip { width: fit-content; padding: 4px 10px; border-radius: 999px; box-shadow: inset 0 0 0 2px rgba(31, 42, 68, 0.3); }
 .meta { padding-top: 8px; border-top: 2px dashed rgba(31, 42, 68, 0.25); }
 
