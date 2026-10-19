@@ -7,6 +7,7 @@ import Profile from '@/views/Profile.vue'
 import Events from '@/views/Events.vue'
 import Calendar from '@/views/Calendar.vue'
 import LobbyHub from '@/views/LobbyHub.vue'
+import tracking from '@/views/ActivityTracking.vue'
 
 const routes = [
   { path: '/', 
@@ -38,6 +39,11 @@ const routes = [
   { path: '/lobby', 
     name: 'Lobby', 
     component: LobbyHub },
+
+
+  { path: '/activity-tracking',
+    name: "Activty Tracking",
+    component: tracking }
 ]
 
 const router = createRouter({
