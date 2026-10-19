@@ -46,8 +46,6 @@ defineEmits(['click'])
   cursor: pointer;
   transition: all 0.2s ease-in-out;
   outline: none;
-  min-height: 40px;
-
   background-color: var(--bg);
   color: var(--text);
 }

@@ -39,13 +39,12 @@ const gradOptions = ['2027', '2028', '2029', '2030']
       <BaseButton class="save-btn">SAVE CHANGES</BaseButton>
     </div>
 
-    <!-- MAIN RESPONSIVE GRID -->
+    <!-- MAIN GRID -->
     <div class="profile-grid">
 
-      <!-- PROFILE CARD -->
+      <!-- PROFILE -->
       <div class="left-column">
 
-        <!-- 1. PROFILE CARD -->
         <div class="profile-card">
           <div class="profile-header-visual">
             <div class="profile-banner"></div>
@@ -101,7 +100,7 @@ const gradOptions = ['2027', '2028', '2029', '2030']
           </div>
         </div>
 
-        <!-- 2. CONNECT CALENDAR CARD -->
+        <!-- CONNECT CALENDAR -->
         <div class="calendar-card">
           <div class="calendar-header">
             <span class="calendar-title">Your connected calendar</span>
@@ -218,6 +217,12 @@ const gradOptions = ['2027', '2028', '2029', '2030']
 }
 
 @media (max-width: 991px) {
+  .profile-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 767px) {
   .profile-grid {
     grid-template-columns: 1fr;
   }

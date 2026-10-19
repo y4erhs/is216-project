@@ -11,6 +11,8 @@
 ---
 
 ## 1. `theme.css` Styles
+MUST IMPORT FIRST:  
+`import '../assets/theme.css'`
 
 ### In `<style>`
 ```css
