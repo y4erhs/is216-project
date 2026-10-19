@@ -93,14 +93,6 @@ const isCollapsed = ref(false)
             </RouterLink>
         </div>
 
-        <div class="user-profile mt-auto pt-3 border-top">
-            <div class="avatar-badge">PH</div>
-            <div v-if="!isCollapsed" class="user-info">
-                <span class="user-name">Profile Here</span>
-                <span class="user-desc">Software Engineering · Y2</span>
-            </div>
-        </div>
-
     </aside>
 </template>
 
@@ -297,43 +289,6 @@ aside {
 
 .tab-pill.router-link-active {
     color: var(--text, #0a1d2b) !important;
-}
-
-.user-profile {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.avatar-badge {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background-color: #e0e7ff;
-    color: #4338ca;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    font-size: 13px;
-    flex-shrink: 0;
-    padding-top: 6px;
-}
-
-.user-info {
-    display: flex;
-    flex-direction: column;
-}
-
-.user-name {
-    font-size: 13px;
-    font-weight: 600;
-    color: #0f172a;
-}
-
-.user-desc {
-    font-size: 11px;
-    color: #64748b;
 }
 
 aside.collapsed {
