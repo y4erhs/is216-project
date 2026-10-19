@@ -6,7 +6,7 @@ import Signup from '@/views/Signup.vue'
 import Profile from '@/views/Profile.vue'
 import Events from '@/views/Events.vue'
 import Calendar from '@/views/Calendar.vue'
-import Lobby from '@/views/Lobby.vue'
+import LobbyHub from '@/views/LobbyHub.vue'
 
 const routes = [
   { path: '/', 
@@ -37,7 +37,7 @@ const routes = [
 
   { path: '/lobby', 
     name: 'Lobby', 
-    component: Lobby },
+    component: LobbyHub },
 ]
 
 const router = createRouter({
