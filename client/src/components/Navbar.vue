@@ -90,20 +90,6 @@ const isCollapsed = ref(false);
       </RouterLink>
 
       <RouterLink
-        to="/events"
-        class="tab-pill theme-grey"
-        :title="isCollapsed ? 'My Activity' : ''"
-      >
-        <div class="pill-icon">
-          <i class="bi bi-lightning fs-5"></i>
-        </div>
-        <span v-if="!isCollapsed" class="pill-neck"></span>
-        <div v-if="!isCollapsed" class="pill-label">
-          <span class="header-style">My Activity</span>
-        </div>
-      </RouterLink>
-
-      <RouterLink
         to="/activity-tracking"
         class="tab-pill theme-grey"
         :title="isCollapsed ? 'Activity Tracking' : ''"

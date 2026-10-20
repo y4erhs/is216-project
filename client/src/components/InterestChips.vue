@@ -1,5 +1,5 @@
 <script setup>
-    import {ref, computed, onMounted} from 'vue'
+    import {ref, onMounted} from 'vue'
     import axios from 'axios'
     import BaseButton from '../components/BaseButton.vue';
 
@@ -7,14 +7,11 @@
     const props = defineProps({
         showAll: { type: Boolean, default: false }
     })
-    const emit = defineEmits(['select', 'interests-updated', 'interests-loaded'])
+    const emit = defineEmits(['select', 'interests-loaded'])
     const interests = ref([]) 
     //RMB TO CHANGE AFT LOGIN AND SIGN UP IS DONE
     const userId = '6acd9e65046b9013f579fc79'
     const selected = ref(props.showAll ? 'all' : 'for-you')
-    const allInterests = ref([])
-    const hidden = ref(false)
-    const selectedInterests = ref([])
 
 
     async function loadPreferences () {
@@ -34,48 +31,6 @@
 
     onMounted(loadPreferences)
 
-    async function loadAllInterests (){
-        selectedInterests.value = [...interests.value]
-        hidden.value = true
-        let url = "http://localhost:8000/api/events/"
-
-        try {
-            let response = await axios.get(url, {})
-
-            console.log(response.data)
-
-            for (let element of response.data) {
-                for (let t of element.tags) {
-                    if (allInterests.value.includes(t) == false) {
-                        allInterests.value.push(t)
-                    }
-                }
-            }
-
-            console.log(allInterests.value)
-
-        } catch(error) {
-            console.log(error.message)
-        }
-    }
-
-    async function saveInterests () {
-        try {
-            let url = "http://localhost:8000/api/users/" + userId
-
-            const response = await axios.put(url, {
-                preferences:selectedInterests.value
-            })
-            console.log(response.data)
-        } catch (error) {
-            console.log('There was an error: ' + error.message)
-        }
-
-        loadPreferences()
-        hidden.value = false
-        selectChip(props.showAll ? 'all' : 'for-you')
-        emit('interests-updated')
-    }
 
     function selectChip (value) {
         selected.value = value
@@ -87,30 +42,25 @@
     <div class="d-flex align-items-center flex-wrap gap-2">
     <span class="text-muted me-1">Your interests</span>
 
-    <BaseButton v-bind:class="selected == 'for-you' ? 'btn-custom' : 'btn-outline-main'" v-on:click="selected = 'for-you'">
-      For you
+    <BaseButton v-if="showAll" v-bind:class="selected == 'all' ? 'btn-custom' : 'btn-outline-main'" v-on:click="selectChip('all')">
+    All
     </BaseButton>
 
-    <BaseButton v-for="interest in interests" v-bind:key="interest" class="btn btn-sm " v-bind:class="selected == interest ? 'btn-primary' : 'btn-outline-secondary'" v-on:click="selected = interest">
-      {{ interest }}
+    <BaseButton v-bind:class="selected == 'for-you' ? 'btn-custom' : 'btn-outline-main'" v-on:click="selectChip('for-you')">
+    For you
     </BaseButton>
 
-    <BaseButton class="btn-link text-decoration-none" v-on:click="loadAllInterests" v-if="hidden == false">
-        + Edit interests
+    <BaseButton v-for="interest in interests" v-bind:key="interest" v-bind:class="selected == interest ? 'btn-custom' : 'btn-outline-main'" v-on:click="selectChip(interest)">
+    {{ interest }}
     </BaseButton>
 
-    <div class="d-flex flex-wrap gap-2" v-else>
+    <router-link to="/profile" class="small" style="color: white;">+ Edit interests</router-link>
+
+    <div class="d-flex flex-wrap gap-2">
         <div class="form-check" v-for="interest in allInterests" :key="interest">
             <input class="form-check-input" type="checkbox" v-bind:id="interest" v-bind:value="interest" v-model="selectedInterests">
             <label class="form-check-label text-dark" v-bind:for="interest">{{ interest }}</label>
-        </div>
-
-        <BaseButton class="btn mt-2" v-on:click="saveInterests">
-            Save
-        </BaseButton>
-        <BaseButton class="btn btn-link mt-2" v-on:click="hidden = false">
-            Cancel
-        </BaseButton>        
+        </div>   
     </div>
   </div>
 </template>

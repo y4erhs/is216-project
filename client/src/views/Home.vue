@@ -1,26 +1,20 @@
 <script setup>
-    import {ref, onMounted, computed} from 'vue'
+    import {ref, onMounted} from 'vue'
     import axios from 'axios'
-    import InterestChips from '../components/InterestChips.vue'
-    import RecommendationCards from '../components/RecommendationCards.vue';
+    import EventCard from '../components/EventCard.vue';
     import BaseButton from '../components/BaseButton.vue';
+    import EventSearch from '../components/EventSearch.vue';
+    import { useActivities } from '../composables/useActivities';
+    const { activityMap, loadActivities, setInterested, setGoing } = useActivities();
 
-    //change after login and sign up done
+    // VVV IMP: change after login and sign up done
     const userId = '6acd9e65046b9013f579fc79'
-    const plannerStatus = ref({})
 
     const recommendations = ref([])
     const feedType = ref('weekly')
     const loading = ref(false)
     const updating = ref(false)
-
-    const selectedChip = ref('for-you')
-    const filteredRecommendations = computed(() => {
-        if (selectedChip.value == 'for-you') {
-            return recommendations.value
-        }
-        return recommendations.value.filter(r => r.event.tags.includes(selectedChip.value))
-    })
+    const isSearching = ref(false)
 
     async function loadRecommendations() {
         loading.value = true
@@ -48,10 +42,17 @@
         loadRecommendations()
     }
 
-    function hideRecommendation(id, lessLikeThis) {}
-    function toggleStatus(event) {}
 
-    onMounted(loadRecommendations)
+    onMounted(async () => {
+        loadActivities()
+        await loadRecommendations()
+
+        // Interests were edited since last time, so refresh the feed
+        if (localStorage.getItem('interestsChanged') === 'true') {
+            localStorage.removeItem('interestsChanged')
+            regenerateRecommendations()
+        }
+    })
 
     async function regenerateRecommendations() {
         updating.value = true
@@ -72,38 +73,43 @@
 </script>
 
 <template>
-    <InterestChips v-on:select="selectedChip = $event" v-on:interests-updated="regenerateRecommendations"/>
-    <div class="d-flex justify-content-between align-items-center mt-4 mb-3">
-        <h5 class="mb-0 text-dark">Picked for your {{ feedType === 'daily' ? 'day' : 'week' }}</h5>
-        <div>
-            <BaseButton class="btn btn-sm"
-                v-bind:class="feedType === 'daily' ? 'btn-custom' : 'btn-outline-main'"
-                v-on:click="switchFeed('daily')">Today</BaseButton>
-            <BaseButton class="btn btn-sm ms-1"
-                v-bind:class="feedType === 'weekly' ? 'btn-custom' : 'btn-outline-main'"
-                v-on:click="switchFeed('weekly')">This week</BaseButton>
+    <EventSearch v-on:search-active="isSearching = $event"/>
+    <div v-if="!isSearching">
+        <div class="d-flex justify-content-between align-items-center mt-4 mb-3">
+            <h5 class="mb-0 text-dark">Picked for your {{ feedType === 'daily' ? 'day' : 'week' }}</h5>
+            <div>
+                <BaseButton class="btn btn-sm"
+                    v-bind:class="feedType === 'daily' ? 'btn-custom' : 'btn-outline-main'"
+                    v-on:click="switchFeed('daily')">Today</BaseButton>
+                <BaseButton class="btn btn-sm ms-1"
+                    v-bind:class="feedType === 'weekly' ? 'btn-custom' : 'btn-outline-main'"
+                    v-on:click="switchFeed('weekly')">This week</BaseButton>
+            </div>
         </div>
-    </div>
 
-    <p v-if="updating" class="small text-muted mb-2">
-        ✨ Updating your picks...
-    </p>
+        <p v-if="updating" class="small text-muted mb-2">
+            ✨ Updating your picks...
+        </p>
 
-    <p v-if="loading" class="text-muted">Finding events for you...</p>
+        <p v-if="loading" class="text-muted">Finding events for you...</p>
 
-    <p v-else-if="recommendations.length === 0" class="text-muted">
-        No recommendations right now. Check back soon!
-    </p>
+        <p v-else-if="recommendations.length === 0" class="text-muted">
+            No recommendations right now. Check back soon!
+        </p>
 
-    <div v-else class="row g-3" v-bind:style="updating ? 'opacity: 0.5' : ''">
-        <div class="col-md-6" v-for="rec in filteredRecommendations" v-bind:key="rec._id">
-            <RecommendationCards 
-                v-bind:recommendation="rec" 
-                v-bind:status="plannerStatus[rec.event._id] || ''"
-                v-on:hide="hideRecommendation(rec._id, false)"
-                v-on:less-like-this="hideRecommendation(rec._id, true)"
-                v-on:toggle-status="toggleStatus(rec.event)"
-            />
+        <div v-else class="row g-3" v-bind:style="updating ? 'opacity: 0.5' : ''">
+            <div class="col-md-6" v-for="rec in recommendations" v-bind:key="rec._id">
+                <EventCard
+                    v-bind:event="rec.event"
+                    v-bind:score="rec.score"
+                    v-bind:reason="rec.reasons?.[0] || ''"
+                    show-hide
+                    :interested="activityMap[rec.event._id]?.interested || false"
+                    :going-by-session="activityMap[rec.event._id]?.sessions || {}"
+                    @set-interested="(v) => setInterested(rec.event._id, v)"
+                    @set-going="(p) => setGoing(rec.event._id, p)"
+                />
+            </div>
         </div>
     </div>
 </template>

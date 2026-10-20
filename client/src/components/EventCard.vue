@@ -7,7 +7,9 @@ const props = defineProps({
     event: { type: Object, required: true },
     interested: { type: Boolean, default: false },
     goingBySession: { type: Object, default: () => ({}) }, // { [startTimeMs]: 'attending' | 'attended' }
-    fromDate: { type: String, default: '' }                // 'YYYY-MM-DD', the search "from" date
+    fromDate: { type: String, default: '' },               // 'YYYY-MM-DD', the search "from" date
+    score: { type: Number, default: null },                // AI match %, recommendations only
+    reason: { type: String, default: '' },                 // AI reason, recommendations only
 })
 const emit = defineEmits(['set-interested', 'set-going'])
 
@@ -34,11 +36,13 @@ const shownSession = computed(() =>
 // status of the session currently shown
 const going = computed(() => props.goingBySession[sessionKey(shownSession.value)] ?? 'none')
 
-const hasStarted = computed(() => new Date(shownSession.value.startTime) <= new Date())
-const hasEnded   = computed(() => new Date(shownSession.value.endTime) < new Date())
-
+const hasEnded = computed(() => new Date(shownSession.value.endTime) < new Date())
 const attendingDisabled = computed(() => hasEnded.value && going.value !== 'attending')
-const attendedDisabled  = computed(() => !hasStarted.value && going.value !== 'attended')
+
+const seatsLeft = computed(() => {
+    if (props.event.slots == null) return null
+    return props.event.slots - (props.event.signUpCount || 0)
+})
 
 // clicking the active one again turns it off
 function toggleGoing(value) {
@@ -50,7 +54,16 @@ function toggleGoing(value) {
 </script>
 
 <template>
-    <div class="card h-100 shadow-sm rounded-4">
+    <div class="card h-100 shadow-sm rounded-4 overflow-hidden">
+        <!-- Image + match badge -->
+        <div class="position-relative">
+            <img v-if="event.image" :src="event.image" class="card-img-top" style="height: 160px; object-fit: cover;" :alt="event.title">
+            <div v-else class="bg-light" style="height: 160px;"></div>
+            <span v-if="score !== null" class="badge rounded-pill bg-success-subtle text-success position-absolute top-0 start-0 m-2">
+                {{ score }}% match
+            </span>
+        </div>
+
         <div class="card-body d-flex flex-column">
             <div class="d-flex justify-content-between small mb-2">
                 <span class="text-primary">{{ formatSession(shownSession) }}</span>
@@ -58,7 +71,12 @@ function toggleGoing(value) {
             </div>
 
             <h5 class="card-title mb-1 text-dark">{{ event.title }}</h5>
-            <p class="small text-muted mb-1">{{ event.organiser }} · {{ event.venue }}</p>
+            <p class="small text-muted mb-1">
+                {{ event.organiser }} · {{ event.venue }}
+                <span v-if="seatsLeft !== null"> · {{ seatsLeft }} seats left</span>
+            </p>
+
+            <p v-if="reason" class="small text-muted fst-italic mb-1">✨ {{ reason }}</p>
 
             <select
                 v-if="event.sessions.length > 1"
@@ -71,31 +89,29 @@ function toggleGoing(value) {
                 </option>
             </select>
 
-            <div class="d-flex flex-wrap gap-2 mt-auto pt-2">
-                <BaseButton
-                    :class="interested ? '' : 'btn-outline-main'"
-                    @click="emit('set-interested', !interested)"
-                >
-                    {{ interested ? '♥ Interested' : '♡ Interested' }}
-                </BaseButton>
+            <div class="d-flex justify-content-between align-items-center mt-auto pt-2">
+                <div class="d-flex gap-2">
+                    <!-- Heart = Interested -->
+                    <BaseButton
+                        class="rounded-circle"
+                        :class="interested ? '' : 'btn-outline-main'"
+                        title="Interested"
+                        @click="emit('set-interested', !interested)"
+                    >
+                        {{ interested ? '♥' : '♡' }}
+                    </BaseButton>
 
-                <BaseButton
-                    :class="going === 'attending' ? '' : 'btn-outline-main'"
-                    :disabled="attendingDisabled"
-                    :title="attendingDisabled ? 'This session has already ended' : ''"
-                    @click="toggleGoing('attending')"
-                >
-                    {{ going === 'attending' ? '✓ Attending' : '+ Attending' }}
-                </BaseButton>
-
-                <BaseButton
-                    :class="going === 'attended' ? '' : 'btn-outline-main'"
-                    :disabled="attendedDisabled"
-                    :title="attendedDisabled ? 'Available once this session starts' : ''"
-                    @click="toggleGoing('attended')"
-                >
-                    {{ going === 'attended' ? '★ Attended' : '☆ Attended' }}
-                </BaseButton>
+                    <!-- Plus = Attending -->
+                    <BaseButton
+                        class="rounded-circle"
+                        :class="going === 'attending' ? '' : 'btn-outline-main'"
+                        :disabled="attendingDisabled"
+                        :title="attendingDisabled ? 'This session has already ended' : 'Attending'"
+                        @click="toggleGoing('attending')"
+                    >
+                        {{ going === 'attending' ? '✓' : '+' }}
+                    </BaseButton>
+                </div>
             </div>
         </div>
     </div>

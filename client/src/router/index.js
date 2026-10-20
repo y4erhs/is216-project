@@ -4,7 +4,6 @@ import Home from '@/views/Home.vue'
 import Login from '@/views/Login.vue'
 import Signup from '@/views/Signup.vue'
 import Profile from '@/views/Profile.vue'
-import Events from '@/views/Events.vue'
 import Calendar from '@/views/Calendar.vue'
 import LobbyHub from '@/views/LobbyHub.vue'
 import tracking from '@/views/ActivityTracking.vue'
@@ -27,10 +26,6 @@ const routes = [
   { path: '/profile', 
     name: 'Profile', 
     component: Profile },
-
-  { path: '/events', 
-    name: 'Events', 
-    component: Events },
 
   { path: '/calendar', 
     name: 'Calendar', 
