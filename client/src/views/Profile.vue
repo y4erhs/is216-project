@@ -4,6 +4,7 @@ import '../assets/theme.css'
 
 import BaseButton from '../components/BaseButton.vue';
 import BaseInput from '../components/BaseInput.vue';
+import EditInterests from '../components/EditInterests.vue';
 
 const setting1Push = ref(true)
 const setting1Email = ref(true)
@@ -179,6 +180,10 @@ const gradOptions = ['2027', '2028', '2029', '2030']
               <span class="slider"></span>
             </label>
           </div>
+        </div>
+
+        <div class="settings-item-row">
+          <EditInterests />
         </div>
       </div>
 

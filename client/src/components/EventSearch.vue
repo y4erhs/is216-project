@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 import axios from 'axios'
 import InterestChips from './InterestChips.vue'
 import EventCard from './EventCard.vue'
@@ -16,14 +16,34 @@ const toDate = ref('')
 const categories = ref([])
 const results = ref([])
 const searching = ref(false)
-
-const props = defineProps({
-    chip: { type: String, default: 'for-you' },
-    interests: { type: Array, default: () => [] }
-})
+const hasSearched = ref(false)
 
 const selectedChip = ref('all')
 const myInterests = ref([])
+
+const emit = defineEmits(['search-active'])
+
+const userId = '6acd9e65046b9013f579fc79' // same as Home, until login is done
+const scores = ref({})                    // { eventId: score }
+
+// Get the AI scores from the student's saved recommendations
+async function loadScores() {
+    try {
+        const response = await axios.get(`http://localhost:8000/api/recommendations/user/${userId}`)
+        const map = {}
+        for (const rec of response.data) {
+            map[rec.event._id] = rec.score
+        }
+        scores.value = map
+    } catch (error) {
+        console.log('There was an error: ' + error.message)
+    }
+}
+
+// Highest score first; events without a score go last
+const sortedResults = computed(() =>
+    [...results.value].sort((a, b) => (scores.value[b._id] ?? -1) - (scores.value[a._id] ?? -1))
+)
 
 // Build the category dropdown from all event tags
 async function loadCategories() {
@@ -38,6 +58,8 @@ async function loadCategories() {
 
 // Search using whatever filters are filled in
 async function searchEvents() {
+    hasSearched.value = true
+    emit('search-active', true)
     searching.value = true
     const params = {}
     if (keyword.value.trim()) params.q = keyword.value.trim()
@@ -65,16 +87,23 @@ function clearFilters() {
     category.value = ''
     fromDate.value = today
     toDate.value = ''
-    searchEvents()
+    hasSearched.value = false
+    emit('search-active', false)
 }
 
 onMounted(() => {
     loadCategories()
-    searchEvents()
+    loadScores()
     loadActivities()
 })
 
-watch([selectedChip, myInterests], searchEvents)
+// Tapping a chip runs a search
+watch(selectedChip, searchEvents)
+
+// Interests loading or changing only re-runs a search that's already showing
+watch(myInterests, () => {
+    if (hasSearched.value) searchEvents()
+})
 </script>
 
 <template>
@@ -126,26 +155,28 @@ watch([selectedChip, myInterests], searchEvents)
             />
         </div>
 
-        <!-- Results -->
-        <p v-if="searching" class="text-muted">Searching...</p>
+        <!-- Results (only after a search) -->
+        <div v-if="hasSearched">
+            <p v-if="searching" class="text-muted">Searching...</p>
 
-        <p v-else-if="results.length === 0" class="text-muted">
-            No events match your search.
-        </p>
+            <p v-else-if="results.length === 0" class="text-muted">
+                No events match your search.
+            </p>
 
-        <div v-else>
-            <p class="small text-muted">{{ results.length }} event(s) found</p>
-
-            <div class="row g-3">
-                <div class="col-md-6" v-for="event in results" v-bind:key="event._id">
-                    <EventCard
-    :event="event"
-    :from-date="fromDate"
-    :interested="activityMap[event._id]?.interested || false"
-    :going-by-session="activityMap[event._id]?.sessions || {}"
-    @set-interested="(v) => setInterested(event._id, v)"
-    @set-going="(p) => setGoing(event._id, p)"
-/>
+            <div v-else>
+                <p class="small text-muted">{{ results.length }} event(s) found</p>
+                <div class="row g-3">
+                    <div class="col-md-6" v-for="event in sortedResults" v-bind:key="event._id">
+                        <EventCard
+                            :event="event"
+                            :from-date="fromDate"
+                            :interested="activityMap[event._id]?.interested || false"
+                            :going-by-session="activityMap[event._id]?.sessions || {}"
+                            @set-interested="(v) => setInterested(event._id, v)"
+                            @set-going="(p) => setGoing(event._id, p)"
+                            :score="scores[event._id] ?? null"
+                        />
+                    </div>
                 </div>
             </div>
         </div>

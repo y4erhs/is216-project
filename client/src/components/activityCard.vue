@@ -68,6 +68,7 @@ function remove() {
         emit('remove')
     }
 }
+
 </script>
 
 <template>
