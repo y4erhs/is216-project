@@ -2,7 +2,7 @@
 import 'bootstrap/dist/css/bootstrap.min.css'
 import 'bootstrap/dist/js/bootstrap.bundle.min.js'
 
-import { onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import BaseButton from '../components/BaseButton.vue'
 import FolderTabs from '../components/FolderTabs.vue'
 import '../assets/theme.css'
@@ -19,8 +19,10 @@ onUnmounted(() => {
   document.body.style.height = ''
 })
 
+const activeTab = ref('login')
+
 const categories = [
-  { id: 'cultural', label: 'CULTURAL CLUBS', theme: 'theme-blue' },
+  { id: 'login', label: 'LOGIN', theme: 'theme-blue' },
   { id: 'workshops', label: 'WORKSHOPS', theme: 'theme-orange' },
   { id: 'career', label: 'CAREER', theme: 'theme-purple' }
 ]
@@ -31,32 +33,37 @@ const categories = [
     <div class="rotated-folder">
       <FolderTabs
         :tabs="categories"
-        defaultActive="cultural"
+        defaultActive="login"
       >
-        <template #cultural>
-          <div class="sign-in">
-            <h1>Sign In</h1>
+        <template #login>
+          <div class="log-in">
+            
 
             <form @submit.prevent>
-              <div class="input-group-custom">
-                <label for="username">Username</label>
+              <h1>WELCOME BACK!</h1>
                 <input
                   id="username"
                   type="text"
+                  placeholder="Username"
                 />
-              </div>
-
-              <div class="input-group-custom">
-                <label for="password">Password</label>
                 <input
                   id="password"
                   type="password"
+                  placeholder="Password"
                 />
-              </div>
-
-              <BaseButton class="w-100 signin-btn" variant="primary">
-                SIGN IN
+                <div class="pwd-reset">
+                  <p> Forgor password? Loser.</p>
+                  jk, <a href="#" @click.prevent="activeTab = 'workshops'">click here</a>
+                </div>
+                
+              <BaseButton type="button" class=" w-100 login-btn">
+                LOG IN
               </BaseButton>
+              <span class="or-text">Or</span>
+              <BaseButton type="button" class=" w-100 login-btn">CONTINUE WITH GOOGLE</BaseButton>
+              <div class="sign-up">
+                <p>Don't have an account? <router-link to="/signup"> Sign up</router-link></p>
+              </div>
             </form>
           </div>
         </template>
@@ -90,54 +97,51 @@ const categories = [
 }
 
 .rotated-folder {
-  transform: translateX(165px) rotate(-90deg);
+  transform: translateX(140px) rotate(-90deg);
   transform-origin: center center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+}
+
+.log-in {
+  transform-origin: center center;
+  color: var(--color-white);
+  padding: 36px 24px; 
+  width: 90vh;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-
-.sign-in {
-  transform:  rotate(90deg);
-  transform-origin: center center;
-  background-color: var(--color-blue);
-  color: var(--color-white);
-  padding: 36px px;
-  border-radius: 20px;
-  width: 90vh;
-  min-height: 380px;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
 h1 {
-  font-family: 'TextFont', cursive, sans-serif;
-  font-size: 32px;
-  font-weight: bold;
-  margin: 0 0 24px 0;
+  font-family: 'HeaderFont', sans-serif !important;
+  font-size: 28px;
+  margin: 0 0 16px 0;
   letter-spacing: 0.5px;
+  text-align: center;
 }
 
+/* 
+  Since 'form' is rotated 90deg inside a -90deg folder:
+  - Form's 'width' dictates its visually rendered 'height'.
+  - Form's 'height' (or max-width) dictates its visually rendered 'width'.
+*/
 form {
   display: flex;
   flex-direction: column;
-  gap: 18px;
-  width: 100%;
-}
+  gap: 1px;
+  
+  /* Set explicit width to fit inside the folder tab height limit */
+  width: 280px; 
+  max-width: 100%;
 
-.input-group-custom {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-b
-.input-group-custom label {
-  font-family: 'TextFont', sans-serif;
-  font-size: 13px;
-  color: var(--color-white);
+  transform: rotate(90deg);
+  transform-origin: center center;
+  box-sizing: border-box;
+  
 }
 
 input {
@@ -153,11 +157,36 @@ input {
   transition: border-color 0.2s ease;
 }
 
+input::placeholder {
+    color: var(--color-white);
+    opacity: 0.8;
+}
+
+
 input:focus {
   border-bottom-color: var(--color-white);
 }
 
-.signin-btn {
+.pwd-reset {
+  text-align: right;
+  font-size: 13px;
+  padding-top: 10px;
+}
+
+.pwd-reset p {
+  margin: 0;
+}
+
+.login-btn {
   margin-top: 8px;
+}
+.or-text {
+  text-align: center;
+  
+}
+
+.sign-up {
+  margin-top: 16px;
+  text-align: center;
 }
 </style>
