@@ -4,10 +4,12 @@ const Event = require('../models/events');
 // CREATE an event
 exports.createEvent = async (req, res) => {
     try {
-        const event = await Event.create(req.body);
+        const event = await Event.createEvent(req.body);
         return res.status(201).json(event);
     } catch (err) {
-        return res.status(400).json({ message: err.message });
+        return res.status(400).json({
+            message: err.message
+        });
     }
 };
 
@@ -42,7 +44,7 @@ exports.getEvents = async (req, res) => {
             filter.sessions = { $elemMatch: { startTime } };
         }
 
-        const events = await Event.find(filter).sort({ 'sessions.startTime': 1 });
+        const events = await Event.getEvents(filter);
 
         return res.status(200).json(events);
     } catch (err) {
@@ -53,7 +55,7 @@ exports.getEvents = async (req, res) => {
 // READ one event
 exports.getEventById = async (req, res) => {
     try {
-        const event = await Event.findById(req.params.id)
+        const event = await Event.getEventById(req.params.id);
 
         if (!event) {
             return res.status(404).json({
@@ -63,17 +65,18 @@ exports.getEventById = async (req, res) => {
 
         return res.status(200).json(event);
     } catch (err) {
-        return res.status(400).json({ message: err.message });
+        return res.status(400).json({
+            message: err.message
+        });
     }
 };
 
 // UPDATE an event
 exports.updateEvent = async (req, res) => {
     try {
-        const event = await Event.findByIdAndUpdate(
+        const event = await Event.updateEvent(
             req.params.id,
-            req.body,
-            { new: true, runValidators: true }
+            req.body
         );
 
         if (!event) {
@@ -83,15 +86,17 @@ exports.updateEvent = async (req, res) => {
         }
 
         return res.status(200).json(event);
+
     } catch (err) {
-        return res.status(400).json({ message: err.message });
+        return res.status(400).json({
+            message: err.message
+        });
     }
 };
-
 // DELETE an event
 exports.deleteEvent = async (req, res) => {
     try {
-        const event = await Event.findByIdAndDelete(req.params.id);
+        const event = await Event.deleteEvent(req.params.id);
 
         if (!event) {
             return res.status(404).json({
@@ -102,7 +107,34 @@ exports.deleteEvent = async (req, res) => {
         return res.status(200).json({
             message: 'Event deleted successfully'
         });
+
     } catch (err) {
-        return res.status(400).json({ message: err.message });
+        return res.status(400).json({
+            message: err.message
+        });
+    }
+};
+
+exports.signUpUser = async (req, res) => {
+    try {
+        const { eventId, userId } = req.body;
+
+        const updatedEvent = await Event.signUpUser(
+            eventId,
+            userId
+        );
+
+        if (!updatedEvent) {
+            return res.status(404).json({
+                message: 'Event not found'
+            });
+        }
+
+        return res.status(200).json(updatedEvent);
+
+    } catch (err) {
+        return res.status(500).json({
+            message: err.message
+        });
     }
 };

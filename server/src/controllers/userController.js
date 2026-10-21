@@ -42,18 +42,19 @@ exports.createUser = async (req, res) => {
 // READ all users
 exports.getUsers = async (req, res) => {
     try {
-        const users = await User.find().select('-password');
+        const users = await User.getUsers();
         return res.status(200).json(users);
     } catch (err) {
-        return res.status(500).json({ message: err.message });
+        return res.status(500).json({
+            message: err.message
+        });
     }
 };
 
 // READ one user
 exports.getUserById = async (req, res) => {
     try {
-        const user = await User.findById(req.params.id)
-            .select('-password');
+        const user = await User.getUserById(req.params.id);
 
         if (!user) {
             return res.status(404).json({
@@ -62,8 +63,11 @@ exports.getUserById = async (req, res) => {
         }
 
         return res.status(200).json(user);
+
     } catch (err) {
-        return res.status(400).json({ message: err.message });
+        return res.status(400).json({
+            message: err.message
+        });
     }
 };
 
@@ -71,8 +75,15 @@ exports.getUserById = async (req, res) => {
 exports.updateUser = async (req, res) => {
     try {
         const allowedFields = [
-            'username', 'email', 'dob', 'preferences',
-            'avatar', 'bio', 'major', 'year', 'ccas',
+            'username',
+            'email',
+            'dob',
+            'preferences',
+            'avatar',
+            'bio',
+            'major',
+            'year',
+            'ccas',
             'notificationPreferences'
         ];
 
@@ -84,11 +95,10 @@ exports.updateUser = async (req, res) => {
             }
         }
 
-        const user = await User.findByIdAndUpdate(
+        const user = await User.updateUser(
             req.params.id,
-            updates,
-            { new: true, runValidators: true }
-        ).select('-password');
+            updates
+        );
 
         if (!user) {
             return res.status(404).json({
@@ -97,6 +107,7 @@ exports.updateUser = async (req, res) => {
         }
 
         return res.status(200).json(user);
+
     } catch (err) {
         if (err.code === 11000) {
             return res.status(409).json({
@@ -104,14 +115,16 @@ exports.updateUser = async (req, res) => {
             });
         }
 
-        return res.status(400).json({ message: err.message });
+        return res.status(400).json({
+            message: err.message
+        });
     }
 };
 
 // DELETE a user
 exports.deleteUser = async (req, res) => {
     try {
-        const user = await User.findByIdAndDelete(req.params.id);
+        const user = await User.deleteUser(req.params.id);
 
         if (!user) {
             return res.status(404).json({
@@ -122,15 +135,18 @@ exports.deleteUser = async (req, res) => {
         return res.status(200).json({
             message: 'User deleted successfully'
         });
+
     } catch (err) {
-        return res.status(400).json({ message: err.message });
+        return res.status(400).json({
+            message: err.message
+        });
     }
 };
 
 //get all the interests indicated by user
 exports.getPreferences = async (req, res) => {
     try {
-        const user = await User.findById(req.params.id).select('preferences');
+        const user = await User.getPreferences(req.params.id);
 
         if (!user) {
             return res.status(404).json({
@@ -139,8 +155,11 @@ exports.getPreferences = async (req, res) => {
         }
 
         return res.status(200).json(user.preferences);
+
     } catch (err) {
-        return res.status(400).json({ message: err.message });
+        return res.status(400).json({
+            message: err.message
+        });
     }
 };
 

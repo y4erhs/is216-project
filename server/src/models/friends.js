@@ -1,60 +1,84 @@
-const mongoose = require('mongoose')
-const User = require('./user')
+const mongoose = require('mongoose');
+const User = require('./user');
 
 const friendSchema = new mongoose.Schema({
-   requester: {type:mongoose.Schema.Types.ObjectId, ref: 'User', required: true},
-   receiver: {type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true},
-   status:{
-    type: String,
-    enum: ['pending', 'accepted', 'blocked'],
-    default: 'pending'
-   },
-   createdAt: {type: Date, default: Date.now} })
+    requester: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    },
+    receiver: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    },
+    status: {
+        type: String,
+        enum: ['pending', 'accepted', 'blocked'],
+        default: 'pending'
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now
+    }
+});
 
-const Friends = mongoose.model('Friends', friendSchema, 'friends')
+friendSchema.statics.sendFriendRequest = function(requesterId, receiverId) {
+    const request = new this({
+        requester: requesterId,
+        receiver: receiverId,
+        status: 'pending'
+    });
 
-exports.sendFriendRequest = function(requesterId, receiverId){
-   const request = new Friends({
-      requester: requesterId,
-      receiver: receiverId,
-      status: 'pending'
-   });
-   return request.save()
-}
+    return request.save();
+};
 
-exports.acceptFriendRequest = function(friendshipId){
-   return Friends.findByIdAndUpdate(
-      friendshipId,
-      {status: 'accepted'},
-      {new:true}
-   ).populate('requester', 'username')
-   .populate('receiver', 'username')
-}
+friendSchema.statics.acceptFriendRequest = function(friendshipId) {
+    return this.findByIdAndUpdate(
+        friendshipId,
+        { status: 'accepted' },
+        { new: true }
+    )
+    .populate('requester', 'username')
+    .populate('receiver', 'username');
+};
 
-exports.getAcceptedFriends = function(userId){
-   return Friends.find({
-      status: 'accepted',
-      $or: [
-         {requester: userId},
-         {receiver: userId}
-      ]
-   }).populate('requester', 'username')
-   .populate('receiver', 'username')
-}
-// exports.blockFriend = function(friendshipId){
-//    return Friends.findByIdAndUpdate(
-//       friendshipId,
-//       {status: 'blocked'},
-//       { new:true}
-//    ).populate('requester', 'username')
-//    .populate('receiver', 'username')
-// }
+friendSchema.statics.getAcceptedFriends = function(userId) {
+    return this.find({
+        status: 'accepted',
+        $or: [
+            { requester: userId },
+            { receiver: userId }
+        ]
+    })
+    .populate('requester', 'username')
+    .populate('receiver', 'username');
+};
 
-exports.removeFriendByUsers = function(requesterId, receiverId){
-   return Friends.findOneAndDelete({
-      requester: requesterId,
-      receiver: receiverId
-   }).populate('requester', 'username')
-   .populate('receiver', 'username')
-}
+// friendSchema.statics.blockFriend = function(friendshipId) {
+//     return this.findByIdAndUpdate(
+//         friendshipId,
+//         { status: 'blocked' },
+//         { new: true }
+//     )
+//     .populate('requester', 'username')
+//     .populate('receiver', 'username');
+// };
+
+friendSchema.statics.removeFriendByUsers = function(requesterId, receiverId) {
+    return this.findOneAndDelete({
+    $or: [
+        {
+            requester: requesterId,
+            receiver: receiverId
+        },
+        {
+            requester: receiverId,
+            receiver: requesterId
+        }
+    ]
+})};
+
+const Friends = mongoose.model('Friends', friendSchema, 'friends');
+
 module.exports = Friends;

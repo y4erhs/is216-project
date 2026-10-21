@@ -1,4 +1,4 @@
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
     username: {
@@ -13,17 +13,17 @@ const userSchema = new mongoose.Schema({
     },
     password: {
         type: String,
-        required: true 
+        required: true
     },
     avatar: {
         type: String,
         default: '/uploads/default.png'
     },
-    dob: { 
-        type: Date, 
-        default: null 
+    dob: {
+        type: Date,
+        default: null
     },
-    preferences:{
+    preferences: {
         type: [String],
         default: []
     },
@@ -39,59 +39,73 @@ const userSchema = new mongoose.Schema({
         type: Date,
         default: Date.now
     },
-    Calendar:{
-        
+    Calendar: {
+
     },
-    major: { 
-        type: String, 
-        default: '' 
+    major: {
+        type: String,
+        default: ''
     },
     year: {
         type: Number,
-        default: null,
+        default: null
     },
     ccas: {
         type: [String],
-        default: [],
+        default: []
     },
     notificationPreferences: {
         push: {
             type: Boolean,
-            default: true,
+            default: true
         },
         email: {
             type: Boolean,
-            default: true,
+            default: true
         },
-        reminndMinutesBefore: {
+        remindMinutesBefore: {
             type: Number,
             default: 15
         }
     }
-})
+});
 
-const User = mongoose.model('User', userSchema, 'users')
-
-module.exports = User
-
-exports.createUser = function({
-    username,email,password,dob,preferences,avatar,bio,major,year,ccas})
-    {
-    return User.create({
-        username,email,password,dob,preferences,avatar,bio,major,year,ccas
+userSchema.statics.createUser = function({
+    username,
+    email,
+    password,
+    dob,
+    preferences,
+    avatar,
+    bio,
+    major,
+    year,
+    ccas
+}) {
+    return this.create({
+        username,
+        email,
+        password,
+        dob,
+        preferences,
+        avatar,
+        bio,
+        major,
+        year,
+        ccas
     });
 };
 
-exports.getUsers = function() {
-    return User.find().select('-password');
+userSchema.statics.getUsers = function() {
+    return this.find().select('-password');
 };
 
-exports.getUserById = function(userId) {
-    return User.findById(userId).select('-password');
+userSchema.statics.getUserById = function(userId) {
+    return this.findById(userId).select('-password');
 };
 
-exports.updateUser = function(userId, updates) {
-    return User.findByIdAndUpdate(
+userSchema.statics.updateUser = function(userId, updates) {
+    return this.findByIdAndUpdate(
         userId,
         updates,
         {
@@ -101,10 +115,14 @@ exports.updateUser = function(userId, updates) {
     ).select('-password');
 };
 
-exports.deleteUser = function(userId) {
-    return User.findByIdAndDelete(userId);
+userSchema.statics.deleteUser = function(userId) {
+    return this.findByIdAndDelete(userId);
 };
 
-exports.getPreferences = function(userId) {
-    return User.findById(userId).select('preferences');
+userSchema.statics.getPreferences = function(userId) {
+    return this.findById(userId).select('preferences');
 };
+
+const User = mongoose.model('User', userSchema, 'users');
+
+module.exports = User;

@@ -18,4 +18,5 @@ router.put('/:id', eventController.updateEvent);
 // DELETE
 router.delete('/:id', eventController.deleteEvent);
 
+router.post('/signup', eventController.signUpUser);
 module.exports = router

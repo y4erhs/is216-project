@@ -4,7 +4,7 @@ const router = express.Router();
 
 router.post('/', lobbyController.createLobby);
 
-router.get('/:userId', lobbyController.getLobbyForUser);
+router.get('/user/:userId', lobbyController.getLobbyForUser);
 
 router.put('/invite', lobbyController.inviteUser);
 
@@ -17,5 +17,4 @@ router.post('/:lobbyId/signup', lobbyController.signUpLobbyForEvent);
 router.put('/remove', lobbyController.removeUser);
 
 router.delete('/:lobbyId', lobbyController.deleteLobby);
-
 module.exports = router;

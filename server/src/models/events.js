@@ -1,5 +1,6 @@
-const mongoose = require('mongoose')
-const User = require('./user')
+const mongoose = require('mongoose');
+const User = require('./user');
+
 const eventSchema = new mongoose.Schema({
     title: {
         type: String,
@@ -11,9 +12,8 @@ const eventSchema = new mongoose.Schema({
     },
     organiser: {
         type: String,
-        required:true
+        required: true
     },
-    //if got same evets on diff days
     sessions: [{
         startTime: {
             type: Date,
@@ -36,12 +36,10 @@ const eventSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
-    // to match with preferences
     tags: {
         type: [String],
         default: []
     },
-    // if organiser posts their own event
     source: {
         type: String,
         enum: ['email', 'telegram', 'organiser'],
@@ -60,8 +58,54 @@ const eventSchema = new mongoose.Schema({
         ref: 'User'
     }]
 },
-{timestamps: true})
+{ timestamps: true });
 
-const Event = mongoose.model('Event', eventSchema, 'events')
+eventSchema.statics.createEvent = function(data) {
+    return this.create(data);
+};
 
-module.exports = Event
+eventSchema.statics.getEvents = function(filter = {}) {
+    return this.find(filter)
+        .sort({ 'sessions.startTime': 1 });
+};
+
+eventSchema.statics.getEventById = function(eventId) {
+    return this.findById(eventId)
+        .populate('attendees', 'username');
+};
+
+eventSchema.statics.updateEvent = function(eventId, updates) {
+    return this.findByIdAndUpdate(
+        eventId,
+        updates,
+        {
+            new: true,
+            runValidators: true
+        }
+    );
+};
+
+eventSchema.statics.deleteEvent = function(eventId) {
+    return this.findByIdAndDelete(eventId);
+};
+
+eventSchema.statics.signUpUser = function(eventId, userId) {
+    return this.findByIdAndUpdate(
+        eventId,
+        {
+            $addToSet: {
+                attendees: userId
+            },
+            $inc: {
+                signUpCount: 1
+            }
+        },
+        {
+            new: true
+        }
+    ).populate('attendees', 'username');
+};
+
+const Event = mongoose.model('Event', eventSchema, 'events');
+
+module.exports = Event;
