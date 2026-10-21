@@ -74,6 +74,37 @@ const User = mongoose.model('User', userSchema, 'users')
 
 module.exports = User
 
-// exports.createUser = function({username, email, password, dob, preferences, role, avatar, bio}){
-//     return User.create({username, email, password, dob, role, avatar, bio});
-// }
+exports.createUser = function({
+    username,email,password,dob,preferences,avatar,bio,major,year,ccas})
+    {
+    return User.create({
+        username,email,password,dob,preferences,avatar,bio,major,year,ccas
+    });
+};
+
+exports.getUsers = function() {
+    return User.find().select('-password');
+};
+
+exports.getUserById = function(userId) {
+    return User.findById(userId).select('-password');
+};
+
+exports.updateUser = function(userId, updates) {
+    return User.findByIdAndUpdate(
+        userId,
+        updates,
+        {
+            new: true,
+            runValidators: true
+        }
+    ).select('-password');
+};
+
+exports.deleteUser = function(userId) {
+    return User.findByIdAndDelete(userId);
+};
+
+exports.getPreferences = function(userId) {
+    return User.findById(userId).select('preferences');
+};
