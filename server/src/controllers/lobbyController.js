@@ -19,6 +19,27 @@ exports.getLobbyForUser = async (req,res) =>{
     }
 }
 
+exports.getLobbyById = async (req, res) => {
+    try {
+        const { lobbyId } = req.params;
+
+        const lobby = await Lobby.getLobbyById(lobbyId);
+
+        if (!lobby) {
+            return res.status(404).json({
+                message: 'Lobby not found'
+            });
+        }
+
+        res.json(lobby);
+
+    } catch (err) {
+        res.status(500).json({
+            error: err.message
+        });
+    }
+};
+
 exports.inviteUser = async(req,res) =>{
     try{
         const {lobbyId, userId} = req.body;
