@@ -6,6 +6,8 @@ router.post('/', lobbyController.createLobby);
 
 router.get('/user/:userId', lobbyController.getLobbyForUser);
 
+router.get('/lobby/:lobbyId', lobbyController.getLobbyById);
+
 router.put('/invite', lobbyController.inviteUser);
 
 router.put('/accept', lobbyController.acceptInvite);

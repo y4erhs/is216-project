@@ -6,6 +6,14 @@ const userSchema = new mongoose.Schema({
         required: true,
         unique: true
     },
+    fullName: {
+    type: String,
+    default: ''
+    },
+    displayName: {
+    type: String,
+    default: ''
+    },
     email: {
         type: String,
         required: true,
@@ -72,6 +80,8 @@ const userSchema = new mongoose.Schema({
 
 userSchema.statics.createUser = function({
     username,
+    fullName,
+    displayName,
     email,
     password,
     dob,
@@ -84,6 +94,8 @@ userSchema.statics.createUser = function({
 }) {
     return this.create({
         username,
+        fullName,
+        displayName,
         email,
         password,
         dob,
