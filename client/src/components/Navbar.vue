@@ -78,14 +78,14 @@ const isCollapsed = ref(false);
       <RouterLink
         to="/lobby"
         class="tab-pill theme-grey"
-        :title="isCollapsed ? 'Friends & Groups' : ''"
+        :title="isCollapsed ? 'My Lobbies' : ''"
       >
         <div class="pill-icon">
           <i class="bi bi-people fs-5"></i>
         </div>
         <span v-if="!isCollapsed" class="pill-neck"></span>
         <div v-if="!isCollapsed" class="pill-label">
-          <span class="header-style">Friends & Groups</span>
+          <span class="header-style">My Lobbies</span>
         </div>
       </RouterLink>
 
