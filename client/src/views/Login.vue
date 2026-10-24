@@ -35,6 +35,10 @@ const handleSendReset = () => {
 
 <template>
   <div class="page-wrapper">
+    <div class="main-page-art">
+      <img src="/main-page-art.svg" alt="">
+    </div>
+    
     <div class="rotated-folder">
       <FolderTabs
         :tabs="categories"
@@ -43,6 +47,9 @@ const handleSendReset = () => {
         <template #login>
           <div class="log-in">
             <form @submit.prevent>
+              <div class="cc-logo">
+                <img src="/main-logo.svg" alt="">
+              </div>
               <h1>WELCOME BACK!</h1>
                 <input
                   id="username"
@@ -56,14 +63,14 @@ const handleSendReset = () => {
                 />
                 <div class="pwd-reset">
                   <p> Forgor password? Loser.</p>
-                  jk, <a href="#" @click.prevent="activeTab = 'reset'">click here</a>
+                  jk, <a class="click-here" href="#" @click.prevent="activeTab = 'reset'">click here</a>
                 </div>
                 
               <BaseButton type="button" class=" w-100 login-btn">
                 LOG IN
               </BaseButton>
               <span class="or-text">Or</span>
-              <BaseButton type="button" class="w-100 login-btn"> <img src="/blue-google-icon.png" style="width: 16px; height: 16px;">  CONTINUE WITH GOOGLE</BaseButton>
+              <BaseButton type="button" class="w-100 login-btn"> <img src="/google-icon.png" style="width: 16px; height: 16px;">  CONTINUE WITH GOOGLE</BaseButton>
               <div class="sign-up">
                 <p>Don't have an account? <router-link to="/signup"> Sign up</router-link></p>
               </div>
@@ -74,6 +81,9 @@ const handleSendReset = () => {
         <template #reset>
           <div class="log-in">
             <form @submit.prevent>
+              <div class="cc-logo">
+                <img src="/main-logo.svg" alt="">
+              </div>
               <h1>PASSWORD RESET</h1>
                 <input
                   id="email"
@@ -108,6 +118,9 @@ const handleSendReset = () => {
   z-index: 999;
   box-sizing: border-box;
 }
+.main-page-art {
+  transform: translateX(135px);
+}
 
 .rotated-folder {
   transform: translateX(140px) rotate(-90deg);
@@ -117,7 +130,12 @@ const handleSendReset = () => {
   justify-content: center;
 
 }
-
+.cc-logo {
+  display: flex;
+  justify-content: center;
+  color: var(--color-orange);
+  
+}
 .log-in {
   transform-origin: center center;
   color: var(--color-white);
@@ -189,6 +207,7 @@ input:focus {
   text-align: right;
   font-size: 13px;
   padding-top: 10px;
+  color: #7d89f4;
 }
 
 .pwd-reset p {
@@ -204,6 +223,15 @@ input:focus {
   
 }
 
+.click-here {
+  color: var(--color-white);
+}
+
+.click-here:hover {
+  color: var(--color-white);
+  opacity: 0.75;
+}
+
 .sign-up {
   margin-top: 16px;
   text-align: center;
@@ -213,22 +241,28 @@ input:focus {
   color: var(--color-white);
 }
 
+.sign-up a:hover {
+  color: var(--color-white);
+  opacity: 0.75;
+
+}
+
 .sign-up p {
   margin-top: 16px;
   text-align: center;
-  color: var(--color-blue);
+  color: #7d89f4;
   font-weight: bold;
 }
 
 
 .go-back {
-  color: var(--color-orange);
+  color: var(--color-white);
   margin-top: 16px;
   text-align: center;
 }
 
 .go-back:hover {
-  color: var(--color-orange);
+  color: var(--color-white);
   opacity: 0.75;
 }
 
