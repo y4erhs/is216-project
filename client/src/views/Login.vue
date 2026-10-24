@@ -23,9 +23,15 @@ const activeTab = ref('login')
 
 const categories = [
   { id: 'login', label: 'LOGIN', theme: 'theme-blue' },
-  { id: 'workshops', label: 'WORKSHOPS', theme: 'theme-orange' },
+  { id: 'pwd-reset', label: 'PASSWORD RESET', theme: 'theme-orange' },
   { id: 'career', label: 'CAREER', theme: 'theme-purple' }
 ]
+// for password reset link:
+const isSent = ref(false);
+
+const handleSendReset = () => {
+  isSent.value = true;
+}
 </script>
 
 <template>
@@ -33,12 +39,10 @@ const categories = [
     <div class="rotated-folder">
       <FolderTabs
         :tabs="categories"
-        defaultActive="login"
+        v-model="activeTab"
       >
         <template #login>
           <div class="log-in">
-            
-
             <form @submit.prevent>
               <h1>WELCOME BACK!</h1>
                 <input
@@ -53,7 +57,7 @@ const categories = [
                 />
                 <div class="pwd-reset">
                   <p> Forgor password? Loser.</p>
-                  jk, <a href="#" @click.prevent="activeTab = 'workshops'">click here</a>
+                  jk, <a href="#" @click.prevent="activeTab = 'pwd-reset'">click here</a>
                 </div>
                 
               <BaseButton type="button" class=" w-100 login-btn">
@@ -68,8 +72,21 @@ const categories = [
           </div>
         </template>
 
-        <template #workshops>
-          <div></div>
+        <template #pwd-reset>
+          <div class="log-in">
+            <form @submit.prevent>
+              <h1>PASSWORD RESET</h1>
+                <input
+                  id="email"
+                  type="email"
+                  placeholder="Enter Email"
+                />
+                
+              <BaseButton type="button" class=" w-100 login-btn" @click = "handleSendReset">
+                {{ isSent ? 'RESEND LINK' : 'SEND PASSWORD RESET LINK' }}
+              </BaseButton>
+            </form>
+          </div>
         </template>
 
         <template #career>
@@ -110,6 +127,7 @@ const categories = [
   color: var(--color-white);
   padding: 36px 24px; 
   width: 90vh;
+  height: 420px;
   box-sizing: border-box;
   display: flex;
   align-items: center;

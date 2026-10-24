@@ -1,10 +1,14 @@
 <script setup>
-import { ref, nextTick } from 'vue'
+import { ref, nextTick, watch } from 'vue'
 
 const props = defineProps({
   tabs: {
     type: Array,
     required: true
+  },
+  modelValue: {
+    type: String,
+    default:''
   },
   defaultActive: {
     type: String,
@@ -12,9 +16,9 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['tab-change'])
+const emit = defineEmits(['tab-change', 'update:modelValue'])
 
-const activeTab = ref(props.defaultActive || props.tabs[0]?.id || '')
+const activeTab = ref(props.modelValue || props.defaultActive || props.tabs[0]?.id || '')
 
 const showFlap = ref(true)
 
@@ -27,17 +31,27 @@ function triggerFlapAnimation() {
 
 triggerFlapAnimation()
 
-function selectTab(tabId) {
+function selectTab(tabId, emitEvent = true) {
   if (activeTab.value === tabId) return
   
   activeTab.value = tabId
-  emit('tab-change', tabId)
+
+  if (emitEvent) {
+    emit('tab-change', tabId)
+    emit('update:modelValue', tabId)
+  }
 
   showFlap.value = false
   nextTick(() => {
     triggerFlapAnimation()
   })
 }
+
+watch(() => props.modelValue, (newVal) => {
+  if (newVal && newVal !== activeTab.value) {
+    selectTab(newVal, false)
+  }
+})
 </script>
 
 <template>
