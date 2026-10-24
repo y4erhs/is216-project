@@ -1,6 +1,7 @@
 const mongoose = require('mongoose')
 const Activity = require('../models/activity')
 const Event = require('../models/events')
+const { addSessionToGoogle, removeFromGoogleCalendar } = require('../services/googleCalendarService')
 
 const validIds = (...ids) => ids.every(id => mongoose.isValidObjectId(id))
 
@@ -57,9 +58,10 @@ exports.upsertActivity = async (req, res) => {
         }
 
         if (going !== undefined) {
+            let event, session
             if (going !== 'none') {
-                const event = await Event.findById(eventId)
-                const session = event?.sessions.find(s => new Date(s.startTime).getTime() === startMs)
+                event = await Event.findById(eventId)
+                session = event?.sessions.find(s => new Date(s.startTime).getTime() === startMs)
                 if (!session) return res.status(404).json({ message: 'Session not found' })
 
                 const now = new Date()
@@ -72,10 +74,29 @@ exports.upsertActivity = async (req, res) => {
             }
 
             const start = new Date(startMs)
+
+            // find any Google event already linked to this session
+            const existing = await Activity.findOne(filter)
+            const oldEntry = existing?.sessions.find(s => new Date(s.startTime).getTime() === startMs)
+            let googleEventId = oldEntry?.googleEventId || null
+
+            // sync with Google Calendar (a Google problem shouldn't block attendance)
+            try {
+                if (going === 'attending' && !googleEventId) {
+                    googleEventId = await addSessionToGoogle(id, event, session)
+                }
+                if (going === 'none' && googleEventId) {
+                    await removeFromGoogleCalendar(id, [googleEventId])
+                    googleEventId = null
+                }
+            } catch (err) {
+                console.error('Google Calendar sync failed:', err.message)
+            }
+
             // clear this session's entry, then add the new one (can't $pull and $push the same field in one update)
             await Activity.updateOne(filter, { $pull: { sessions: { startTime: start } } }, opts)
             if (going !== 'none') {
-                await Activity.updateOne(filter, { $push: { sessions: { startTime: start, going } } })
+                await Activity.updateOne(filter, { $push: { sessions: { startTime: start, going, googleEventId } } })
             }
         }
 
@@ -100,7 +121,17 @@ exports.deleteActivity = async (req, res) => {
         if (!validIds(id, eventId)) {
             return res.status(400).json({ message: 'Invalid id' })
         }
-        await Activity.findOneAndDelete({ user: id, event: eventId })
+
+        const doc = await Activity.findOneAndDelete({ user: id, event: eventId })
+        // remove any linked Google Calendar events
+        if (doc) {
+            const googleIds = doc.sessions.map(s => s.googleEventId).filter(Boolean)
+            try {
+                await removeFromGoogleCalendar(id, googleIds)
+            } catch (err) {
+                console.error('Google Calendar cleanup failed:', err.message)
+            }
+        }
         return res.status(200).json({ message: 'Removed from your activity' })
     } catch (err) {
         return res.status(500).json({ message: err.message })

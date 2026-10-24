@@ -1,4 +1,3 @@
-
 const Event = require('../models/events');
 
 // CREATE an event

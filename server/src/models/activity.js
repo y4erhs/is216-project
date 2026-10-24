@@ -10,7 +10,8 @@ const activitySchema = new mongoose.Schema({
     sessions: [{
         _id: false,
         startTime: { type: Date, required: true },
-        going:     { type: String, enum: ['attending', 'attended'], required: true }
+        going:     { type: String, enum: ['attending', 'attended'], required: true },
+        googleEventId: {type: String, default: null}
     }],
     note:       { type: String, default: '', maxlength: 1000 }
 }, { timestamps: true })
