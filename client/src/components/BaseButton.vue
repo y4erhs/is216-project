@@ -39,6 +39,7 @@ defineEmits(['click'])
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 8px;
   padding: 3px 16px 6px 16px;
   font-size: 11px;
   border-radius: 25px;
