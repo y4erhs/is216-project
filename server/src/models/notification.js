@@ -68,10 +68,10 @@ const notificationSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-notificationSchema.index({ userId: 1, createdAt: -1 });
-notificationSchema.index({ userId: 1, isRead: 1, status: 1 });
-notificationSchema.index({ status: 1, scheduledFor: 1 });
-notificationSchema.index({ lobbyId: 1, type: 1 });
+notificationSchema.index({ userId: 1, createdAt: -1 }); // for inbox: “this user’s notifications, newest first”
+notificationSchema.index({ userId: 1, isRead: 1, status: 1 }); // for unread badge: this user, unread, already sent
+notificationSchema.index({ status: 1, scheduledFor: 1 }); // for reminders: pending scheduledFor <= now
+notificationSchema.index({ lobbyId: 1, type: 1 }); // lobby-related notif for one lobby
 notificationSchema.index(
   { userId: 1, eventId: 1, type: 1, offsetMinutes: 1 },
   {
@@ -81,7 +81,7 @@ notificationSchema.index(
       status: { $in: ["pending", "sent"] },
     },
   }
-);
+); // blocks two of the same reminder (same user + event + offset) while it is still pending or sent
 
 module.exports = mongoose.model("Notification", notificationSchema);
 module.exports.NOTIFICATION_TYPES = NOTIFICATION_TYPES;
