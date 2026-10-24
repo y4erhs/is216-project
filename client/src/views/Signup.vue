@@ -32,7 +32,7 @@
                 
                 <BaseButton type="submit" class="auth-btn">REGISTER</BaseButton>
                 <span class="or-text">Or</span>
-                <BaseButton type="button" class="auth-btn"> <img src="../../public/google-green-icon.png">CONTINUE WITH GOOGLE</BaseButton>
+                <BaseButton type="button" class="auth-btn"> <img src="/google-green-icon.png" style="width: 16px; height: 16px;">  CONTINUE WITH GOOGLE</BaseButton>
             </form>
          </div>
       </div>

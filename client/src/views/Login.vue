@@ -60,7 +60,7 @@ const categories = [
                 LOG IN
               </BaseButton>
               <span class="or-text">Or</span>
-              <BaseButton type="button" class=" w-100 login-btn">CONTINUE WITH GOOGLE</BaseButton>
+              <BaseButton type="button" class="w-100 login-btn"> <img src="/blue-google-icon.png" style="width: 16px; height: 16px;">  CONTINUE WITH GOOGLE</BaseButton>
               <div class="sign-up">
                 <p>Don't have an account? <router-link to="/signup"> Sign up</router-link></p>
               </div>
