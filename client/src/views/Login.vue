@@ -23,8 +23,7 @@ const activeTab = ref('login')
 
 const categories = [
   { id: 'login', label: 'LOGIN', theme: 'theme-blue' },
-  { id: 'pwd-reset', label: 'PASSWORD RESET', theme: 'theme-orange' },
-  { id: 'career', label: 'CAREER', theme: 'theme-purple' }
+  { id: 'reset', label: 'PASSWORD RESET', theme: 'theme-orange' }
 ]
 // for password reset link:
 const isSent = ref(false);
@@ -57,7 +56,7 @@ const handleSendReset = () => {
                 />
                 <div class="pwd-reset">
                   <p> Forgor password? Loser.</p>
-                  jk, <a href="#" @click.prevent="activeTab = 'pwd-reset'">click here</a>
+                  jk, <a href="#" @click.prevent="activeTab = 'reset'">click here</a>
                 </div>
                 
               <BaseButton type="button" class=" w-100 login-btn">
@@ -72,7 +71,7 @@ const handleSendReset = () => {
           </div>
         </template>
 
-        <template #pwd-reset>
+        <template #reset>
           <div class="log-in">
             <form @submit.prevent>
               <h1>PASSWORD RESET</h1>
@@ -82,15 +81,12 @@ const handleSendReset = () => {
                   placeholder="Enter Email"
                 />
                 
-              <BaseButton type="button" class=" w-100 login-btn" @click = "handleSendReset">
+              <BaseButton type="button" class=" w-100 pwd-link-btn" @click = "handleSendReset">
                 {{ isSent ? 'RESEND LINK' : 'SEND PASSWORD RESET LINK' }}
               </BaseButton>
+              <a class="go-back" href="#" @click.prevent="activeTab = 'login'"> Back to Login</a>
             </form>
           </div>
-        </template>
-
-        <template #career>
-          <div></div>
         </template>
       </FolderTabs>
     </div>
@@ -185,6 +181,10 @@ input:focus {
   border-bottom-color: var(--color-white);
 }
 
+.pwd-link-btn {
+  margin-top: 8px;
+  color: var(--color-white);
+}
 .pwd-reset {
   text-align: right;
   font-size: 13px;
@@ -199,6 +199,7 @@ input:focus {
   margin-top: 8px;
 }
 .or-text {
+  margin-top: 8px;
   text-align: center;
   
 }
@@ -207,4 +208,35 @@ input:focus {
   margin-top: 16px;
   text-align: center;
 }
+
+.sign-up a {
+  color: var(--color-white);
+}
+
+.sign-up p {
+  margin-top: 16px;
+  text-align: center;
+  color: var(--color-blue);
+  font-weight: bold;
+}
+
+
+.go-back {
+  color: var(--color-orange);
+  margin-top: 16px;
+  text-align: center;
+}
+
+.go-back:hover {
+  color: var(--color-orange);
+  opacity: 0.75;
+}
+
+/* .log-in a {
+  color: var(--color-green);
+}
+.log-in a:hover {
+  color: var(--color-green);
+  opacity: 0.75;
+} */
 </style>

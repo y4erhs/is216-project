@@ -33,6 +33,9 @@
                 <BaseButton type="submit" class="auth-btn">REGISTER</BaseButton>
                 <span class="or-text">Or</span>
                 <BaseButton type="button" class="auth-btn"> <img src="/google-green-icon.png" style="width: 16px; height: 16px;">  CONTINUE WITH GOOGLE</BaseButton>
+                <div class="log-in">
+                  <p>Have an account? <router-link to="/login"> Log in</router-link></p>
+                </div>
             </form>
          </div>
       </div>
@@ -138,5 +141,16 @@ input:focus {
   max-width: 500px;
 }
 
+.log-in {
+  margin-top: 16px;
+  text-align: center;
+}
 
+.log-in a {
+  color: var(--color-green);
+}
+.log-in a:hover {
+  color: var(--color-green);
+  opacity: 0.75;
+}
 </style>
