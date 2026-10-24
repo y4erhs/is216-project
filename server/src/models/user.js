@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const GoogleConnection = require('./googleConnection');
 
 const userSchema = new mongoose.Schema({
     username: {
@@ -127,8 +128,15 @@ userSchema.statics.updateUser = function(userId, updates) {
     ).select('-password');
 };
 
-userSchema.statics.deleteUser = function(userId) {
-    return this.findByIdAndDelete(userId);
+userSchema.statics.deleteUser = async function(userId) {
+    const user = await this.findByIdAndDelete(userId);
+    if (!user) {
+        return null;
+    }
+
+    await GoogleConnection.deleteMany({ user: userId });
+
+    return user;
 };
 
 userSchema.statics.getPreferences = function(userId) {

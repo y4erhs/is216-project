@@ -15,6 +15,7 @@ const userRoutes = require('./src/routes/userRoutes');
 const friendsRoutes = require('./src/routes/friendsRoutes');
 const lobbyRoutes = require('./src/routes/lobbyRoutes');
 const activityRoutes = require('./src/routes/activityRoutes');
+const googleRoutes = require('./src/routes/googleRoutes')
 
 const server = express();
 
@@ -49,6 +50,7 @@ server.use('/api/events', eventRoutes);
 server.use('/api/friends', friendsRoutes);
 server.use('/api/lobbies', lobbyRoutes);
 server.use('/api/activities', activityRoutes);
+server.use('/auth/google', googleRoutes);
 
 async function connectDB() {
   try {
