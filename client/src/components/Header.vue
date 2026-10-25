@@ -12,8 +12,19 @@ const searchQuery = ref('')
 
 // --- Notification ---
 function onNotification(item) {
-  if (item.lobbyId) router.push(`/lobby/${item.lobbyId._id || item.lobbyId}`)
-  else if (item.eventId) router.push(`/events/${item.eventId._id || item.eventId}`)
+  if (item.lobbyId) {
+    const id = item.lobbyId._id || item.lobbyId
+    // If you have a specific lobby page, use it. Otherwise, go to my lobby:
+    router.push(`/lobby`) // for actual one change to router.push(`/lobby/${id}`)
+  } 
+  else if (item.eventId) {
+    const id = item.eventId._id || item.eventId
+    router.push(`/activity-tracking/`) // for actual one change to router.push(`/event/${id}`)
+  } 
+  else {
+    // FALLBACK FOR DEMO: Routes to discover if no ID is present
+    router.push('/') 
+  }
 }
 
 // --- Computed Dates ---

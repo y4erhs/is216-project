@@ -29,9 +29,32 @@ const TYPE_META = {
   rsvp_update: { label: 'RSVP', icon: 'bi-bookmark-check' },
 }
 
+// 1. ADD DEMO DATA HERE (Fallback for when backend is offline or empty)
+const DEMO_ITEMS = [
+  {
+    _id: 'demo-1',
+    title: 'Harshitha invited you to a Lobby',
+    message: 'Join the Study Buddies group.',
+    type: 'lobby_invite',
+    isRead: false,
+    createdAt: new Date().toISOString(),
+    lobbyId: 'study-buddies-123'
+  },
+  {
+    _id: 'demo-2',
+    title: 'Event Reminder',
+    message: 'Quarterly sync starts in 30 minutes.',
+    type: 'event_reminder',
+    isRead: true,
+    createdAt: new Date(Date.now() - 3600000).toISOString(),
+    eventId:'quarterly-sync-456'
+  },
+]
+
 export function useNotifications() {
-  const items = ref([])
-  const unreadCount = ref(0)
+  // Pre-fill with DEMO_ITEMS so it shows up instantly during your demo
+  const items = ref(DEMO_ITEMS)
+  const unreadCount = ref(DEMO_ITEMS.filter(i => !i.isRead).length)
   const loading = ref(false)
   const open = ref(false)
 
@@ -56,8 +79,14 @@ export function useNotifications() {
     loading.value = true
     try {
       const data = await request('?limit=15')
-      items.value = data.items || []
-      unreadCount.value = data.unreadCount || 0
+      // If backend returns items, use them. Otherwise fallback to demo items.
+      items.value = data.items?.length ? data.items : DEMO_ITEMS
+      unreadCount.value = data.unreadCount ?? DEMO_ITEMS.filter(i => !i.isRead).length
+    } catch (err) {
+      // If backend is not connected yet, catch the error and keep showing demo items gracefully
+      console.warn('Backend not connected, using demo notifications:', err.message)
+      items.value = DEMO_ITEMS
+      unreadCount.value = DEMO_ITEMS.filter(i => !i.isRead).length
     } finally {
       loading.value = false
     }
@@ -65,12 +94,26 @@ export function useNotifications() {
 
   async function markRead(item) {
     if (item.isRead) return
+    // If it's a demo item, just update locally so it doesn't throw a fetch error
+    if (item._id.startsWith('demo-')) {
+      item.isRead = true
+      unreadCount.value = Math.max(0, unreadCount.value - 1)
+      return
+    }
+
     await request(`/${item._id}/read`, { method: 'PATCH' })
     item.isRead = true
     unreadCount.value = Math.max(0, unreadCount.value - 1)
   }
 
   async function markAllRead() {
+    // If they are demo items, just update locally
+    if (items.value.some(i => i._id.startsWith('demo-'))) {
+      items.value.forEach((n) => { n.isRead = true })
+      unreadCount.value = 0
+      return
+    }
+
     await request('/read-all', { method: 'PATCH' })
     items.value.forEach((n) => { n.isRead = true })
     unreadCount.value = 0
