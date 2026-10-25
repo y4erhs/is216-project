@@ -7,10 +7,13 @@ const router = express.Router();
 
 // CREATE: Register a user
 router.post('/', userController.createUser);
+//LOGIN
+router.post('/login', userController.login);
 
 // READ
 router.get('/', userController.getUsers);
 router.get('/:id', userController.getUserById);
+
 //get preferences
 router.get('/:id/preferences', userController.getPreferences);
 

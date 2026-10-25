@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const User = require('./user');
 
 const eventSchema = new mongoose.Schema({
     title: {
@@ -89,7 +88,18 @@ eventSchema.statics.deleteEvent = function(eventId) {
     return this.findByIdAndDelete(eventId);
 };
 
-eventSchema.statics.signUpUser = function(eventId, userId) {
+eventSchema.statics.signUpUser = async function(eventId, userId) {
+    const event = await this.findById(eventId);
+    if(!event){
+        return null;
+    }
+    const alreadySignedUp = event.attendees.some(
+        attendee => attendee.toString() === userId.toString()
+    );
+    if(alreadySignedUp){
+        return this.findById(eventId)
+        .populate('attendees', 'username');
+    }
     return this.findByIdAndUpdate(
         eventId,
         {
