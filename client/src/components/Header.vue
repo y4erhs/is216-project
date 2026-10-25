@@ -1,11 +1,31 @@
 <script setup>
 import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
+import NotificationBell from '../components/NotificationBell.vue'
 
+const router = useRouter();
 // --- Emits ---
 const emit = defineEmits(['toggle-menu'])
 
 // --- State ---
 const searchQuery = ref('')
+
+// --- Notification ---
+function onNotification(item) {
+  if (item.lobbyId) {
+    const id = item.lobbyId._id || item.lobbyId
+    // If you have a specific lobby page, use it. Otherwise, go to my lobby:
+    router.push(`/lobby`) // for actual one change to router.push(`/lobby/${id}`)
+  } 
+  else if (item.eventId) {
+    const id = item.eventId._id || item.eventId
+    router.push(`/activity-tracking/`) // for actual one change to router.push(`/event/${id}`)
+  } 
+  else {
+    // FALLBACK FOR DEMO: Routes to discover if no ID is present
+    router.push('/') 
+  }
+}
 
 // --- Computed Dates ---
 const currentDate = computed(() => {
@@ -69,12 +89,7 @@ const mobileDate = computed(() => {
             </div>
 
             <!-- Notification Pill -->
-            <div class="pill-badge icon-pill notif-pill">
-                <span class="bell-icon">
-                    <i class="bi bi-bell-fill text-white"></i>
-                </span>
-                <span class="notif-dot"></span>
-            </div>
+            <NotificationBell @open-item="onNotification" />
 
             <!-- Avatar Pill -->
             <div class="pill-badge avatar-pill">
