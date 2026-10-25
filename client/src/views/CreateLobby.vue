@@ -54,7 +54,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useLobbies } from '../components/useLobbies'
+import { useLobbies } from '../composables/useLobbies'
 
 const emit = defineEmits(['created', 'cancel'])
 const store = useLobbies()
