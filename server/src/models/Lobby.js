@@ -27,6 +27,10 @@ const lobbySchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
     }],
+    declined: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    }],
     lastActiveAt:{
         type: Date,
         default: Date.now
@@ -40,6 +44,10 @@ const lobbySchema = new mongoose.Schema({
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Event'
         },
+        memberIds: [{
+            type: mongoose.Schema.Types.ObjectId,
+            ref:'User'
+        }],
         registeredAt: {
             type: Date,
             default: Date.now
@@ -65,12 +73,14 @@ lobbySchema.statics.getLobbyForUser = function(userId) {
         $or: [
             { host: userId },
             { participants: userId },
-            { invited: userId}
+            { invited: userId},
+            { declined: userId}
         ]
     })
     .populate('host', 'username')
     .populate('invited', 'username')
     .populate('participants', 'username')
+    .populate('declined', 'username')
     .populate('event');
 };
 
@@ -79,8 +89,10 @@ lobbySchema.statics.getLobbyById = function(lobbyId) {
         .populate('host', 'username')
         .populate('invited', 'username')
         .populate('participants', 'username')
+        .populate('declined', 'username')
         .populate('event')
-        .populate('history.eventId');
+        .populate('history.eventId')
+        .populate('history.memberIds', 'username');
 };
 
 lobbySchema.statics.inviteUser = function(lobbyId, userId) {
@@ -99,6 +111,7 @@ lobbySchema.statics.inviteUser = function(lobbyId, userId) {
     .populate('host', 'username')
     .populate('invited', 'username')
     .populate('participants', 'username')
+    .populate('declined', 'username')
     .populate('event');
 };
 
@@ -118,6 +131,7 @@ lobbySchema.statics.removeUser = function(lobbyId, userId) {
     .populate('host', 'username')
     .populate('invited', 'username')
     .populate('participants', 'username')
+    .populate('declined', 'username')
     .populate('event');
 };
 
@@ -126,7 +140,8 @@ lobbySchema.statics.acceptInvite = function(lobbyId, userId) {
         lobbyId,
         {
             $pull: {
-                invited: userId
+                invited: userId,
+                declined: userId
             },
             $addToSet: {
                 participants: userId
@@ -140,6 +155,7 @@ lobbySchema.statics.acceptInvite = function(lobbyId, userId) {
     .populate('host', 'username')
     .populate('invited', 'username')
     .populate('participants', 'username')
+    .populate('declined', 'username')
     .populate('event');
 };
 
@@ -150,6 +166,9 @@ lobbySchema.statics.declineInvite = function(lobbyId, userId) {
             $pull: {
                 invited: userId
             },
+            $addToSet: {
+                declined: userId
+            },
             lastActiveAt: Date.now()
         },
         {
@@ -159,6 +178,7 @@ lobbySchema.statics.declineInvite = function(lobbyId, userId) {
     .populate('host', 'username')
     .populate('invited', 'username')
     .populate('participants', 'username')
+    .populate('declined', 'username')
     .populate('event');
 };
 
@@ -199,7 +219,8 @@ lobbySchema.statics.signUpLobbyForEvent = async function(lobbyId) {
         $push: {
             history: {
                 eventId: lobby.event._id,
-                count: participantIds.length
+                count: participantIds.length,
+                memberIds: participantIds
             }
         },
         lastActiveAt: Date.now()

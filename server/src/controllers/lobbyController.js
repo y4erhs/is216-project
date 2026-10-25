@@ -13,7 +13,37 @@ exports.getLobbyForUser = async (req,res) =>{
     try{
         const {userId} = req.params;
         const lobbies = await Lobby.getLobbyForUser(userId);
-        res.json(lobbies)
+        const result = lobbies.map(lobby => {
+            const obj = lobby.toObject();
+
+            obj.members = [
+                ...lobby.participants.map(user => ({
+                    id: user._id,
+                    name: user.username,
+                    status: 'accepted'
+                })),
+
+                ...lobby.invited.map(user => ({
+                    id: user._id,
+                    name: user.username,
+                    status: 'pending'
+                })),
+
+                ...lobby.declined.map(user => ({
+                    id: user._id,
+                    name: user.username,
+                    status: 'declined'
+                }))
+            ];
+
+            obj.hostId = lobby.host?._id;
+            obj.pitchedEventId = lobby.event?._id;
+
+            return obj;
+        });
+
+        res.json(result);
+
     }catch(err){
         res.status(500).json({error:err.message})
     }
@@ -31,7 +61,29 @@ exports.getLobbyById = async (req, res) => {
             });
         }
 
-        res.json(lobby);
+        const result = lobby.toObject();
+        result.members = [
+            ...lobby.participants.map(user => ({
+                id: user._id,
+                name: user.username,
+                status: 'accepted'
+            })),
+
+            ...lobby.invited.map(user => ({
+                id: user._id,
+                name: user.username,
+                status: 'pending'
+            })),
+
+            ...lobby.declined.map(user => ({
+                id: user._id,
+                name: user.username,
+                status: 'declined'
+            }))
+        ];
+        result.hostId = lobby.host?._id;
+        result.pitchedEventId = lobby.event?._id;
+        res.json(result)
 
     } catch (err) {
         res.status(500).json({

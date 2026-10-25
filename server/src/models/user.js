@@ -117,6 +117,10 @@ userSchema.statics.getUserById = function(userId) {
     return this.findById(userId).select('-password');
 };
 
+userSchema.statics.findByUsername = function(username){
+    return this.findOne({ username});
+};
+
 userSchema.statics.updateUser = function(userId, updates) {
     return this.findByIdAndUpdate(
         userId,
