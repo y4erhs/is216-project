@@ -77,7 +77,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import BaseInput from '../components/BaseInput.vue'
-import { useLobbies, EVENTS, timeAgo } from '../components/useLobbies'
+import { useLobbies, EVENTS, timeAgo } from '../composables/useLobbies.js'
 
 defineEmits(['open', 'create', 'open-calendar'])
 

@@ -34,7 +34,7 @@ import MyLobbies from '../views/MyLobbies.vue'
 import CreateLobby from '../views/CreateLobby.vue'
 import Lobby from '../views/Lobby.vue'
 import LobbyInvite from '../views/LobbyInvite.vue'
-import { useLobbies, EVENTS, ME_ID } from '../components/useLobbies'
+import { useLobbies, EVENTS, ME_ID } from '../composables/useLobbies'
 
 defineEmits(['open-calendar'])
 
