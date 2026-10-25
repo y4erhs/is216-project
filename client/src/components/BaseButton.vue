@@ -1,5 +1,4 @@
 <script setup>
-
 import '../assets/theme.css'
 
 defineProps({
@@ -17,16 +16,24 @@ defineProps({
   }
 })
 
-
 defineEmits(['click'])
 </script>
 
 <template>
   <button
+    v-if="variant === 'circle'"
+    :type="type"
+    :disabled="disabled"
+    class="btn-custom btn-circle"
+    @click="$emit('click', $event)"
+  ><slot></slot></button>
+
+  <button
+    v-else
     :type="type"
     :disabled="disabled"
     :class="['btn-custom', `btn-${variant}`]"
-    @click="$emit('click',$event)"
+    @click="$emit('click', $event)"
   >
     <span class="header-style">
       <slot>Click here</slot>
@@ -39,19 +46,42 @@ defineEmits(['click'])
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 3px 16px 6px 16px;
-  font-size: 11px;
-  border-radius: 25px;
   border: solid 1px transparent;
   cursor: pointer;
   transition: all 0.2s ease-in-out;
   outline: none;
   background-color: var(--bg);
   color: var(--text);
+  box-sizing: border-box;
 }
 
-/* Outline Variant */
+.btn-custom:not(.btn-circle) {
+  gap: 8px;
+  padding: 3px 16px 6px 16px;
+  font-size: 11px;
+  border-radius: 25px;
+}
+
+.btn-custom:not(.btn-circle):hover:not(:disabled) {
+  transform: scale(1.03);
+}
+
+.btn-custom:not(.btn-circle):active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.btn-circle {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  border-radius: 50%;
+  border: none !important;
+  font-size: 0 !important;
+  line-height: 0;
+  transition: background-color 0.15s ease;
+}
+
 .btn-outline-main {
   background-color: transparent;
   border: 1px solid;
@@ -63,24 +93,14 @@ defineEmits(['click'])
   background-color: var(--bg);
   color: var(--text);
   font-size: 11px !important;
-  min-height: 0px !important; 
+  min-height: 0px !important;
   height: 22px;
   width: 22px !important;
-  padding: 0 0 2 0 !important;
-}
-
-.btn-custom:hover:not(:disabled) {
-  transform: scale(1.03);
-}
-
-.btn-custom:active:not(:disabled) {
-    transform: scale(0.97);
+  padding: 0 0 2px 0 !important;
 }
 
 .btn-custom:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
-
-
 </style>

@@ -57,15 +57,14 @@ watch(() => props.modelValue, (newVal) => {
 <template>
   <div class="folder-container">
     <!-- 1. FOLDER TABS -->
-    <div class="tabs-header">
+    <div class="tabs-header" :class="{ 'overflow-mode': tabs.length > 4 }">
       <button
         v-for="(tab, index) in tabs"
         :key="tab.id"
         type="button"
         :class="['folder-tab', tab.theme, { active: activeTab === tab.id }]"
         :style="{
-          zIndex: activeTab === tab.id ? 20 : (10 - index),
-          transform: `translateX(${index * -20}px)`
+          zIndex: activeTab === tab.id ? 20 : (10 - index)
         }"
         @click="selectTab(tab.id)"
       >
@@ -107,16 +106,17 @@ watch(() => props.modelValue, (newVal) => {
   position: relative;
 }
 
-/* 1. TABS HEADER */
 .tabs-header {
   display: flex;
   align-items: flex-end;
   margin-bottom: -1px;
+  width: 100%;
+  position: relative;
+  gap: 8px;
 }
 
 .folder-tab {
   position: relative;
-  align-self: flex-start;
   display: inline-flex;
   align-items: center;
 
@@ -132,40 +132,74 @@ watch(() => props.modelValue, (newVal) => {
   color: var(--text, #1f2937);
 
   height: 40px;
-  padding: 0 2px 0 26px;
-  border-top-left-radius: 18px;
+  padding: 0 18px 0 20px;
+  border-top-left-radius: 16px;
   border-top-right-radius: 0;
 
-  margin-right: 36px;
-  transition: filter 0.2s ease-in-out;
+  flex: 1 1 auto;
+  min-width: 90px;
+  max-width: 160px;
+  margin-right: 0; 
+
+  transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
-.folder-tab:hover {
-  filter: brightness(0.92);
+.tabs-header.overflow-mode {
+  gap: 0px;
 }
 
-.folder-tab.active {
-  filter: brightness(1);
+.tabs-header.overflow-mode .folder-tab {
+  flex: 1 1 50px;
+  min-width: 45px;
+  max-width: 95px;
+  margin-right: -16px;
+  padding: 0 4px 0 14px;
+}
+
+.tabs-header.overflow-mode .folder-tab:not(:first-child):hover {
+  flex: 0 1 150px;
+  max-width: 150px;
+  margin-left: 16px;
+  z-index: 50;
+}
+
+.tabs-header.overflow-mode .folder-tab:first-child:hover {
+  flex: 0 1 150px;
+  max-width: 150px;
+  margin-left: 0 !important;
+  z-index: 50;
 }
 
 .folder-tab::after {
   content: '';
   position: absolute;
+  left: calc(100% - 1px);
   left: 100%;
   bottom: 0;
-  width: 36px;
+  width: 26px;
   height: 100%;
   background-color: inherit;
-  clip-path: path('M 0 0 L 2 0 Q 18 0, 24 14 L 36 40 L 0 40 Z');
+  clip-path: path('M 0 0 L 2 0 Q 14 0, 18 12 L 26 40 L 0 40 Z');
+  pointer-events: none;
+}
+
+.folder-tab.active {
+  filter: brightness(1);
+  z-index: 90 !important;
 }
 
 .folder-tab-text {
-  font-size: 12px;
+  font-size: 11.5px;
   letter-spacing: 0.5px;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+  width: 100%;
+  text-align: center;
+  padding-left: 20px;
 }
 
-/* 2. BODY FOLDER & PERSPECTIVE */
 .folder-body {
   position: relative;
   background-color: var(--bg, #d1d5db);
@@ -201,13 +235,11 @@ watch(() => props.modelValue, (newVal) => {
   height: 85%; 
   background-color: var(--bg, #d1d5db);
   border-radius: 20px;
-  
   display: flex;
   align-items: center;
   justify-content: center;
   box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.15);
-  z-index: 30;
-  
+  z-index: 100;
   transform-origin: bottom center;
   backface-visibility: hidden;
 }
