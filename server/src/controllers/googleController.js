@@ -14,7 +14,7 @@ exports.connect = (req, res) => {
     const url = client.generateAuthUrl({
         access_type: 'offline',
         prompt: 'consent',
-        scope: ['https://www.googleapis.com/auth/calendar.events'],
+        scope: ['openid','email','https://www.googleapis.com/auth/calendar.events'],
         state: userId
     })
 
@@ -38,9 +38,19 @@ exports.callback = async (req, res) => {
             return res.redirect(`${clientUrl}/calendar?google=error`)
         }
 
+        // read the user's Google email from the sign-in info Google sent back
+        let googleEmail = null
+        if (tokens.id_token) {
+            const ticket = await client.verifyIdToken({
+                idToken: tokens.id_token,
+                audience: process.env.GOOGLE_CLIENT_ID
+            })
+            googleEmail = ticket.getPayload().email
+        }
+
         await GoogleConnection.findOneAndUpdate(
             { user: userId },
-            { user: userId, refreshToken: tokens.refresh_token, connectedAt: new Date() },
+            { user: userId, refreshToken: tokens.refresh_token, googleEmail, connectedAt: new Date() },
             { upsert: true, new: true, runValidators: true }
         )
 
@@ -64,7 +74,8 @@ exports.status = async (req, res) => {
 
         return res.status(200).json({
             connected: !!connection,
-            connectedAt: connection ? connection.connectedAt : null
+            connectedAt: connection ? connection.connectedAt : null,
+            googleEmail: connection ? connection.googleEmail : null
         })
     } catch (err) {
         return res.status(500).json({ message: err.message })
