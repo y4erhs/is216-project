@@ -5,9 +5,11 @@ import '../assets/theme.css'
 import BaseButton from '../components/BaseButton.vue';
 import BaseInput from '../components/BaseInput.vue';
 import EditInterests from '../components/EditInterests.vue';
+import GoogleCalendarCard from '../components/GoogleCalendarCard.vue';
 
 const setting1Push = ref(true)
 const setting1Email = ref(true)
+const includePersonal = ref(true)
 
 // profile form state
 const selectedCourse = ref('Software Engineering (BSc)')
@@ -101,54 +103,8 @@ const gradOptions = ['2027', '2028', '2029', '2030']
           </div>
         </div>
 
-        <!-- CONNECT CALENDAR -->
-        <div class="calendar-card">
-          <div class="calendar-header">
-            <span class="calendar-title">Your connected calendar</span>
-            <button type="button" class="btn-manage">Manage</button>
-          </div>
-
-          <div class="calendar-provider">
-              <i class="bi bi-calendar-event fs-5"></i>
-            <div class="cal-provider-info">
-              <div class="cal-name">Google Calendar</div>
-              <div class="cal-email">leniscool@gmail.com</div>
-            </div>
-          </div>
-
-          <div class="cal-badge">
-            Linked · Preview connection
-          </div>
-
-          <div class="cal-sync-info">
-            <p>Last sync shown: 7 Oct, 8:42 AM</p>
-            <p>2 personal calendars · Free / busy used for planning</p>
-          </div>
-
-          <div class="cal-toggle-row">
-            <span>Include personal commitments</span>
-            <label class="toggle-switch">
-              <input type="checkbox" v-model="includePersonal" />
-              <span class="slider"></span>
-            </label>
-          </div>
-
-          <div class="cal-actions">
-            <BaseButton type="button" class="theme-purple">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="23 4 23 10 17 10"></polyline>
-                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
-              </svg>
-              Sync now
-            </BaseButton>
-            <BaseButton type="button" class="theme-purple">Unlink</BaseButton>
-          </div>
-
-          <p class="cal-disclaimer">
-            Connection and sync status are illustrative. No live calendar integration is connected in this design.
-          </p>
-        </div>
+        <!-- CONNECT CALENDAR (NEED TO CHANGE ONCE USER AND LOGIN IS DONE)-->
+        <GoogleCalendarCard userId="6acd9e65046b9013f579fc79" />
 
       </div>
 

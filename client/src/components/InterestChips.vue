@@ -55,12 +55,5 @@
     </BaseButton>
 
     <router-link to="/profile" class="small" style="color: white;">+ Edit interests</router-link>
-
-    <div class="d-flex flex-wrap gap-2">
-        <div class="form-check" v-for="interest in allInterests" :key="interest">
-            <input class="form-check-input" type="checkbox" v-bind:id="interest" v-bind:value="interest" v-model="selectedInterests">
-            <label class="form-check-label text-dark" v-bind:for="interest">{{ interest }}</label>
-        </div>   
-    </div>
   </div>
 </template>
