@@ -104,10 +104,18 @@
                   <span class="status" :class="`status-${m.status}`">
                     <span aria-hidden="true">{{ statusIcon[m.status] }}</span>{{ statusLabel[m.status] }}
                   </span>
-                  <!-- DEMO: opens the screen this person sees -->
-                  <button v-if="demo && m.id !== lobby.hostId" class="btn btn-small" type="button" @click="viewingId = m.id">Their view</button>
-                  <button v-if="m.id !== lobby.hostId && !registered" class="icon-btn" type="button"
-                          :aria-label="`Remove ${m.name}`" @click="removeMember(m.id)">✕</button>
+
+                  <!-- host only: remove someone (asks first) -->
+                  <template v-if="m.id !== lobby.hostId && !registered">
+                    <span v-if="removingId === m.id" class="confirm">
+                      Are you sure?
+                      <button class="btn btn-danger btn-small" type="button" @click="removeMember(m.id); removingId = null">Yes, remove</button>
+                      <button class="btn btn-ghost btn-small" type="button" @click="removingId = null">Cancel</button>
+                    </span>
+                    <button v-else class="btn btn-remove btn-small" type="button" @click="removingId = m.id">
+                      Remove {{ m.name.split(' ')[0] }}
+                    </button>
+                  </template>
                 </li>
               </TransitionGroup>
 
@@ -119,7 +127,6 @@
             </div>
           </div>
         </template>
-
         <!-- ===== Register ===== -->
         <template #register>
           <div class="pane">
@@ -241,7 +248,7 @@
 import { ref, reactive, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import FolderTabs from '../components/FolderTabs.vue'
 import LobbyInvite from '../views/LobbyInvite.vue' 
-import { useLobbies, FRIENDS, EVENTS, daysAgo, timeAgo, INACTIVE_DAYS } from '../components/useLobbies'
+import { useLobbies, FRIENDS, EVENTS, daysAgo, timeAgo, INACTIVE_DAYS } from '../composables/useLobbies'
 
 /* ---------- props / emits ---------- */
 const props = defineProps({
@@ -363,6 +370,7 @@ function onRespond(status) {
 /* ---------- actions ---------- */
 const initials = (name) => name.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase()
 const isInvited = (friendId) => members.value.some((m) => m.id === friendId)
+const removingId = ref(null) // which roster row is asking "Remove …?"
 
 function invite(friend) {
   store.addMember(props.lobbyId, friend)
@@ -541,6 +549,8 @@ onBeforeUnmount(() => {
 .status-declined { background: var(--violet); }
 .icon-btn { width: 24px; height: 24px; border: 0; border-radius: 50%; background: rgba(31, 42, 68, 0.12); color: var(--ink); cursor: pointer; font-size: 11px; }
 .icon-btn:hover { background: rgba(31, 42, 68, 0.25); }
+.confirm { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; }
+.btn-remove { background: transparent; color: var(--danger); box-shadow: inset 0 0 0 2px var(--danger); }
 
 .live { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
 .live-dot { width: 8px; height: 8px; border-radius: 50%; background: #3f48cc; animation: pulse 1.8s infinite; }
