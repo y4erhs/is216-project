@@ -33,11 +33,11 @@ const routes = [
 
   { path: "/activity-tracking", name: "Activty Tracking", component: tracking },
 
-  {
-    path: "/sandbox",
-    name: "TestCards",
-    component: () => import("../views/sandbox.vue"),
-  },
+  // {
+  //   path: "/sandbox",
+  //   name: "TestCards",
+  //   component: () => import("../views/sandbox.vue"),
+  // },
 ];
 
 const router = createRouter({

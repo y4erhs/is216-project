@@ -20,10 +20,18 @@
 
   const availableInterests = [
   { id: 'tech', label: 'Tech' },
-  { id: 'arts-culture', label: 'Arts and Culture' },
-  { id: 'outdoor-activity', label: 'Outdoor Activity' },
+  { id: 'arts', label: 'Arts' },
+  { id: 'culture', label: 'Cultural Clubs' },
   { id: 'community-service', label: 'Community Service' },
-  { id: 'sports', label: 'Sports' }
+  { id: 'sports-outdoors', label: 'Sports and Outdoors' },
+  { id: 'career', label: 'Career' },
+  { id: 'overseas', label: 'Overseas Activities' },
+  { id: 'networking', label: 'Networking Event' },
+  { id: 'workshops', label: 'Skills Upgrading Workshop' },
+  { id: 'food', label: 'Food' },
+  { id: 'wellness', label: 'Wellness' },
+  { id: 'talks', label: 'Guest Lectures' }
+
 ]
 
 // Tracks the IDs of selected cards
