@@ -10,6 +10,7 @@ const {
   loadActivities,
   setInterested,
   setGoing,
+  saveNote,
   deleteActivity,
 } = useActivities()
 
@@ -33,21 +34,17 @@ function sortKey(a, tab) {
   const times =
     tab === 'interested'
       ? a.event.sessions.map((s) => new Date(s.startTime).getTime())
-      : a.sessions
+      : (a.sessions || [])
           .filter((s) => s.going === tab)
           .map((s) => new Date(s.startTime).getTime())
   return times.length ? Math.min(...times) : 0
 }
 
 const byStatus = computed(() => {
-  const out = {
-    interested: [],
-    attending: [],
-    attended: []
-  }
+  const out = { interested: [], attending: [], attended: [] }
   for (const t of ['attending', 'interested', 'attended']) {
     out[t] = activities.value
-      .filter((a) => a.event && matches[t](a))
+      .filter((a) => a.event?.sessions?.length && matches[t](a))
       .sort((a, b) => sortKey(a, t) - sortKey(b, t))
   }
   return out
@@ -55,31 +52,22 @@ const byStatus = computed(() => {
 
 // Dynamic tab labels with count badges e.g. ATTENDING (3)
 const tabs = computed(() => [
-  { 
-    id: 'attending', 
-    label: `ATTENDING (${byStatus.value.attending.length})`, 
-    theme: 'theme-green' 
-  },
-  { 
-    id: 'interested', 
-    label: `INTERESTED (${byStatus.value.interested.length})`, 
-    theme: 'theme-orange' 
-  },
-  { 
-    id: 'attended', 
-    label: `ATTENDED (${byStatus.value.attended.length})`, 
-    theme: 'theme-purple' 
-  },
+  { id: 'attending', label: `ATTENDING (${byStatus.value.attending.length})`, theme: 'theme-green' },
+  { id: 'interested', label: `INTERESTED (${byStatus.value.interested.length})`, theme: 'theme-orange' },
+  { id: 'attended', label: `ATTENDED (${byStatus.value.attended.length})`, theme: 'theme-purple' },
 ])
 
 // Map database activity sessions to dictionary { [sessionKey]: 'attending' | 'attended' }
 function getGoingBySession(activity) {
   if (!activity.sessions) return {}
   return activity.sessions.reduce((acc, s) => {
-    const key = new Date(s.startTime).getTime()
-    acc[key] = s.going
+    acc[new Date(s.startTime).getTime()] = s.going
     return acc
   }, {})
+}
+
+function onInviteFriends(id) {
+  console.log('Invite friends for event:', id)
 }
 
 onMounted(async () => {
@@ -124,11 +112,13 @@ onMounted(async () => {
               :event="a.event"
               :variant="t.id"
               :interested="a.interested"
+              :note="a.note || ''"
               :going-by-session="getGoingBySession(a)"
               @set-interested="(val) => setInterested(a.event._id, val)"
               @set-going="(payload) => setGoing(a.event._id, payload)"
+              @save-note="(text) => saveNote(a.event._id, text)"
               @remove-history="deleteActivity(a.event._id)"
-              @invite-friends="(id) => console.log('Invite friends for event:', id)"
+              @invite-friends="onInviteFriends"
             />
           </div>
         </template>
