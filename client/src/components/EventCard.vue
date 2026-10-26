@@ -1,12 +1,13 @@
 <script setup>
-import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
+import { computed, ref, watch, onMounted, onBeforeUnmount } from 'vue'
 import BaseButton from './BaseButton.vue'
+import BaseInput from './BaseInput.vue'
 import { formatSession, sessionKey } from '../utils/formatSession'
-
 
 const props = defineProps({
   event: { type: Object, required: true },
   interested: { type: Boolean, default: false },
+  note: { type: String, default: '' },
   goingBySession: { type: Object, default: () => ({}) },
   fromDate: { type: String, default: '' },
   score: { type: Number, default: null },
@@ -19,7 +20,8 @@ const emit = defineEmits([
   'set-going',
   'less-like-this',
   'invite-friends',
-  'remove-history'
+  'remove-history',
+  'save-note'
 ])
 
 const isSlotMenuOpen = ref(false)
@@ -29,6 +31,11 @@ const sgDay = (d) => new Date(d).toLocaleDateString('en-CA', { timeZone: 'Asia/S
 
 const sortedSessions = computed(() =>
   [...props.event.sessions].sort((a, b) => sessionKey(a) - sessionKey(b))
+)
+
+// sessions of this event the user is attending (Attending tab dropdown)
+const attendingSessions = computed(() =>
+  sortedSessions.value.filter(s => props.goingBySession[sessionKey(s)] === 'attending')
 )
 
 function hasOverlap(session) {
@@ -50,13 +57,31 @@ const bestFitSession = computed(() => {
 })
 
 const pickedKey = ref(null)
-const shownSession = computed(() =>
-  sortedSessions.value.find(s => sessionKey(s) === pickedKey.value) ?? bestFitSession.value
-)
+const shownSession = computed(() => {
+  // Attending tab: only choose among sessions the user is attending
+  if (props.variant === 'attending') {
+    const pool = attendingSessions.value
+    return pool.find(s => sessionKey(s) === pickedKey.value) ?? pool[0] ?? bestFitSession.value
+  }
+
+  const picked = sortedSessions.value.find(s => sessionKey(s) === pickedKey.value)
+  if (picked) return picked
+
+  // Attended tab: show the session the user marked as attended
+  if (props.variant === 'attended') {
+    const mine = sortedSessions.value.find(
+      s => props.goingBySession[sessionKey(s)] === 'attended'
+    )
+    if (mine) return mine
+  }
+  return bestFitSession.value
+})
 
 const going = computed(() => props.goingBySession[sessionKey(shownSession.value)] ?? 'none')
+const hasStarted = computed(() => new Date(shownSession.value.startTime) <= new Date())
 const hasEnded = computed(() => new Date(shownSession.value.endTime) < new Date())
 const attendingDisabled = computed(() => hasEnded.value && going.value !== 'attending')
+const attendedDisabled = computed(() => !hasStarted.value && going.value !== 'attended')
 
 const formattedDateTime = computed(() => {
   if (!shownSession.value?.startTime || !shownSession.value?.endTime) return ''
@@ -80,7 +105,7 @@ const formattedDateTime = computed(() => {
     timeZone: 'Asia/Singapore'
   })
 
-  return `${timeRange}, - ${dateStr}`
+  return `${timeRange} - ${dateStr}`
 })
 
 function handleAddBtnClick() {
@@ -97,11 +122,29 @@ function selectSessionAndAdd(session) {
   isSlotMenuOpen.value = false
 }
 
+// Attending tab: switch which attending session is shown
+function selectSession(session) {
+  pickedKey.value = sessionKey(session)
+  isSlotMenuOpen.value = false
+}
+
 function toggleGoing(value, session = shownSession.value) {
   emit('set-going', {
     sessionStart: session.startTime,
     status: going.value === value ? 'none' : value
   })
+}
+
+// ----- notes -----
+const noteDraft = ref(props.note)
+watch(() => props.note, (v) => { noteDraft.value = v })
+const noteChanged = computed(() => noteDraft.value !== props.note)
+
+// removing history also deletes the note, so confirm first
+function removeHistory() {
+  if (window.confirm('Remove this event from your history? Your note will be deleted too.')) {
+    emit('remove-history', props.event._id || props.event.id)
+  }
 }
 
 function handleClickOutside(e) {
@@ -203,20 +246,53 @@ const matchBadgeClass = computed(() =>
 
       <!-- 2. ATTENDING VARIANT -->
       <template v-else-if="variant === 'attending'">
-        <div class="btn-row">
-          <BaseButton 
+        <!-- session dropdown (only when more than one attending session) -->
+        <div
+          v-if="attendingSessions.length > 1"
+          class="dropdown-btn-wrapper"
+          ref="menuWrapperRef"
+        >
+          <BaseButton
             class="action-pill-btn"
-            :variant="going === 'attended' ? 'green' : 'outline-main'"
-            :class="{ 'theme-green': going === 'attended' }"
-            @click="toggleGoing('attended')"
+            variant="outline-main"
+            @click="isSlotMenuOpen = !isSlotMenuOpen"
           >
-            {{ going === 'attended' ? '✓ ATTENDED' : 'MARK AS ATTENDED' }}
+            {{ formatSession(shownSession) }}
+            <span class="dropdown-chevron" :class="{ rotate: isSlotMenuOpen }"></span>
           </BaseButton>
 
-          <BaseButton 
+          <div v-if="isSlotMenuOpen" class="slots-popup-menu">
+            <div class="popup-header">Your sessions ({{ attendingSessions.length }}):</div>
+            <div
+              v-for="s in attendingSessions"
+              :key="sessionKey(s)"
+              class="slot-menu-item"
+              :class="{ 'is-active': sessionKey(s) === sessionKey(shownSession) }"
+              @click="selectSession(s)"
+            >
+              <div class="slot-text-group">
+                <span class="slot-title">{{ formatSession(s) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- controls act on the session shown above -->
+        <div class="btn-row">
+          <BaseButton
+            class="action-pill-btn"
+            variant="outline-main"
+            :disabled="attendedDisabled"
+            :title="attendedDisabled ? 'Available once this session starts' : ''"
+            @click="toggleGoing('attended')"
+          >
+            MARK AS ATTENDED
+          </BaseButton>
+
+          <BaseButton
             variant="circle"
-            class="trash-btn" 
-            title="Remove from attending"
+            class="trash-btn"
+            title="Remove this session from attending"
             @click="toggleGoing('none')"
           >
             <span class="custom-icon icon-trash"></span>
@@ -225,10 +301,10 @@ const matchBadgeClass = computed(() =>
 
         <div class="friends-footer">
           <div v-if="event.friends && event.friends.length" class="avatar-stack">
-            <span 
-              v-for="(f, i) in event.friends.slice(0, 3)" 
-              :key="i" 
-              class="avatar-dot" 
+            <span
+              v-for="(f, i) in event.friends.slice(0, 3)"
+              :key="i"
+              class="avatar-dot"
               :style="{ backgroundColor: f.color || 'var(--color-purple)' }"
             ></span>
             <span class="friends-caption">you + {{ event.friends.length }} friends</span>
@@ -307,11 +383,29 @@ const matchBadgeClass = computed(() =>
         <button 
           type="button" 
           class="link-action-btn dark-link" 
-          @click="emit('remove-history', event._id || event.id)"
+          @click="removeHistory"
         >
           REMOVE FROM HISTORY
         </button>
       </template>
+
+      <!-- NOTES (all tabs except Discover) -->
+      <div v-if="variant !== 'discover'" class="note-section">
+        <BaseInput
+          v-model="noteDraft"
+          type="textarea"
+          :rows="2"
+          label="My notes"
+          placeholder="e.g. bring laptop, meet at the lobby"
+        />
+        <BaseButton
+          class="action-pill-btn"
+          :disabled="!noteChanged"
+          @click="emit('save-note', noteDraft)"
+        >
+          SAVE NOTE
+        </BaseButton>
+      </div>
     </div>
   </div>
 </template>
@@ -644,5 +738,12 @@ const matchBadgeClass = computed(() =>
   font-size: 11px;
   font-weight: 600;
   color: var(--color-dark-grey);
+}
+
+.note-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
 }
 </style>

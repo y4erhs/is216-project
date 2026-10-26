@@ -13,19 +13,23 @@ export function useActivities() {
         activities.value.filter(a => a.event).map(a => [a.event._id, {
             interested: a.interested,
             sessions: Object.fromEntries(
-                a.sessions.map(s => [new Date(s.startTime).getTime(), s.going])
+                (a.sessions || []).map(s => [new Date(s.startTime).getTime(), s.going])
             )
         }])
     ))
 
     async function loadActivities() {
-        const { data } = await axios.get(`${API}/${unref(userId)}`)
+        const id = unref(userId)
+        if (!id) return
+        const { data } = await axios.get(`${API}/${id}`)
         activities.value = data
     }
 
     async function send(eventId, body) {
+        const id = unref(userId)
+        if (!id) return
         try {
-            await axios.put(`${API}/${unref(userId)}/${eventId}`, body)
+            await axios.put(`${API}/${id}/${eventId}`, body)
         } catch (err) {
             console.error('Activity update failed:', err.response?.data?.message, body)
             throw err
@@ -38,7 +42,9 @@ export function useActivities() {
     const saveNote = (eventId, note) => send(eventId, { note })
 
     async function deleteActivity(eventId) {
-        await axios.delete(`${API}/${unref(userId)}/${eventId}`)
+        const id = unref(userId)
+        if (!id) return
+        await axios.delete(`${API}/${id}/${eventId}`)
         await loadActivities()
     }
 
