@@ -31,9 +31,12 @@ exports.getEvents = async (req, res) => {
                 { venue: regex }
             ];
         }
-        // Category: event has at least one of these tags
+        // Category: event has at least one of these tags (ignoring upper/lower case)
         if (tags) {
-            filter.tags = { $in: tags.split(',') };
+            const tagRegexes = tags.split(',').map(t => t.trim()).filter(Boolean).map(t =>
+                new RegExp('^' + t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i')
+            );
+            filter.tags = { $in: tagRegexes };
         }
         // Date: at least one session starts within the range (Singapore time)
         if (from || to) {

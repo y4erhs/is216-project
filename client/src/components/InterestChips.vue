@@ -1,17 +1,20 @@
 <script setup>
-    import {ref, onMounted} from 'vue'
+    import {ref, computed, onMounted} from 'vue'
     import axios from 'axios'
     import BaseButton from '../components/BaseButton.vue';
 
 
     const props = defineProps({
-        showAll: { type: Boolean, default: false }
+        showAll: { type: Boolean, default: false },
+        // the parent decides which chip is highlighted, so it can reset it
+        selected: { type: String, default: null }
     })
     const emit = defineEmits(['select', 'interests-loaded'])
-    const interests = ref([]) 
+    const interests = ref([])
     //RMB TO CHANGE AFT LOGIN AND SIGN UP IS DONE
     const userId = '6acd9e65046b9013f579fc79'
-    const selected = ref(props.showAll ? 'all' : 'for-you')
+    const ownSelected = ref(props.showAll ? 'all' : 'for-you')
+    const selected = computed(() => props.selected ?? ownSelected.value)
 
 
     async function loadPreferences () {
@@ -33,7 +36,7 @@
 
 
     function selectChip (value) {
-        selected.value = value
+        ownSelected.value = value
         emit('select', value)
     }
 </script>
