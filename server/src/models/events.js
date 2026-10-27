@@ -55,7 +55,12 @@ const eventSchema = new mongoose.Schema({
     attendees: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
-    }]
+    }],
+    status: {
+    type: String,
+    enum: ['pending', 'published', 'rejected'],
+    default: 'published'
+    }
 },
 { timestamps: true });
 
@@ -64,7 +69,7 @@ eventSchema.statics.createEvent = function(data) {
 };
 
 eventSchema.statics.getEvents = function(filter = {}) {
-    return this.find(filter)
+    return this.find({ status: { $nin: ['pending', 'rejected'] }, ...filter })
         .sort({ 'sessions.startTime': 1 });
 };
 

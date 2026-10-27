@@ -159,6 +159,12 @@ onBeforeUnmount(() => document.removeEventListener('click', handleClickOutside))
 const matchBadgeClass = computed(() =>
   props.score >= 80 ? 'badge-green' : 'badge-orange'
 )
+
+// Telegram posters are saved on our server as "/uploads/...", so load them from the backend, not the Vite server
+const API_URL = 'http://localhost:8000'
+const imageSrc = computed(() =>
+  props.event.image?.startsWith('/') ? API_URL + props.event.image : props.event.image
+)
 </script>
 
 <template>
@@ -179,7 +185,7 @@ const matchBadgeClass = computed(() =>
     <div class="poster-container">
       <img 
         v-if="event.image" 
-        :src="event.image" 
+        :src="imageSrc"
         :alt="event.title" 
         class="poster-img" 
       />
