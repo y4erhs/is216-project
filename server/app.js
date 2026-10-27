@@ -2,10 +2,12 @@ const express = require('express');
 const dotenv = require('dotenv');
 
 dotenv.config({ path: './config.env' });
+const bot = require('./telegramBot');
 
 const mongoose = require('mongoose');
 const fs = require('fs');
 const cors = require("cors");
+const path = require('path')
 
 
 // Import routes
@@ -53,6 +55,7 @@ server.use('/api/lobbies', lobbyRoutes);
 server.use('/api/activities', activityRoutes);
 server.use("/api/notifications", notificationRoutes);
 server.use('/auth/google', googleRoutes);
+server.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 async function connectDB() {
   try {
@@ -73,4 +76,11 @@ function startServer() {
   });
 }
 
-connectDB().then(startServer);
+connectDB().then(() => {
+  startServer();
+  bot.start();
+  console.log("Telegram bot polling...");
+});
+
+process.once("SIGINT", () => bot.stop());
+process.once("SIGTERM", () => bot.stop());

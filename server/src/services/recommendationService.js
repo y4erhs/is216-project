@@ -24,7 +24,8 @@ exports.generateForUser = async (userId, feedType = 'weekly') => {
     const hiddenEventIds = hiddenRecs.map(r => String(r.event))
 
     const events = await Event.find({
-        sessions: { $elemMatch: { startTime: { $gte: now, $lte: until } } }
+        sessions: { $elemMatch: { startTime: { $gte: now, $lte: until } } },
+        status: { $nin: ['pending', 'rejected'] }
     });
 
     const candidates = events.filter(e => {

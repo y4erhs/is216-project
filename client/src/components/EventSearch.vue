@@ -18,7 +18,7 @@ const results = ref([])
 const searching = ref(false)
 const hasSearched = ref(false)
 
-const selectedChip = ref('all')
+const selectedChip = ref('for-you') // the page opens on the "For you" picks
 const myInterests = ref([])
 
 const emit = defineEmits(['search-active'])
@@ -49,44 +49,81 @@ const sortedResults = computed(() =>
 async function loadCategories() {
     try {
         const response = await axios.get('http://localhost:8000/api/events')
-        const allTags = response.data.flatMap(e => e.tags)
-        categories.value = [...new Set(allTags)].sort()
+        // "Tech" and "tech" are the same category, so keep one of them (prefer the capitalised one)
+        const byLower = {}
+        for (const tag of response.data.flatMap(e => e.tags)) {
+            const key = tag.toLowerCase()
+            if (!byLower[key] || tag[0] !== tag[0].toLowerCase()) byLower[key] = tag
+        }
+        categories.value = Object.values(byLower).sort((a, b) => a.localeCompare(b))
     } catch (error) {
         console.log('There was an error: ' + error.message)
     }
 }
 
+// Each search gets a number, so an older, slower reply can't overwrite a newer one
+let latestSearch = 0
+const noInterests = ref(false)
+
 // Search using whatever filters are filled in
 async function searchEvents() {
+    const searchId = ++latestSearch
     hasSearched.value = true
     emit('search-active', true)
-    searching.value = true
+    noInterests.value = false
     const params = {}
     if (keyword.value.trim()) params.q = keyword.value.trim()
     if (category.value) {
         params.tags = category.value
     } else if (selectedChip.value === 'for-you') {
-        if (myInterests.value.length > 0) params.tags = myInterests.value.join(',')
+        // no interests means nothing is "for you", not everything
+        if (myInterests.value.length === 0) {
+            noInterests.value = true
+            results.value = []
+            searching.value = false
+            return
+        }
+        params.tags = myInterests.value.join(',')
     } else if (selectedChip.value !== 'all') {
         params.tags = selectedChip.value
     }
     if (fromDate.value) params.from = fromDate.value
     if (toDate.value) params.to = toDate.value
 
+    searching.value = true
     try {
         const response = await axios.get('http://localhost:8000/api/events', { params })
+        if (searchId !== latestSearch) return
         results.value = response.data
     } catch (error) {
+        if (searchId !== latestSearch) return
         console.log('There was an error: ' + error.message)
     }
     searching.value = false
 }
 
+// Tapping a chip always searches (even the one already selected) and replaces the category filter
+function selectChip(value) {
+    selectedChip.value = value
+    category.value = ''
+    searchEvents()
+}
+
+// Picking a category replaces the chip filter
+function selectCategory() {
+    selectedChip.value = 'all'
+    searchEvents()
+}
+
 function clearFilters() {
+    latestSearch++
     keyword.value = ''
     category.value = ''
+    selectedChip.value = 'for-you'
     fromDate.value = today
     toDate.value = ''
+    searching.value = false
+    noInterests.value = false
     hasSearched.value = false
     emit('search-active', false)
 }
@@ -96,9 +133,6 @@ onMounted(() => {
     loadScores()
     loadActivities()
 })
-
-// Tapping a chip runs a search
-watch(selectedChip, searchEvents)
 
 // Interests loading or changing only re-runs a search that's already showing
 watch(myInterests, () => {
@@ -125,7 +159,7 @@ watch(myInterests, () => {
 
             <div class="col-6 col-md-2">
                 <label class="form-label small text-muted">Category</label>
-                <select class="form-select" v-model="category" v-on:change="searchEvents">
+                <select class="form-select" v-model="category" v-on:change="selectCategory">
                     <option value="">All</option>
                     <option v-for="c in categories" v-bind:key="c" v-bind:value="c">{{ c }}</option>
                 </select>
@@ -150,7 +184,8 @@ watch(myInterests, () => {
         <div class="mb-3">
             <InterestChips
                 show-all
-                v-on:select="selectedChip = $event"
+                v-bind:selected="selectedChip"
+                v-on:select="selectChip"
                 v-on:interests-loaded="myInterests = $event"
             />
         </div>
@@ -158,6 +193,10 @@ watch(myInterests, () => {
         <!-- Results (only after a search) -->
         <div v-if="hasSearched">
             <p v-if="searching" class="text-muted">Searching...</p>
+
+            <p v-else-if="noInterests" class="text-muted">
+                You haven't picked any interests yet. <router-link to="/profile">Add some</router-link> to see events for you.
+            </p>
 
             <p v-else-if="results.length === 0" class="text-muted">
                 No events match your search.
