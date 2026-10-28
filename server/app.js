@@ -2,7 +2,7 @@ const express = require('express');
 const dotenv = require('dotenv');
 
 dotenv.config({ path: './config.env' });
-const bot = require('./telegramBot');
+const bot = process.env.TELEGRAM_BOT_TOKEN ? require('./telegramBot') : null;
 
 const mongoose = require('mongoose');
 const fs = require('fs');
