@@ -78,9 +78,14 @@ function startServer() {
 
 connectDB().then(() => {
   startServer();
-  bot.start();
-  console.log("Telegram bot polling...");
+  // No TELEGRAM_BOT_TOKEN in config.env means no bot, but the rest of the server still runs
+  if (bot) {
+    bot.start();
+    console.log("Telegram bot polling...");
+  } else {
+    console.log("No TELEGRAM_BOT_TOKEN, so the Telegram bot is off");
+  }
 });
 
-process.once("SIGINT", () => bot.stop());
-process.once("SIGTERM", () => bot.stop());
+process.once("SIGINT", () => bot?.stop());
+process.once("SIGTERM", () => bot?.stop());
