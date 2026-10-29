@@ -92,6 +92,44 @@ const handleFileUpload = (event) => {
     <template #edit-profile>
       <div class="cards-list">
         <!-- profile cards -->
+      <div class="left-column">
+
+        <div class="profile-card">
+          <div class="profile-header-visual">
+            <div class="profile-banner"></div>
+            <div class="avatar">
+              <p class="header-style">MA</p>
+            </div>
+          </div>
+
+          <div class="user-info mt-3">
+            <p class="full-name header-style">Makayla Aileen</p>
+            <p class="username">@AIIEEN</p>
+            <div class="stats-row">
+              <div class="stats-item">
+                <div class="stat-number header-style">13</div>
+                <div class="stat-label">EVENTS ATTENDED</div>
+              </div>
+              <div class="stats-item">
+                <div class="stat-number header-style">51</div>
+                <div class="stat-label">FRIENDS</div>
+              </div>
+            </div>
+          </div>
+        
+
+          <div class="dropdowns">
+            <BaseInput type="select" label="Course" v-model="selectedCourse" :options="courses" />
+          </div>
+
+          <div class="two-col-inputs">
+            <BaseInput type="select" label="Year of Study" v-model="selectedYear" :options="yearOptions" />
+            <BaseInput type="select" label="Graduation" v-model="selectedGrad" :options="gradOptions" />
+          </div>
+        </div>
+        </div>
+
+        
          <h1>CREATE PROFILE</h1>
          <form action="">
                 <input type="text" placeholder="Display Name">
