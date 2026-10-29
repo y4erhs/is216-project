@@ -566,7 +566,8 @@ input:focus {
 .avatar-img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
+
 }
 
 /* Style for when no banner is uploaded */
