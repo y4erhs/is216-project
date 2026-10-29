@@ -5,6 +5,7 @@
     import { ref } from 'vue'
     import BaseButton from '../components/BaseButton.vue'
     import FolderTabs from '../components/FolderTabs.vue'
+    import BaseInput from '../components/BaseInput.vue'
     import '../assets/theme.css'
 
     const categories = [
@@ -17,6 +18,7 @@
     'School of Law', 'College of Integrative Studies', 'School of Social Sciences']
   
   const activeTab = ref('create-acc')
+  const selectedSchool = ref('')
 
   const availableInterests = [
   { id: 'tech', label: 'Tech' },
@@ -50,6 +52,7 @@ const toggleInterest = (id) => {
 const profileImage = ref(null)
 const imagePreview = ref(null)
 
+// upload and preview profile picture
 const handleFileUpload = (event) => {
   const file = event.target.files[0]
   if (file) {
@@ -93,13 +96,20 @@ const handleFileUpload = (event) => {
          <form action="">
                 <input type="text" placeholder="Display Name">
                 <input type="text" placeholder="Username">
-                <select name="Select Course" id="" >
-                    <option disabled selected hidden>Select your school</option>
-                    <option v-for="school in schools">{{ school }}</option>
-                </select>
-                <!-- Image Upload Input -->
+
+                <!-- school selection dropdown  -->
+                <BaseInput
+                    class="select-school"
+                    type="select"  
+                    v-model="selectedSchool" 
+                    :options="schools" 
+                    placeholder="Select your school"
+                />
+
+                <!-- input to upload pfp image -->
                 <div class="file-upload-container">
-                  <label class="upload-label">Upload Profile Picture</label>
+                  <label class="upload-label">Upload Profile Picture</label><br>
+
                     <input 
                       type="file" 
                       accept="image/*" 
@@ -234,4 +244,8 @@ input:focus {
   width: 100%;
 }
 
+/* school selection styles */
+.select-school {
+  width: 60%;
+}
 </style>
