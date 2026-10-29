@@ -66,7 +66,7 @@ const handleSendReset = () => {
                   jk, <a class="click-here" href="#" @click.prevent="activeTab = 'reset'">click here</a>
                 </div>
                 
-              <BaseButton type="button" class=" w-100 login-btn">
+              <BaseButton type="button" class=" w-100 login-btn" <router-link to="/signup"> >
                 LOG IN
               </BaseButton>
               <span class="or-text">Or</span>
