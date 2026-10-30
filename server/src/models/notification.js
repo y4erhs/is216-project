@@ -15,7 +15,8 @@ const NOTIFICATION_TYPES = [
   "lobby_deleted",
   "group_free_slot",
   "group_recommendation",
-  "rsvp_update",
+  "rsvp_update",  
+  "plan_invite"
 ];
 
 const notificationSchema = new mongoose.Schema(
