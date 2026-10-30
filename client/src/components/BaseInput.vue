@@ -25,7 +25,7 @@ const props = defineProps({
   },
   rows: {
     type: [String, Number],
-    default: 3 
+    default: 1 
   },
   disabled: {
     type: Boolean,
@@ -181,6 +181,7 @@ onBeforeUnmount(() => {
   padding-top: 10px;
   padding-bottom: 10px;
   resize: vertical;
+  max-height: 120px;
 }
 
 .custom-dropdown-container {
