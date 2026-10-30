@@ -2,9 +2,10 @@
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
 import BaseButton from './BaseButton.vue'
+import { useAuth } from '../composables/useAuth'
 
-// RMB TO CHANGE AFT LOGIN AND SIGN UP IS DONE
-const userId = '6acd9e65046b9013f579fc79'
+
+const { userId } = useAuth()
 
 const allInterests = ref([])       // every tag that events use
 const selectedInterests = ref([])  // the ticked boxes
@@ -13,7 +14,7 @@ const message = ref('')
 
 async function loadData() {
     try {
-        const prefs = await axios.get(`http://localhost:8000/api/users/${userId}/preferences`)
+        const prefs = await axios.get(`http://localhost:8000/api/users/${userId.value}/preferences`)
         selectedInterests.value = [...prefs.data]
 
         const events = await axios.get('http://localhost:8000/api/events')
@@ -29,7 +30,7 @@ async function saveInterests() {
     saving.value = true
     message.value = ''
     try {
-        await axios.put(`http://localhost:8000/api/users/${userId}`, {
+        await axios.put(`http://localhost:8000/api/users/${userId.value}`, {
             preferences: selectedInterests.value
         })
         message.value = 'Interests saved!'

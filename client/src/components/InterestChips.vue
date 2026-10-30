@@ -2,6 +2,7 @@
     import {ref, computed, onMounted} from 'vue'
     import axios from 'axios'
     import BaseButton from '../components/BaseButton.vue';
+    import { useAuth } from '../composables/useAuth';
 
 
     const props = defineProps({
@@ -11,14 +12,13 @@
     })
     const emit = defineEmits(['select', 'interests-loaded'])
     const interests = ref([])
-    //RMB TO CHANGE AFT LOGIN AND SIGN UP IS DONE
-    const userId = '6acd9e65046b9013f579fc79'
+    const { userId } = useAuth()
     const ownSelected = ref(props.showAll ? 'all' : 'for-you')
     const selected = computed(() => props.selected ?? ownSelected.value)
 
 
     async function loadPreferences () {
-        let url = "http://localhost:8000/api/users/" + userId + "/preferences"
+        let url = "http://localhost:8000/api/users/" + userId.value + "/preferences"
 
         try {
             let response = await axios.get(url, {})
