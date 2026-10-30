@@ -203,7 +203,7 @@ watch(() => props.modelValue, (newVal) => {
 .folder-body {
   position: relative;
   background-color: var(--bg, #d1d5db);
-  border-radius: 25px;
+  border-radius: 30px;
   border-top-left-radius: 0;
   padding: 10px;
   width: 100%;
@@ -216,7 +216,7 @@ watch(() => props.modelValue, (newVal) => {
 
 .inner-folder {
   background-color: var(--bg-dark, #9ca3af);
-  border-radius: 18px;
+  border-radius: 25px;
   padding: 18px;
   width: 100%;
   height: 100%;
