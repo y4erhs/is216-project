@@ -6,6 +6,9 @@ import BaseButton from '../components/BaseButton.vue';
 import BaseInput from '../components/BaseInput.vue';
 import EditInterests from '../components/EditInterests.vue';
 import GoogleCalendarCard from '../components/GoogleCalendarCard.vue';
+import { useAuth } from '../composables/useAuth';
+
+const { userId } = useAuth()
 
 const setting1Push = ref(true)
 const setting1Email = ref(true)
@@ -104,7 +107,7 @@ const gradOptions = ['2027', '2028', '2029', '2030']
         </div>
 
         <!-- CONNECT CALENDAR (NEED TO CHANGE ONCE USER AND LOGIN IS DONE)-->
-        <GoogleCalendarCard userId="6acd9e65046b9013f579fc79" />
+        <GoogleCalendarCard :userId="userId" />
 
       </div>
 

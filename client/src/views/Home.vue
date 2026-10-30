@@ -5,10 +5,10 @@
     import BaseButton from '../components/BaseButton.vue';
     import EventSearch from '../components/EventSearch.vue';
     import { useActivities } from '../composables/useActivities';
+    import { useAuth } from '../composables/useAuth';
     const { activityMap, loadActivities, setInterested, setGoing } = useActivities();
 
-    // VVV IMP: change after login and sign up done
-    const userId = '6acd9e65046b9013f579fc79'
+    const { userId } = useAuth()
 
     const recommendations = ref([])
     const feedType = ref('weekly')
@@ -18,14 +18,14 @@
 
     async function loadRecommendations() {
         loading.value = true
-        let url = "http://localhost:8000/api/recommendations/user/" + userId + "?feedType=" + feedType.value
+        let url = "http://localhost:8000/api/recommendations/user/" + userId.value + "?feedType=" + feedType.value
 
         try {
             let response = await axios.get(url)
             // Nothing generated yet, so generate a feed, then load it again
             if (response.data.length === 0) {
                 await axios.post("http://localhost:8000/api/recommendations/generate", {
-                    userId: userId,
+                    userId: userId.value,
                     feedType: feedType.value
                 })
                 response = await axios.get(url)
@@ -58,11 +58,11 @@
         updating.value = true
         try {
             await axios.post("http://localhost:8000/api/recommendations/generate", {
-                userId: userId,
+                userId: userId.value,
                 feedType: feedType.value
             })
 
-            let url = "http://localhost:8000/api/recommendations/user/" + userId + "?feedType=" + feedType.value
+            let url = "http://localhost:8000/api/recommendations/user/" + userId.value + "?feedType=" + feedType.value
             let response = await axios.get(url)
             recommendations.value = response.data
         } catch (error) {
