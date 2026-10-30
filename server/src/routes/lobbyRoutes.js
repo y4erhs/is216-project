@@ -19,4 +19,11 @@ router.post('/:lobbyId/signup', lobbyController.signUpLobbyForEvent);
 router.put('/remove', lobbyController.removeUser);
 
 router.delete('/:lobbyId', lobbyController.deleteLobby);
+
+router.patch('/:lobbyId', lobbyController.updateLobby);
+
+router.put('/:lobbyId/event', lobbyController.pitchEvent);
+
+router.post('/:lobbyId/plan-next', lobbyController.planNext);
+
 module.exports = router;

@@ -31,7 +31,7 @@
           <template v-if="event">
             <strong class="event-title">{{ event.title }}</strong>
             <span>{{ event.date }} at {{ event.venue }}</span>
-            <span>Groups of {{ event.minGroup }} to {{ event.maxGroup }}. {{ event.slotsLeft }} slots left.</span>
+            <span>{{ event.limitsText }}</span>
           </template>
           <p v-else class="plain">{{ hostName }} hasn't picked an event yet. You can still reply now!</p>
         </div>
