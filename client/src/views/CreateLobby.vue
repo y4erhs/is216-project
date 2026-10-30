@@ -44,9 +44,13 @@
           <p class="help"><span class="count">{{ description.length }}/200</span></p>
         </section>
 
+        <p v-if="error" class="help"><span class="error" role="alert">{{ error }}</span></p>
+
         <div class="actions">
           <button class="btn btn-light" type="button" @click="$emit('cancel')">Cancel</button>
-          <button class="btn btn-lime" type="submit">Create lobby</button>
+          <button class="btn btn-lime" type="submit" :disabled="saving">
+            {{ saving ? 'Creating...' : 'Create lobby' }}
+          </button>
         </div>
       </form>
 
@@ -73,7 +77,8 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 // NOTE: every page must import the SAME useLobbies file, or each page gets its own separate copy of the data.
-import { useLobbies, ME_NAME } from '../composables/useLobbies'
+import { useLobbies } from '../composables/useLobbies'
+import { useAuth } from '../composables/useAuth'
 
 const emit = defineEmits(['created', 'cancel'])
 const store = useLobbies()
@@ -83,18 +88,32 @@ const description = ref('')
 const tried = ref(false)
 const nameEl = ref(null)
 const showError = computed(() => tried.value && !name.value.trim())
-const myInitials = ME_NAME.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase()
+const { user } = useAuth()
+const myName = user.value?.username || 'You'
+const myInitials = myName.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase()
 
 onMounted(() => nameEl.value?.focus())
 
-function submit() {
+const saving = ref(false)
+const error = ref('')
+
+async function submit() {
   tried.value = true
   if (!name.value.trim()) {
     nameEl.value?.focus()
     return
   }
-  const id = store.createLobby({ name: name.value, description: description.value }) // -> POST /lobbies
-  emit('created', id)
+
+  saving.value = true
+  error.value = ''
+  try {
+    const id = await store.createLobby({ name: name.value, description: description.value })
+    emit('created', id)
+  } catch (err) {
+    error.value = 'Could not create the lobby. Please try again.'
+  } finally {
+    saving.value = false
+  }
 }
 </script>
 
