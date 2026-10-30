@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import CategoryPill from '@/components/CategoryPill.vue'
 
 const props = defineProps({
@@ -22,6 +22,11 @@ function handleClear() {
 function handleRegister() {
   emit('register', props.event.registrationUrl)
 }
+
+const API_URL = 'http://localhost:8000'
+const imageSrc = computed(() =>
+  props.event.image?.startsWith('/') ? API_URL + props.event.image : props.event.image
+)
 </script>
 
 <template>
@@ -56,9 +61,14 @@ function handleRegister() {
       </div>
 
       <div class="detail-right">
-        <div class="poster-card">
-          <div class="poster-placeholder-art">
-          </div>
+        <div class="poster-container">
+          <img 
+            v-if="event.image" 
+            :src="imageSrc"
+            :alt="event.title" 
+            class="poster-img" 
+          />
+          <div v-else class="poster-placeholder"></div>
         </div>
       </div>
     </div>
@@ -194,26 +204,27 @@ function handleRegister() {
   flex-direction: column;
 }
 
-.poster-card {
+.poster-container {
   width: 100%;
   aspect-ratio: 1 / 1.4142;
   border-radius: 18px;
   overflow: hidden;
-  background: linear-gradient(135deg, #0b1a2d 0%, #10b981 100%);
+  background-color: var(--color-grey, #e2e8f0);
   display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  padding: 16px;
-  box-sizing: border-box;
 }
 
-.poster-tag {
-  font-family: 'TextFont', sans-serif;
-  font-size: 11px;
-  font-weight: 800;
-  color: #ffffff;
-  line-height: 1.2;
-  text-transform: uppercase;
+.poster-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+.poster-placeholder {
+  width: 100%;
+  height: 100%;
+  background-color: var(--color-grey, #e2e8f0);
 }
 
 .bottom-action-row {
