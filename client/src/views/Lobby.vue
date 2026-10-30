@@ -61,10 +61,6 @@
                 <input class="link-input" readonly :value="inviteLink" aria-label="Invite link" @focus="$event.target.select()" />
                 <button class="btn btn-purple" type="button" @click="copyLink">{{ copied ? 'Copied' : 'Copy' }}</button>
               </div>
-              <!-- DEMO: remove in production. Simulates someone opening the link. -->
-              <button v-if="demo" type="button" class="btn btn-light btn-small demo-btn" :disabled="registered" @click="demoLinkJoin">
-                Demo: someone opens the link
-              </button>
             </section>
 
             <section>
@@ -148,14 +144,14 @@
               <p class="section-sub">Friends can still accept or decline while you choose.</p>
               <div class="scroll">
                 <div class="events" role="radiogroup" aria-label="Events">
-                  <label v-for="e in events" :key="e.id" class="event" :class="{ used: usedEventIds.has(e.id) }">
+                  <label v-for="e in events.filter((x) => x.upcoming)" :key="e.id" class="event" :class="{ used: usedEventIds.has(e.id) }">
                     <input class="sr" type="radio" name="event" :value="e.id" v-model="selectedEventId"
                            :disabled="usedEventIds.has(e.id)" />
                     <span class="event-body">
                       <strong>{{ e.title }}</strong>
                       <span>{{ e.date }}</span>
                       <span>{{ e.venue }}</span>
-                      <span class="event-meta">{{ e.slotsLeft }} slots left. Groups of {{ e.minGroup }} to {{ e.maxGroup }}.</span>
+                      <span class="event-meta">{{ e.limitsText }}</span>
                       <span v-if="usedEventIds.has(e.id)" class="badge-pill pill-accepted">Already registered</span>
                     </span>
                   </label>
@@ -249,19 +245,17 @@ import { ref, reactive, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import FolderTabs from '../components/FolderTabs.vue'
 import LobbyInvite from '../views/LobbyInvite.vue'
 // NOTE: every page must import the SAME useLobbies file, or each page gets its own separate copy of the data.
-import { useLobbies, FRIENDS, EVENTS, daysAgo, timeAgo, INACTIVE_DAYS } from '../composables/useLobbies'
+import { useLobbies, daysAgo, timeAgo, INACTIVE_DAYS } from '../composables/useLobbies'
 
 /* ---------- props / emits ---------- */
 const props = defineProps({
   lobbyId: { type: String, required: true },
-  /** DEMO: auto-simulates friends replying. Set to false when wired to a real backend. */
-  demo: { type: Boolean, default: true },
-  friends: { type: Array, default: () => FRIENDS },
-  events: { type: Array, default: () => EVENTS },
 })
 const emit = defineEmits(['back', 'deleted', 'invite', 'remove', 'register', 'respond'])
 
 const store = useLobbies()
+const friends = computed(() => store.friends)
+const events = computed(() => store.events)
 const lobby = computed(() => store.get(props.lobbyId))
 const members = computed(() => lobby.value?.members ?? [])
 const registered = computed(() => !!lobby.value?.registered)
@@ -315,7 +309,7 @@ const selectedEventId = computed({
   get: () => lobby.value?.pitchedEventId ?? null,
   set: (id) => store.pitchEvent(props.lobbyId, id),
 })
-const selectedEvent = computed(() => props.events.find((e) => e.id === selectedEventId.value) || null)
+const selectedEvent = computed(() => events.value.find((e) => e.id === selectedEventId.value) || null)
 const acceptedMembers = computed(() => members.value.filter((m) => m.status === 'accepted'))
 const counts = computed(() => ({
   pending: members.value.filter((m) => m.status === 'pending').length,
@@ -326,7 +320,7 @@ const statusOf = (id) => members.value.find((m) => m.id === id)?.status ?? null
 /* events this lobby has already signed up for */
 const history = computed(() => lobby.value?.history ?? [])
 const usedEventIds = computed(() => new Set(history.value.map((h) => h.eventId)))
-const eventById = (id) => props.events.find((e) => e.id === id)
+const eventById = (id) => events.value.find((e) => e.id === id)
 const lastReg = computed(() => history.value[history.value.length - 1])
 const lastRegEvent = computed(() => (lastReg.value ? eventById(lastReg.value.eventId) : null))
 const lastRegNames = computed(() =>
@@ -357,7 +351,7 @@ const isOpen = (r, i) => openMap[r.key] ?? i === 0
 const toggleEvent = (r, i) => { openMap[r.key] = !isOpen(r, i) }
 
 /* How many accepted members the chosen event can take */
-const capacity = computed(() => (selectedEvent.value ? Math.min(selectedEvent.value.maxGroup, selectedEvent.value.slotsLeft) : 0))
+const capacity = computed(() => selectedEvent.value?.capacity ?? 0)
 const progress = computed(() =>
   selectedEvent.value ? Math.min(100, (acceptedMembers.value.length / selectedEvent.value.minGroup) * 100) : 0
 )
@@ -434,37 +428,14 @@ watch(
   }
 )
 
-/* ---------- DEMO helpers (delete when wired up) ---------- */
-let timer
-const guests = ['Jia Hui', 'Marcus Teo', 'Priya Nair', 'Ethan Goh']
-let guestN = 0
-function demoLinkJoin() {
-  const name = guests[guestN++ % guests.length]
-  const id = `guest-${Date.now()}`
-  store.addMember(props.lobbyId, { id, name, via: 'link', color: '#fdebd0' })
-  viewingId.value = id // show the screen they land on
-}
 function onEsc(e) {
   if (e.key !== 'Escape') return
   viewingId.value = null
   confirmingDelete.value = false
   removingId.value = null
 }
-onMounted(() => {
-  window.addEventListener('keydown', onEsc)
-  if (!props.demo) return
-  timer = setInterval(() => {
-    if (!lobby.value || registered.value) return
-    const pending = members.value.filter((m) => m.status === 'pending' && m.id !== viewingId.value && m.id !== lobby.value.hostId)
-    if (!pending.length) return
-    const pick = pending[Math.floor(Math.random() * pending.length)]
-    store.setStatus(props.lobbyId, pick.id, Math.random() < 0.75 ? 'accepted' : 'declined')
-  }, 3500)
-})
-onBeforeUnmount(() => {
-  clearInterval(timer)
-  window.removeEventListener('keydown', onEsc)
-})
+onMounted(() => window.addEventListener('keydown', onEsc))
+onBeforeUnmount(() => window.removeEventListener('keydown', onEsc))
 </script>
 
 <style scoped>
@@ -584,7 +555,6 @@ button.badge-pill:disabled { opacity: 0.45; cursor: not-allowed; }
 
 .link-box { display: flex; align-items: center; gap: 10px; }
 .link-input { flex: 1; min-width: 0; height: 35px; padding: 3px 16px 0; border: 0; border-radius: 999px; background: var(--card); color: var(--ink); font: inherit; }
-.demo-btn { margin-top: 12px; }
 
 /* people cards (friends list + roster) */
 .people { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
