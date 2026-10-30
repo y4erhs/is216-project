@@ -6,8 +6,9 @@ const mongoose = require('mongoose')
 exports.connect = (req, res) => {
     // TEMPORARY: replace with the logged-in user once login exists
     const userId = req.query.userId
-    if (!userId) {
-        return res.status(400).json({ message: 'userId is required' })
+    if (!mongoose.isValidObjectId(userId)) {
+        console.error('Google connect got invalid userId:', userId)
+        return res.redirect(`${process.env.CLIENT_URL}/calendar?google=error`)
     }
 
     const client = createOAuthClient()
@@ -26,8 +27,9 @@ exports.callback = async (req, res) => {
     const { code, state: userId, error } = req.query
     const clientUrl = process.env.CLIENT_URL
 
-    if (error || !code) {
-        return res.redirect(`${clientUrl}/calendar?google=denied`)
+    if (!mongoose.isValidObjectId(userId)) {
+        console.error('Google callback got invalid userId:', userId)
+        return res.redirect(`${clientUrl}/calendar?google=error`)
     }
 
     try {
