@@ -19,6 +19,8 @@ const googleEmail = ref(null)
 const loading = ref(true)
 const message = ref('')
 const includePersonal = ref(false)
+const emit = defineEmits(['synced', 'settings-changed'])
+const syncing = ref(false)
 
 const embedUrl = computed(() =>
     `https://calendar.google.com/calendar/embed?src=${encodeURIComponent(googleEmail.value)}&ctz=Asia%2FSingapore&mode=WEEK`
@@ -32,6 +34,7 @@ async function loadStatus() {
         connected.value = data.connected
         connectedAt.value = data.connectedAt
         googleEmail.value = data.googleEmail
+        includePersonal.value = data.includePersonal
     } catch (err) {
         message.value = 'Could not check Google Calendar status.'
     } finally {
@@ -75,6 +78,47 @@ onMounted(() => {
 
     loadStatus()
 })
+
+// Save the "Include personal commitments" toggle
+async function savePersonal() {
+  const value = includePersonal.value
+  try {
+    const res = await fetch(`${API_URL}/auth/google/settings?userId=${props.userId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ includePersonal: value })
+    })
+    if (!res.ok) throw new Error()
+    emit('settings-changed')
+  } catch (err) {
+    includePersonal.value = !value   // put the toggle back
+    message.value = 'Could not save that setting. Please try again.'
+  }
+}
+
+// Make plans match Google Calendar
+async function syncNow() {
+  syncing.value = true
+  message.value = ''
+  try {
+    const res = await fetch(`${API_URL}/api/plans/sync`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: props.userId })
+    })
+    const data = await res.json()
+    if (!res.ok) throw new Error(data.message)
+
+    message.value = data.updated || data.deleted
+      ? `Synced: ${data.updated} updated, ${data.deleted} removed.`
+      : 'Everything is up to date.'
+    emit('synced')
+  } catch (err) {
+    message.value = 'Sync failed. Please try again.'
+  } finally {
+    syncing.value = false
+  }
+}
 </script>
 
 <template>
@@ -108,19 +152,19 @@ onMounted(() => {
             <div class="cal-toggle-row">
                 <span>Include personal commitments</span>
                 <label class="toggle-switch">
-                <input type="checkbox" v-model="includePersonal" />
+                <input type="checkbox" v-model="includePersonal" @change="savePersonal"/>
                 <span class="slider"></span>
                 </label>
             </div>
 
            <div class="cal-actions">
-            <BaseButton type="button" class="theme-purple">
+            <BaseButton type="button" class="theme-purple" :disabled="syncing" @click="syncNow">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
                 stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="23 4 23 10 17 10"></polyline>
                 <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
               </svg>
-              Sync now
+              {{ syncing ? 'Syncing...' : 'Sync now' }}
             </BaseButton>
             <BaseButton type="button" class="theme-purple" @click="disconnect">Unlink</BaseButton>
            </div>
@@ -132,6 +176,7 @@ onMounted(() => {
             </div>
             <BaseButton type="button" class="theme-purple" @click="connect">Link</BaseButton>
          </template>
+         <p v-if="message" class="cal-message">{{ message }}</p>
         </div>
 </template>
 
@@ -291,6 +336,12 @@ onMounted(() => {
   font-size: 11px;
   color: #94a3b8;
   line-height: 1.4;
+}
+
+.cal-message {
+  margin: 0;
+  font-size: 12px;
+  color: #64748b;
 }
 
 .profile-card {

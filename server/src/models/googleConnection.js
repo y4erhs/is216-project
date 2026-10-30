@@ -18,7 +18,8 @@ const googleConnectionSchema = new mongoose.Schema({
     connectedAt: {
         type: Date,
         default: Date.now
-    }
+    },
+    includePersonal: { type: Boolean, default: false }
 })
 
 module.exports = mongoose.model('GoogleConnection', googleConnectionSchema)
