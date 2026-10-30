@@ -49,7 +49,7 @@ onMounted(loadStatus)
 
     <aside class="calendar-side">
       <div class="side-spacer"></div>
-      <GoogleCalendarCard />
+      <GoogleCalendarCard :user-id="userId" />
     </aside>
   </div>
 </template>

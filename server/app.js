@@ -19,6 +19,7 @@ const lobbyRoutes = require('./src/routes/lobbyRoutes');
 const activityRoutes = require('./src/routes/activityRoutes');
 const googleRoutes = require('./src/routes/googleRoutes')
 const notificationRoutes = require('./src/routes/notificationRoutes');
+const planRoutes = require('./src/routes/planRoutes');
 
 const server = express();
 
@@ -56,6 +57,7 @@ server.use('/api/activities', activityRoutes);
 server.use("/api/notifications", notificationRoutes);
 server.use('/auth/google', googleRoutes);
 server.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+server.use('/api/plans', planRoutes);
 
 async function connectDB() {
   try {
