@@ -18,6 +18,7 @@ const connectedAt = ref(null)
 const googleEmail = ref(null)
 const loading = ref(true)
 const message = ref('')
+const includePersonal = ref(false)
 
 const embedUrl = computed(() =>
     `https://calendar.google.com/calendar/embed?src=${encodeURIComponent(googleEmail.value)}&ctz=Asia%2FSingapore&mode=WEEK`
