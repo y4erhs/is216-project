@@ -21,37 +21,44 @@
     <div class="member-wrap">
       <LobbyInvite :closable="false" :lobby-name="current.name" :description="current.description"
                    :host-name="store.hostName(current)" :event="currentEvent"
-                   :members="memberRows" :me-id="ME_ID" :my-status="store.myStatus(current)"
+                   :members="memberRows" :me-id="store.meId()" :my-status="store.myStatus(current)"
                    :locked="current.registered"
-                   @respond="(s) => store.setStatus(current.id, ME_ID, s)" />
+                   @respond="(s) => store.setStatus(current.id, store.meId(), s)" />
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
-import MyLobbies from '../views/MyLobbies.vue'
-import CreateLobby from '../views/CreateLobby.vue'
-import Lobby from '../views/Lobby.vue'
-import LobbyInvite from '../views/LobbyInvite.vue'
-import { useLobbies, EVENTS, ME_ID } from '../composables/useLobbies'
+  import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
+  import MyLobbies from '../views/MyLobbies.vue'
+  import CreateLobby from '../views/CreateLobby.vue'
+  import Lobby from '../views/Lobby.vue'
+  import LobbyInvite from '../views/LobbyInvite.vue'
+  import { useLobbies } from '../composables/useLobbies'
 
-defineEmits(['open-calendar'])
+  defineEmits(['open-calendar'])
 
-const store = useLobbies()
-const view = ref('list') // 'list' | 'create' | 'lobby'
-const currentId = ref(null)
+  const store = useLobbies()
+  const view = ref('list') // 'list' | 'create' | 'lobby'
+  const currentId = ref(null)
 
-const current = computed(() => store.get(currentId.value))
-const currentEvent = computed(() => EVENTS.find((e) => e.id === current.value?.pitchedEventId) || null)
-const memberRows = computed(() => current.value?.members.map((m) => ({ ...m, host: m.id === current.value.hostId })) ?? [])
+  const current = computed(() => store.get(currentId.value))
+  const currentEvent = computed(() => store.events.find((e) => e.id === current.value?.pitchedEventId) || null)
+  const memberRows = computed(() => current.value?.members.map((m) => ({ ...m, host: m.id === current.value.hostId })) ?? [])
 
-function open(id) {
-  currentId.value = id
-  view.value = 'lobby'
-}
-// if the open lobby disappears (deleted), fall back to the list
-watch(current, (l) => { if (view.value === 'lobby' && !l) view.value = 'list' })
+  function open(id) {
+    currentId.value = id
+    view.value = 'lobby'
+  }
+  watch(current, (l) => { if (view.value === 'lobby' && !l) view.value = 'list' })
+
+  // Load now, then every 15 seconds so replies from friends show up
+  let timer
+  onMounted(() => {
+    store.load()
+    timer = setInterval(store.load, 15000)
+  })
+  onBeforeUnmount(() => clearInterval(timer))
 </script>
 
 <style scoped>

@@ -4,6 +4,7 @@ import axios from 'axios'
 import InterestChips from './InterestChips.vue'
 import EventCard from './EventCard.vue'
 import { useActivities } from '../composables/useActivities'
+import { useAuth } from '../composables/useAuth'
 
 const { activityMap, loadActivities, setInterested, setGoing } = useActivities()
 
@@ -23,13 +24,13 @@ const myInterests = ref([])
 
 const emit = defineEmits(['search-active'])
 
-const userId = '6acd9e65046b9013f579fc79' // same as Home, until login is done
+const { userId } = useAuth()
 const scores = ref({})                    // { eventId: score }
 
 // Get the AI scores from the student's saved recommendations
 async function loadScores() {
     try {
-        const response = await axios.get(`http://localhost:8000/api/recommendations/user/${userId}`)
+        const response = await axios.get(`http://localhost:8000/api/recommendations/user/${userId.value}`)
         const map = {}
         for (const rec of response.data) {
             map[rec.event._id] = rec.score
