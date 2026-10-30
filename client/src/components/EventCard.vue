@@ -7,7 +7,6 @@ import { formatSession, sessionKey } from '../utils/formatSession'
 const props = defineProps({
   event: { type: Object, required: true },
   interested: { type: Boolean, default: false },
-  note: { type: String, default: '' },
   goingBySession: { type: Object, default: () => ({}) },
   fromDate: { type: String, default: '' },
   score: { type: Number, default: null },
@@ -21,7 +20,7 @@ const emit = defineEmits([
   'less-like-this',
   'invite-friends',
   'remove-history',
-  'save-note'
+  'card-click'
 ])
 
 const isSlotMenuOpen = ref(false)
@@ -33,7 +32,6 @@ const sortedSessions = computed(() =>
   [...props.event.sessions].sort((a, b) => sessionKey(a) - sessionKey(b))
 )
 
-// sessions of this event the user is attending (Attending tab dropdown)
 const attendingSessions = computed(() =>
   sortedSessions.value.filter(s => props.goingBySession[sessionKey(s)] === 'attending')
 )
@@ -58,7 +56,6 @@ const bestFitSession = computed(() => {
 
 const pickedKey = ref(null)
 const shownSession = computed(() => {
-  // Attending tab: only choose among sessions the user is attending
   if (props.variant === 'attending') {
     const pool = attendingSessions.value
     return pool.find(s => sessionKey(s) === pickedKey.value) ?? pool[0] ?? bestFitSession.value
@@ -67,7 +64,6 @@ const shownSession = computed(() => {
   const picked = sortedSessions.value.find(s => sessionKey(s) === pickedKey.value)
   if (picked) return picked
 
-  // Attended tab: show the session the user marked as attended
   if (props.variant === 'attended') {
     const mine = sortedSessions.value.find(
       s => props.goingBySession[sessionKey(s)] === 'attended'
@@ -122,7 +118,6 @@ function selectSessionAndAdd(session) {
   isSlotMenuOpen.value = false
 }
 
-// Attending tab: switch which attending session is shown
 function selectSession(session) {
   pickedKey.value = sessionKey(session)
   isSlotMenuOpen.value = false
@@ -135,12 +130,6 @@ function toggleGoing(value, session = shownSession.value) {
   })
 }
 
-// ----- notes -----
-const noteDraft = ref(props.note)
-watch(() => props.note, (v) => { noteDraft.value = v })
-const noteChanged = computed(() => noteDraft.value !== props.note)
-
-// removing history also deletes the note, so confirm first
 function removeHistory() {
   if (window.confirm('Remove this event from your history? Your note will be deleted too.')) {
     emit('remove-history', props.event._id || props.event.id)
@@ -160,7 +149,6 @@ const matchBadgeClass = computed(() =>
   props.score >= 80 ? 'badge-green' : 'badge-orange'
 )
 
-// Telegram posters are saved on our server as "/uploads/...", so load them from the backend, not the Vite server
 const API_URL = 'http://localhost:8000'
 const imageSrc = computed(() =>
   props.event.image?.startsWith('/') ? API_URL + props.event.image : props.event.image
@@ -168,7 +156,8 @@ const imageSrc = computed(() =>
 </script>
 
 <template>
-  <div class="event-card">
+  <!-- Card utama nge-emit card-click saat diklik -->
+  <div class="event-card" @click="emit('card-click', event)">
     <div v-if="variant === 'discover' && score !== null" class="card-top-bar">
       <span class="match-badge" :class="matchBadgeClass">
         {{ score }}% match
@@ -176,7 +165,7 @@ const imageSrc = computed(() =>
       <button 
         type="button" 
         class="btn-less" 
-        @click="emit('less-like-this', event._id || event.id)"
+        @click.stop="emit('less-like-this', event._id || event.id)"
       >
         Less like this
       </button>
@@ -202,8 +191,8 @@ const imageSrc = computed(() =>
       </div>
     </div>
 
-    <div class="actions-area">
-      <!-- 1. DISCOVER VARIANT -->
+    <!-- Tombol aksi dikasih @click.stop biar nggak mentrigger card-click -->
+    <div class="actions-area" @click.stop>
       <template v-if="variant === 'discover'">
         <div class="btn-row">
           <div class="dropdown-btn-wrapper" ref="menuWrapperRef">
@@ -250,9 +239,7 @@ const imageSrc = computed(() =>
         </div>
       </template>
 
-      <!-- 2. ATTENDING VARIANT -->
       <template v-else-if="variant === 'attending'">
-        <!-- session dropdown (only when more than one attending session) -->
         <div
           v-if="attendingSessions.length > 1"
           class="dropdown-btn-wrapper"
@@ -283,7 +270,6 @@ const imageSrc = computed(() =>
           </div>
         </div>
 
-        <!-- controls act on the session shown above -->
         <div class="btn-row">
           <BaseButton
             class="action-pill-btn"
@@ -304,25 +290,8 @@ const imageSrc = computed(() =>
             <span class="custom-icon icon-trash"></span>
           </BaseButton>
         </div>
-
-        <div class="friends-footer">
-          <div v-if="event.friends && event.friends.length" class="avatar-stack">
-            <span
-              v-for="(f, i) in event.friends.slice(0, 3)"
-              :key="i"
-              class="avatar-dot"
-              :style="{ backgroundColor: f.color || 'var(--color-purple)' }"
-            ></span>
-            <span class="friends-caption">you + {{ event.friends.length }} friends</span>
-          </div>
-          <div v-else class="solo-badge">
-            <span class="solo-dot"></span>
-            <span class="friends-caption">solo side quest!</span>
-          </div>
-        </div>
       </template>
 
-      <!-- 3. INTERESTED VARIANT -->
       <template v-else-if="variant === 'interested'">
         <div class="btn-row">
           <div class="dropdown-btn-wrapper" ref="menuWrapperRef">
@@ -377,7 +346,6 @@ const imageSrc = computed(() =>
         </button>
       </template>
 
-      <!-- 4. ATTENDED VARIANT -->
       <template v-else-if="variant === 'attended'">
         <BaseButton 
           class="action-pill-btn btn-purple w-100" 
@@ -395,23 +363,7 @@ const imageSrc = computed(() =>
         </button>
       </template>
 
-      <!-- NOTES (all tabs except Discover) -->
-      <div v-if="variant !== 'discover'" class="note-section">
-        <BaseInput
-          v-model="noteDraft"
-          type="textarea"
-          :rows="2"
-          label="My notes"
-          placeholder="e.g. bring laptop, meet at the lobby"
-        />
-        <BaseButton
-          class="action-pill-btn"
-          :disabled="!noteChanged"
-          @click="emit('save-note', noteDraft)"
-        >
-          SAVE NOTE
-        </BaseButton>
-      </div>
+      
     </div>
   </div>
 </template>
@@ -427,6 +379,7 @@ const imageSrc = computed(() =>
   box-sizing: border-box;
   box-shadow: 0 4px 14px rgba(10, 29, 43, 0.06);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
 }
 
 .event-card:hover {
@@ -500,39 +453,44 @@ const imageSrc = computed(() =>
 
 .event-title {
   font-family: 'HeaderFont', cursive, sans-serif;
-  font-size: 20px;
+  font-size: 15px;
   font-weight: 900;
   color: var(--color-black);
   margin: 0;
   line-height: 1.15;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .event-organiser {
   font-family: 'TextFont', sans-serif;
-  font-size: 14px;
+  font-size: 10px;
   font-weight: 600;
   color: var(--color-dark-grey);
   text-transform: uppercase;
-  letter-spacing: 1px;
   margin: 4px 0 14px 0;
 }
 
 .event-time-venue {
   display: flex;
   flex-direction: column;
+  line-height: 1;
   gap: 2px;
+  letter-spacing: -0.6px;
 }
 
 .event-datetime-line,
 .event-venue-line {
   margin: 0;
   font-family: 'TextFont', sans-serif;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   color: var(--color-black);
-  line-height: 1.35;
 }
 
 .actions-area {
@@ -709,47 +667,4 @@ const imageSrc = computed(() =>
   color: var(--color-black);
 }
 
-.friends-footer {
-  margin-top: 4px;
-  display: flex;
-  align-items: center;
-}
-
-.avatar-stack {
-  display: flex;
-  align-items: center;
-  gap: 3px;
-}
-
-.avatar-dot {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  display: inline-block;
-  border: 1.5px solid var(--color-white);
-}
-
-.solo-badge {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.solo-dot {
-  font-size: 11px;
-}
-
-.friends-caption {
-  margin-left: 6px;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--color-dark-grey);
-}
-
-.note-section {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 4px;
-}
 </style>
