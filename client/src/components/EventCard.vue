@@ -1,5 +1,6 @@
+
 <script setup>
-import { computed, ref, watch, onMounted, onBeforeUnmount } from 'vue'
+import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
 import BaseButton from './BaseButton.vue'
 import BaseInput from './BaseInput.vue'
 import { formatSession, sessionKey } from '../utils/formatSession'
@@ -7,7 +8,6 @@ import { formatSession, sessionKey } from '../utils/formatSession'
 const props = defineProps({
   event: { type: Object, required: true },
   interested: { type: Boolean, default: false },
-  note: { type: String, default: '' },
   goingBySession: { type: Object, default: () => ({}) },
   fromDate: { type: String, default: '' },
   score: { type: Number, default: null },
@@ -21,27 +21,31 @@ const emit = defineEmits([
   'less-like-this',
   'invite-friends',
   'remove-history',
-  'save-note'
+  'card-click'
 ])
 
 const isSlotMenuOpen = ref(false)
 const menuWrapperRef = ref(null)
 
-const sgDay = (d) => new Date(d).toLocaleDateString('en-CA', { timeZone: 'Asia/Singapore' })
+const sgDay = (d) =>
+  new Date(d).toLocaleDateString('en-CA', { timeZone: 'Asia/Singapore' })
 
 const sortedSessions = computed(() =>
   [...props.event.sessions].sort((a, b) => sessionKey(a) - sessionKey(b))
 )
 
-// sessions of this event the user is attending (Attending tab dropdown)
 const attendingSessions = computed(() =>
-  sortedSessions.value.filter(s => props.goingBySession[sessionKey(s)] === 'attending')
+  sortedSessions.value.filter(
+    s => props.goingBySession[sessionKey(s)] === 'attending'
+  )
 )
 
 function hasOverlap(session) {
   if (!props.userSchedule?.length) return false
+
   const sStart = new Date(session.startTime).getTime()
   const sEnd = new Date(session.endTime).getTime()
+
   return props.userSchedule.some(c => {
     const cStart = new Date(c.start || c.startTime).getTime()
     const cEnd = new Date(c.end || c.endTime).getTime()
@@ -53,38 +57,79 @@ const bestFitSession = computed(() => {
   const from = props.fromDate || sgDay(new Date())
   const upcoming = sortedSessions.value.filter(s => sgDay(s.startTime) >= from)
   const pool = upcoming.length ? upcoming : sortedSessions.value
+
   return pool.find(s => !hasOverlap(s)) || pool[0]
 })
 
 const pickedKey = ref(null)
+
 const shownSession = computed(() => {
-  // Attending tab: only choose among sessions the user is attending
   if (props.variant === 'attending') {
     const pool = attendingSessions.value
-    return pool.find(s => sessionKey(s) === pickedKey.value) ?? pool[0] ?? bestFitSession.value
+
+    return (
+      pool.find(s => sessionKey(s) === pickedKey.value) ??
+      pool[0] ??
+      bestFitSession.value
+    )
   }
 
-  const picked = sortedSessions.value.find(s => sessionKey(s) === pickedKey.value)
+  const picked = sortedSessions.value.find(
+    s => sessionKey(s) === pickedKey.value
+  )
+
   if (picked) return picked
 
-  // Attended tab: show the session the user marked as attended
   if (props.variant === 'attended') {
     const mine = sortedSessions.value.find(
       s => props.goingBySession[sessionKey(s)] === 'attended'
     )
+
     if (mine) return mine
   }
+
   return bestFitSession.value
 })
 
-const going = computed(() => props.goingBySession[sessionKey(shownSession.value)] ?? 'none')
-const hasStarted = computed(() => new Date(shownSession.value.startTime) <= new Date())
-const hasEnded = computed(() => new Date(shownSession.value.endTime) < new Date())
-const attendingDisabled = computed(() => hasEnded.value && going.value !== 'attending')
-const attendedDisabled = computed(() => !hasStarted.value && going.value !== 'attended')
+const going = computed(() =>
+  props.goingBySession[sessionKey(shownSession.value)] ?? 'none'
+)
 
-const formattedDateTime = computed(() => {
-  if (!shownSession.value?.startTime || !shownSession.value?.endTime) return ''
+const hasStarted = computed(() =>
+  new Date(shownSession.value.startTime) <= new Date()
+)
+
+const hasEnded = computed(() =>
+  new Date(shownSession.value.endTime) < new Date()
+)
+
+const attendingDisabled = computed(() =>
+  hasEnded.value && going.value !== 'attending'
+)
+
+const attendedDisabled = computed(() =>
+  !hasStarted.value && going.value !== 'attended'
+)
+
+const formattedDate = computed(() => {
+  if (!shownSession.value?.startTime) return ''
+
+  const start = new Date(shownSession.value.startTime)
+
+  return start.toLocaleDateString('en-GB', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'Asia/Singapore'
+  })
+})
+
+const formattedTime = computed(() => {
+  if (!shownSession.value?.startTime || !shownSession.value?.endTime) {
+    return ''
+  }
+
   const start = new Date(shownSession.value.startTime)
   const end = new Date(shownSession.value.endTime)
 
@@ -94,18 +139,9 @@ const formattedDateTime = computed(() => {
       minute: d.getMinutes() > 0 ? '2-digit' : undefined,
       hour12: true,
       timeZone: 'Asia/Singapore'
-    })
+    }).replace(':00', '')
 
-  const timeRange = `${formatH(start).replace(':00', '')}-${formatH(end).replace(':00', '')}`
-  const dateStr = start.toLocaleDateString('en-GB', {
-    weekday: 'short',
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-    timeZone: 'Asia/Singapore'
-  })
-
-  return `${timeRange} - ${dateStr}`
+  return `${formatH(start)} - ${formatH(end)}`
 })
 
 function handleAddBtnClick() {
@@ -122,7 +158,6 @@ function selectSessionAndAdd(session) {
   isSlotMenuOpen.value = false
 }
 
-// Attending tab: switch which attending session is shown
 function selectSession(session) {
   pickedKey.value = sessionKey(session)
   isSlotMenuOpen.value = false
@@ -135,298 +170,356 @@ function toggleGoing(value, session = shownSession.value) {
   })
 }
 
-// ----- notes -----
-const noteDraft = ref(props.note)
-watch(() => props.note, (v) => { noteDraft.value = v })
-const noteChanged = computed(() => noteDraft.value !== props.note)
-
-// removing history also deletes the note, so confirm first
 function removeHistory() {
-  if (window.confirm('Remove this event from your history? Your note will be deleted too.')) {
+  if (
+    window.confirm(
+      'Remove this event from your history? Your note will be deleted too.'
+    )
+  ) {
     emit('remove-history', props.event._id || props.event.id)
   }
 }
 
 function handleClickOutside(e) {
-  if (menuWrapperRef.value && !menuWrapperRef.value.contains(e.target)) {
+  if (
+    menuWrapperRef.value &&
+    !menuWrapperRef.value.contains(e.target)
+  ) {
     isSlotMenuOpen.value = false
   }
 }
 
-onMounted(() => document.addEventListener('click', handleClickOutside))
-onBeforeUnmount(() => document.removeEventListener('click', handleClickOutside))
+onMounted(() =>
+  document.addEventListener('click', handleClickOutside)
+)
+
+onBeforeUnmount(() =>
+  document.removeEventListener('click', handleClickOutside)
+)
 
 const matchBadgeClass = computed(() =>
   props.score >= 80 ? 'badge-green' : 'badge-orange'
 )
 
-// Telegram posters are saved on our server as "/uploads/...", so load them from the backend, not the Vite server
 const API_URL = 'http://localhost:8000'
+
 const imageSrc = computed(() =>
-  props.event.image?.startsWith('/') ? API_URL + props.event.image : props.event.image
+  props.event.image?.startsWith('/')
+    ? API_URL + props.event.image
+    : props.event.image
 )
 </script>
 
 <template>
-  <div class="event-card">
-    <div v-if="variant === 'discover' && score !== null" class="card-top-bar">
-      <span class="match-badge" :class="matchBadgeClass">
-        {{ score }}% match
-      </span>
-      <button 
-        type="button" 
-        class="btn-less" 
-        @click="emit('less-like-this', event._id || event.id)"
-      >
-        Less like this
-      </button>
-    </div>
+  <div class="event-card" @click="emit('card-click', event)">
 
+    <!-- LEFT: A4 POSTER -->
     <div class="poster-container">
-      <img 
-        v-if="event.image" 
+      <img
+        v-if="event.image"
         :src="imageSrc"
-        :alt="event.title" 
-        class="poster-img" 
+        :alt="event.title"
+        class="poster-img"
       />
       <div v-else class="poster-placeholder"></div>
     </div>
 
-    <div class="event-details">
-      <h2 class="event-title">{{ event.title }}</h2>
-      <p v-if="event.organiser" class="event-organiser">{{ event.organiser }}</p>
-      
-      <div class="event-time-venue">
-        <p class="event-datetime-line">{{ formattedDateTime }}</p>
-        <p class="event-venue-line">{{ event.venue }}</p>
+    <!-- RIGHT: EVENT DETAILS & ACTIONS -->
+    <div class="right-content-area">
+
+      <!-- TOP BAR -->
+      <div
+        class="card-top-bar"
+        :class="{ 'non-discover-top-bar': variant !== 'discover' }"
+      >
+        <template v-if="variant === 'discover' && score !== null">
+          <span class="match-badge" :class="matchBadgeClass">
+            {{ score }}% match
+          </span>
+        </template>
+
+        <span v-else-if="variant !== 'discover'"></span>
+
+        <button
+          v-if="variant === 'discover'"
+          type="button"
+          class="card-action-link"
+          @click.stop="emit('less-like-this', event._id || event.id)"
+        >
+          Less like this
+        </button>
       </div>
-    </div>
 
-    <div class="actions-area">
-      <!-- 1. DISCOVER VARIANT -->
-      <template v-if="variant === 'discover'">
-        <div class="btn-row">
-          <div class="dropdown-btn-wrapper" ref="menuWrapperRef">
-            <BaseButton 
-              class="action-pill-btn btn-dark-green"
-              :disabled="attendingDisabled"
-              @click="handleAddBtnClick"
+      <!-- EVENT DETAILS -->
+      <div class="event-details">
+        <h2 class="event-title">{{ event.title }}</h2>
+
+        <div class="event-time-venue">
+          <p class="event-datetime-line">
+            {{ formattedDate }}
+          </p>
+
+          <p class="event-datetime-line">
+            {{ formattedTime }}
+          </p>
+
+          <p class="event-venue-line">
+            {{ event.venue }}
+          </p>
+        </div>
+      </div>
+
+      <!-- ACTIONS -->
+      <div class="actions-area" @click.stop>
+
+        <!-- DISCOVER -->
+        <template v-if="variant === 'discover'">
+          <div class="btn-row">
+            <div class="dropdown-btn-wrapper" ref="menuWrapperRef">
+              <BaseButton
+                class="action-pill-btn"
+                :disabled="attendingDisabled"
+                @click="handleAddBtnClick"
+              >
+                {{ going === 'attending' ? '✓ ADDED' : '+ ADD TO CALENDAR' }}
+
+                <span
+                  v-if="event.sessions && event.sessions.length > 1"
+                  class="dropdown-chevron"
+                  :class="{ rotate: isSlotMenuOpen }"
+                ></span>
+              </BaseButton>
+
+              <div v-if="isSlotMenuOpen" class="slots-popup-menu">
+                <div class="popup-header">Pick a Timeslot:</div>
+
+                <div
+                  v-for="s in sortedSessions"
+                  :key="sessionKey(s)"
+                  class="slot-menu-item"
+                  :class="{
+                    'is-active': sessionKey(s) === sessionKey(shownSession)
+                  }"
+                  @click="selectSessionAndAdd(s)"
+                >
+                  <div class="slot-text-group">
+                    <span class="slot-title">
+                      {{ formatSession(s) }}
+                    </span>
+
+                    <span v-if="hasOverlap(s)" class="overlap-tag">
+                      Overlaps timetable
+                    </span>
+
+                    <span v-else class="bestfit-tag">
+                      Fits your schedule!
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <BaseButton
+              variant="circle"
+              class="heart-btn"
+              :class="{ active: interested }"
+              title="Interested"
+              @click="emit('set-interested', !interested)"
             >
-              {{ going === 'attending' ? '✓ ADDED' : '+ ADD TO CALENDAR' }}
-              <span 
-                v-if="event.sessions && event.sessions.length > 1" 
-                class="dropdown-chevron" 
+              <span class="custom-icon icon-heart"></span>
+            </BaseButton>
+          </div>
+        </template>
+
+        <!-- ATTENDING -->
+        <template v-else-if="variant === 'attending'">
+
+          <div
+            v-if="attendingSessions.length > 1"
+            class="dropdown-btn-wrapper"
+            ref="menuWrapperRef"
+          >
+            <BaseButton
+              class="action-pill-btn"
+              variant="outline-main"
+              @click="isSlotMenuOpen = !isSlotMenuOpen"
+            >
+              {{ formatSession(shownSession) }}
+
+              <span
+                class="dropdown-chevron"
                 :class="{ rotate: isSlotMenuOpen }"
               ></span>
             </BaseButton>
 
             <div v-if="isSlotMenuOpen" class="slots-popup-menu">
-              <div class="popup-header">Pick a Timeslot:</div>
-              <div 
-                v-for="s in sortedSessions" 
+              <div class="popup-header">
+                Your sessions ({{ attendingSessions.length }}):
+              </div>
+
+              <div
+                v-for="s in attendingSessions"
                 :key="sessionKey(s)"
                 class="slot-menu-item"
-                :class="{ 'is-active': sessionKey(s) === sessionKey(shownSession) }"
-                @click="selectSessionAndAdd(s)"
+                :class="{
+                  'is-active': sessionKey(s) === sessionKey(shownSession)
+                }"
+                @click="selectSession(s)"
               >
                 <div class="slot-text-group">
-                  <span class="slot-title">{{ formatSession(s) }}</span>
-                  <span v-if="hasOverlap(s)" class="overlap-tag">Overlaps timetable</span>
-                  <span v-else class="bestfit-tag">Fits your schedule!</span>
+                  <span class="slot-title">
+                    {{ formatSession(s) }}
+                  </span>
                 </div>
               </div>
             </div>
           </div>
 
-          <BaseButton 
-            variant="circle"
-            class="heart-btn" 
-            :class="{ active: interested }"
-            title="Interested"
-            @click="emit('set-interested', !interested)"
-          >
-            <span class="custom-icon icon-heart"></span>
-          </BaseButton>
-        </div>
-      </template>
-
-      <!-- 2. ATTENDING VARIANT -->
-      <template v-else-if="variant === 'attending'">
-        <!-- session dropdown (only when more than one attending session) -->
-        <div
-          v-if="attendingSessions.length > 1"
-          class="dropdown-btn-wrapper"
-          ref="menuWrapperRef"
-        >
-          <BaseButton
-            class="action-pill-btn"
-            variant="outline-main"
-            @click="isSlotMenuOpen = !isSlotMenuOpen"
-          >
-            {{ formatSession(shownSession) }}
-            <span class="dropdown-chevron" :class="{ rotate: isSlotMenuOpen }"></span>
-          </BaseButton>
-
-          <div v-if="isSlotMenuOpen" class="slots-popup-menu">
-            <div class="popup-header">Your sessions ({{ attendingSessions.length }}):</div>
-            <div
-              v-for="s in attendingSessions"
-              :key="sessionKey(s)"
-              class="slot-menu-item"
-              :class="{ 'is-active': sessionKey(s) === sessionKey(shownSession) }"
-              @click="selectSession(s)"
+          <div class="btn-row">
+            <BaseButton
+              class="action-pill-btn"
+              variant="outline-main"
+              :disabled="attendedDisabled"
+              :title="
+                attendedDisabled
+                  ? 'Available once this session starts'
+                  : ''
+              "
+              @click="toggleGoing('attended')"
             >
-              <div class="slot-text-group">
-                <span class="slot-title">{{ formatSession(s) }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- controls act on the session shown above -->
-        <div class="btn-row">
-          <BaseButton
-            class="action-pill-btn"
-            variant="outline-main"
-            :disabled="attendedDisabled"
-            :title="attendedDisabled ? 'Available once this session starts' : ''"
-            @click="toggleGoing('attended')"
-          >
-            MARK AS ATTENDED
-          </BaseButton>
-
-          <BaseButton
-            variant="circle"
-            class="trash-btn"
-            title="Remove this session from attending"
-            @click="toggleGoing('none')"
-          >
-            <span class="custom-icon icon-trash"></span>
-          </BaseButton>
-        </div>
-
-        <div class="friends-footer">
-          <div v-if="event.friends && event.friends.length" class="avatar-stack">
-            <span
-              v-for="(f, i) in event.friends.slice(0, 3)"
-              :key="i"
-              class="avatar-dot"
-              :style="{ backgroundColor: f.color || 'var(--color-purple)' }"
-            ></span>
-            <span class="friends-caption">you + {{ event.friends.length }} friends</span>
-          </div>
-          <div v-else class="solo-badge">
-            <span class="solo-dot"></span>
-            <span class="friends-caption">solo side quest!</span>
-          </div>
-        </div>
-      </template>
-
-      <!-- 3. INTERESTED VARIANT -->
-      <template v-else-if="variant === 'interested'">
-        <div class="btn-row">
-          <div class="dropdown-btn-wrapper" ref="menuWrapperRef">
-            <BaseButton 
-              class="action-pill-btn btn-green" 
-              :disabled="attendingDisabled"
-              @click="handleAddBtnClick"
-            >
-              {{ going === 'attending' ? '✓ ADDED' : 'ADD TO CALENDAR' }}
-              <span 
-                v-if="event.sessions && event.sessions.length > 1" 
-                class="dropdown-chevron" 
-                :class="{ rotate: isSlotMenuOpen }"
-              ></span>
+              MARK AS ATTENDED
             </BaseButton>
 
-            <div v-if="isSlotMenuOpen" class="slots-popup-menu">
-              <div class="popup-header">Pick a Timeslot:</div>
-              <div 
-                v-for="s in sortedSessions" 
-                :key="sessionKey(s)"
-                class="slot-menu-item"
-                :class="{ 'is-active': sessionKey(s) === sessionKey(shownSession) }"
-                @click="selectSessionAndAdd(s)"
+            <BaseButton
+              variant="circle"
+              class="trash-btn"
+              title="Remove this session from attending"
+              @click="toggleGoing('none')"
+            >
+              <span class="custom-icon icon-trash"></span>
+            </BaseButton>
+          </div>
+        </template>
+
+        <!-- INTERESTED -->
+        <template v-else-if="variant === 'interested'">
+          <div class="btn-row">
+            <div class="dropdown-btn-wrapper" ref="menuWrapperRef">
+              <BaseButton
+                class="action-pill-btn btn-green"
+                :disabled="attendingDisabled"
+                @click="handleAddBtnClick"
               >
-                <div class="slot-text-group">
-                  <span class="slot-title">{{ formatSession(s) }}</span>
-                  <span v-if="hasOverlap(s)" class="overlap-tag">Overlaps</span>
-                  <span v-else class="bestfit-tag">Fits schedule!</span>
+                {{ going === 'attending' ? '✓ ADDED' : 'ADD TO CALENDAR' }}
+
+                <span
+                  v-if="event.sessions && event.sessions.length > 1"
+                  class="dropdown-chevron"
+                  :class="{ rotate: isSlotMenuOpen }"
+                ></span>
+              </BaseButton>
+
+              <div v-if="isSlotMenuOpen" class="slots-popup-menu">
+                <div class="popup-header">Pick a Timeslot:</div>
+
+                <div
+                  v-for="s in sortedSessions"
+                  :key="sessionKey(s)"
+                  class="slot-menu-item"
+                  :class="{
+                    'is-active': sessionKey(s) === sessionKey(shownSession)
+                  }"
+                  @click="selectSessionAndAdd(s)"
+                >
+                  <div class="slot-text-group">
+                    <span class="slot-title">
+                      {{ formatSession(s) }}
+                    </span>
+
+                    <span v-if="hasOverlap(s)" class="overlap-tag">
+                      Overlaps
+                    </span>
+
+                    <span v-else class="bestfit-tag">
+                      Fits schedule!
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
+
+            <BaseButton
+              variant="circle"
+              class="heart-btn"
+              :class="{ active: interested }"
+              title="Interested"
+              @click="emit('set-interested', !interested)"
+            >
+              <span class="custom-icon icon-heart"></span>
+            </BaseButton>
           </div>
 
-          <BaseButton 
-            variant="circle"
-            class="heart-btn" 
-            :class="{ active: interested }"
-            title="Interested"
-            @click="emit('set-interested', !interested)"
-          >
-            <span class="custom-icon icon-heart"></span>
-          </BaseButton>
-        </div>
+          <div class="bottom-link-row">
+            <button
+              type="button"
+              class="card-action-link"
+              @click.stop="emit('invite-friends', event._id || event.id)"
+            >
+              Invite friends!
+            </button>
+          </div>
+        </template>
 
-        <button 
-          type="button" 
-          class="link-action-btn" 
-          @click="emit('invite-friends', event._id || event.id)"
-        >
-          INVITE FRIENDS!
-        </button>
-      </template>
+        <!-- ATTENDED -->
+        <template v-else-if="variant === 'attended'">
+          <div class="btn-row">
+            <BaseButton
+              class="action-pill-btn btn-purple"
+              @click="toggleGoing('attending')"
+            >
+              UNMARK
+            </BaseButton>
 
-      <!-- 4. ATTENDED VARIANT -->
-      <template v-else-if="variant === 'attended'">
-        <BaseButton 
-          class="action-pill-btn btn-purple w-100" 
-          @click="toggleGoing('attending')"
-        >
-          UNMARK
-        </BaseButton>
+            <BaseButton
+              variant="circle"
+              class="trash-btn"
+              title="Remove this session from attending"
+              @click="toggleGoing('none')"
+            >
+              <span class="custom-icon icon-trash"></span>
+            </BaseButton>
+          </div>
 
-        <button 
-          type="button" 
-          class="link-action-btn dark-link" 
-          @click="removeHistory"
-        >
-          REMOVE FROM HISTORY
-        </button>
-      </template>
+          <div class="bottom-link-row">
+            <button
+              type="button"
+              class="card-action-link"
+              @click.stop="removeHistory"
+            >
+              Remove from history
+            </button>
+          </div>
+        </template>
 
-      <!-- NOTES (all tabs except Discover) -->
-      <div v-if="variant !== 'discover'" class="note-section">
-        <BaseInput
-          v-model="noteDraft"
-          type="textarea"
-          :rows="2"
-          label="My notes"
-          placeholder="e.g. bring laptop, meet at the lobby"
-        />
-        <BaseButton
-          class="action-pill-btn"
-          :disabled="!noteChanged"
-          @click="emit('save-note', noteDraft)"
-        >
-          SAVE NOTE
-        </BaseButton>
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
+/* MAIN CARD */
 .event-card {
   background-color: var(--color-white);
-  border-radius: 28px;
-  padding: 16px;
+  border-radius: 18px;
+  padding: 14px;
   width: 100%;
   display: flex;
-  flex-direction: column;
+  gap: 16px;
+  align-items: stretch;
   box-sizing: border-box;
   box-shadow: 0 4px 14px rgba(10, 29, 43, 0.06);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
 }
 
 .event-card:hover {
@@ -434,48 +527,16 @@ const imageSrc = computed(() =>
   box-shadow: 0 8px 20px rgba(10, 29, 43, 0.1);
 }
 
-.card-top-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-}
-
-.match-badge {
-  font-family: 'TextFont', sans-serif;
-  font-size: 11px;
-  font-weight: 700;
-  padding: 4px 10px;
-  border-radius: 9999px;
-}
-
-.badge-green {
-  background-color: var(--color-green);
-  color: var(--color-dark-green);
-}
-
-.badge-orange {
-  background-color: var(--color-orange);
-  color: var(--color-white);
-}
-
-.btn-less {
-  background: none;
-  border: none;
-  font-size: 11px;
-  color: var(--color-dark-grey);
-  text-decoration: underline;
-  cursor: pointer;
-  padding: 0;
-}
-
+/* LEFT POSTER */
 .poster-container {
-  width: 100%;
-  aspect-ratio: 210 / 297;
-  border-radius: 20px;
+  width: 120px;
+  min-width: 120px;
+  aspect-ratio: 1 / 1.4142;
+  border-radius: 12px;
   overflow: hidden;
   background-color: var(--color-grey);
   display: flex;
+  flex-shrink: 0;
 }
 
 .poster-img {
@@ -492,54 +553,133 @@ const imageSrc = computed(() =>
   background-color: var(--color-grey);
 }
 
-.event-details {
-  margin-top: 14px;
+/* RIGHT CONTENT */
+.right-content-area {
+  flex: 1;
   display: flex;
   flex-direction: column;
+  justify-content: flex-start;
+  align-items: stretch;
+  min-width: 0;
+}
+
+/* TOP BAR */
+.card-top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 22px;
+  margin-bottom: 4px;
+}
+
+.card-top-bar.non-discover-top-bar {
+  min-height: 0;
+  margin-bottom: 0;
+}
+
+/* MATCH BADGE */
+.match-badge {
+  font-family: 'TextFont', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px 1px 10px;
+  border-radius: 9999px;
+}
+
+.badge-green {
+  background-color: var(--color-green);
+  color: var(--color-dark-green);
+}
+
+.badge-orange {
+  background-color: var(--color-orange);
+  color: var(--color-white);
+}
+
+/* TEXT LINKS */
+.card-action-link {
+  background: none !important;
+  border: none !important;
+  font-family: 'TextFont', sans-serif !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  color: var(--color-black, #1f2a44) !important;
+  opacity: 0.7;
+  text-decoration: underline !important;
+  cursor: pointer !important;
+  padding: 0;
+  height: auto !important;
+  box-shadow: none !important;
+  margin: 0;
+  align-self: flex-start;
+  padding-left: 3px;
+}
+
+.card-action-link:hover {
+  opacity: 0.7;
+}
+
+.bottom-link-row {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: 4px;
+}
+
+/* EVENT DETAILS */
+.event-details {
+  display: flex;
+  flex-direction: column;
+  margin-top: 2px;
+  align-items: flex-start;
+  padding-top: 3px;
 }
 
 .event-title {
   font-family: 'HeaderFont', cursive, sans-serif;
-  font-size: 20px;
+  font-size: 17px;
   font-weight: 900;
   color: var(--color-black);
-  margin: 0;
-  line-height: 1.15;
+  margin: 0 0 8px 0;
+  line-height: 1.1;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
 
-.event-organiser {
-  font-family: 'TextFont', sans-serif;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--color-dark-grey);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin: 4px 0 14px 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .event-time-venue {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
+  line-height: 1.2;
+  margin-top: 5px;
 }
 
 .event-datetime-line,
 .event-venue-line {
   margin: 0;
   font-family: 'TextFont', sans-serif;
-  font-size: 14px;
+  font-size: 12.5px;
   font-weight: 500;
   color: var(--color-black);
-  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
+/* ACTION AREA */
 .actions-area {
-  margin-top: 16px;
+  margin-top: auto;
+  padding-top: 10px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  align-items: stretch;
+  gap: 6px;
 }
 
 .btn-row {
@@ -553,6 +693,7 @@ const imageSrc = computed(() =>
   flex: 1;
   position: relative;
   display: flex;
+  min-width: 0;
 }
 
 .action-pill-btn {
@@ -561,12 +702,14 @@ const imageSrc = computed(() =>
   align-items: center;
   justify-content: center;
   gap: 6px;
-  height: 32px;
+  height: 36px;
   box-sizing: border-box;
+  border-radius: 9999px;
+  font-size: 11px;
 }
 
 .btn-dark-green {
-  background-color: var(--color-dark-green) !important;
+  background-color: #556b2f !important;
   color: var(--color-white) !important;
 }
 
@@ -580,6 +723,7 @@ const imageSrc = computed(() =>
   color: var(--color-dark-purple) !important;
 }
 
+/* ICONS */
 .custom-icon {
   width: 18px;
   height: 18px;
@@ -599,22 +743,31 @@ const imageSrc = computed(() =>
   mask: url('@/assets/icons/trash.png') no-repeat center / contain;
 }
 
+/* CIRCLE BUTTONS */
 .heart-btn {
-  background-color: var(--color-red) !important;
   color: var(--color-dark-red) !important;
+  background-color: var(--color-red) !important;
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
+  border-radius: 50% !important;
 }
 
-.heart-btn.active,
-.heart-btn.filled-red {
+.heart-btn.active {
   background-color: var(--color-red) !important;
   color: var(--color-white) !important;
 }
 
 .trash-btn {
   background-color: var(--color-orange) !important;
-  color: var(--color-dark-orange) !important;
+  color: var(--color-white) !important;
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
+  border-radius: 50% !important;
 }
 
+/* DROPDOWN */
 .dropdown-chevron {
   display: inline-block;
   width: 7px;
@@ -626,8 +779,6 @@ const imageSrc = computed(() =>
   margin-left: 4px;
   margin-top: -3px;
   opacity: 0.85;
-  border-radius: 1px;
-  border-bottom-right-radius: 3px;
 }
 
 .dropdown-chevron.rotate {
@@ -691,65 +842,5 @@ const imageSrc = computed(() =>
   font-size: 10px;
   font-weight: 700;
   color: var(--color-dark-orange);
-}
-
-.link-action-btn {
-  background: none;
-  border: none;
-  text-align: center;
-  font-family: 'TextFont', sans-serif;
-  font-size: 11px;
-  font-weight: 800;
-  text-decoration: underline;
-  cursor: pointer;
-  padding: 2px 0;
-}
-
-.link-action-btn.dark-link {
-  color: var(--color-black);
-}
-
-.friends-footer {
-  margin-top: 4px;
-  display: flex;
-  align-items: center;
-}
-
-.avatar-stack {
-  display: flex;
-  align-items: center;
-  gap: 3px;
-}
-
-.avatar-dot {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  display: inline-block;
-  border: 1.5px solid var(--color-white);
-}
-
-.solo-badge {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.solo-dot {
-  font-size: 11px;
-}
-
-.friends-caption {
-  margin-left: 6px;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--color-dark-grey);
-}
-
-.note-section {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 4px;
 }
 </style>

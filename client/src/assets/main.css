@@ -17,7 +17,7 @@ body {
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgba(44, 44, 146, 0.5) transparent;
+  scrollbar-color: rgba(26, 26, 26, 0.269) transparent;
 }
 
 ::-webkit-scrollbar {
@@ -43,7 +43,6 @@ body {
 
 
 ::-webkit-scrollbar-thumb {
-  background-color: var(--folder-bg, var(--color-blue));
   border-radius: 9999px;
 }
 

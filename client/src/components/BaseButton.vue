@@ -53,12 +53,13 @@ defineEmits(['click'])
   background-color: var(--bg);
   color: var(--text);
   box-sizing: border-box;
+  letter-spacing: -0.6px;
 }
 
 .btn-custom:not(.btn-circle) {
   gap: 8px;
-  padding: 3px 16px 6px 16px;
-  font-size: 11px;
+  padding: 0px 10px 3px 10px;
+  font-size: 10px;
   border-radius: 25px;
 }
 

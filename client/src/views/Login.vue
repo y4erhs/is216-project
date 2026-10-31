@@ -3,9 +3,14 @@ import 'bootstrap/dist/css/bootstrap.min.css'
 import 'bootstrap/dist/js/bootstrap.bundle.min.js'
 
 import { ref, onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { useUserStore } from '../stores/userStore'
 import BaseButton from '../components/BaseButton.vue'
 import FolderTabs from '../components/FolderTabs.vue'
 import '../assets/theme.css'
+
+const router = useRouter()
+const userStore = useUserStore()
 
 onMounted(() => {
   document.documentElement.style.overflow = 'hidden'
@@ -25,6 +30,23 @@ const categories = [
   { id: 'login', label: 'LOGIN', theme: 'theme-blue' },
   { id: 'reset', label: 'PASSWORD RESET', theme: 'theme-orange' }
 ]
+
+const username = ref('')
+const password = ref('')
+
+const handleLogin = async () => {
+  try {
+    await userStore.login({
+      username: username.value,
+      password: password.value
+    })
+    console.log("Login successful!")
+    router.push('/')
+  } catch (error) {
+    console.error('Login failed:', error)
+  }
+}
+
 // for password reset link:
 const isSent = ref(false);
 
@@ -46,7 +68,7 @@ const handleSendReset = () => {
       >
         <template #login>
           <div class="log-in">
-            <form @submit.prevent>
+            <form @submit.prevent="handleLogin">
               <div class="cc-logo">
                 <img src="/main-logo.svg" alt="">
               </div>
@@ -55,18 +77,20 @@ const handleSendReset = () => {
                   id="username"
                   type="text"
                   placeholder="Username"
+                  v-model="username"
                 />
                 <input
                   id="password"
                   type="password"
                   placeholder="Password"
+                  v-model="password"
                 />
                 <div class="pwd-reset">
                   <p> Forgor password? Loser.</p>
                   jk, <a class="click-here" href="#" @click.prevent="activeTab = 'reset'">click here</a>
                 </div>
                 
-              <BaseButton type="button" class=" w-100 login-btn">
+              <BaseButton type="button" class=" w-100 login-btn" @click="handleLogin">
                 LOG IN
               </BaseButton>
               <span class="or-text">Or</span>

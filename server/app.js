@@ -1,8 +1,11 @@
 const express = require('express');
 const dotenv = require('dotenv');
 
+
+
+
 dotenv.config({ path: './config.env' });
-const bot = require('./telegramBot');
+const bot = process.env.TELEGRAM_BOT_TOKEN ? require('./telegramBot') : null;
 
 const mongoose = require('mongoose');
 const fs = require('fs');
@@ -19,6 +22,11 @@ const lobbyRoutes = require('./src/routes/lobbyRoutes');
 const activityRoutes = require('./src/routes/activityRoutes');
 const googleRoutes = require('./src/routes/googleRoutes')
 const notificationRoutes = require('./src/routes/notificationRoutes');
+const planRoutes = require('./src/routes/planRoutes');
+const scheduleRoutes = require('./src/routes/scheduleRoutes');
+
+
+
 
 const server = express();
 
@@ -56,6 +64,10 @@ server.use('/api/activities', activityRoutes);
 server.use("/api/notifications", notificationRoutes);
 server.use('/auth/google', googleRoutes);
 server.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+server.use('/api/plans', planRoutes);
+server.use('/api/schedule', scheduleRoutes);
+
+
 
 async function connectDB() {
   try {
@@ -78,9 +90,15 @@ function startServer() {
 
 connectDB().then(() => {
   startServer();
-  bot.start();
-  console.log("Telegram bot polling...");
+  // No TELEGRAM_BOT_TOKEN in config.env means no bot, but the rest of the server still runs
+  if (bot) {
+    bot.start();
+    console.log("Telegram bot polling...");
+  } else {
+    console.log("No TELEGRAM_BOT_TOKEN, so the Telegram bot is off");
+  }
 });
 
-process.once("SIGINT", () => bot.stop());
-process.once("SIGTERM", () => bot.stop());
+process.once("SIGINT", () => bot?.stop());
+process.once("SIGTERM", () => bot?.stop());
+

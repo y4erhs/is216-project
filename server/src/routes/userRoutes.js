@@ -4,9 +4,20 @@ const userController = require('../controllers/userController');
 
 const router = express.Router();
 
+const multer = require('multer');
+const upload = multer({ dest: 'uploads/' });
 
 // CREATE: Register a user
 router.post('/', userController.createUser);
+
+router.post('/register', upload.fields([
+    { name: 'profileImage', maxCount: 1 },
+    { name: 'bannerImage', maxCount: 1 },
+    { name: 'avatar', maxCount: 1 }
+]), userController.createUser);
+
+
+
 //LOGIN
 router.post('/login', userController.login);
 

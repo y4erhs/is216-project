@@ -17,7 +17,7 @@ const lobbySchema = new mongoose.Schema({
     event: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Event',
-        required: true
+        default: null
     },
     invited: [{
         type: mongoose.Schema.Types.ObjectId,
@@ -120,7 +120,9 @@ lobbySchema.statics.removeUser = function(lobbyId, userId) {
         lobbyId,
         {
             $pull: {
-                participants: userId
+                participants: userId,
+                invited: userId,
+                declined: userId
             },
             lastActiveAt: Date.now()
         },

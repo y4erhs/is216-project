@@ -6,8 +6,9 @@ const mongoose = require('mongoose')
 exports.connect = (req, res) => {
     // TEMPORARY: replace with the logged-in user once login exists
     const userId = req.query.userId
-    if (!userId) {
-        return res.status(400).json({ message: 'userId is required' })
+    if (!mongoose.isValidObjectId(userId)) {
+        console.error('Google connect got invalid userId:', userId)
+        return res.redirect(`${process.env.CLIENT_URL}/calendar?google=error`)
     }
 
     const client = createOAuthClient()
@@ -26,8 +27,9 @@ exports.callback = async (req, res) => {
     const { code, state: userId, error } = req.query
     const clientUrl = process.env.CLIENT_URL
 
-    if (error || !code) {
-        return res.redirect(`${clientUrl}/calendar?google=denied`)
+    if (!mongoose.isValidObjectId(userId)) {
+        console.error('Google callback got invalid userId:', userId)
+        return res.redirect(`${clientUrl}/calendar?google=error`)
     }
 
     try {
@@ -75,7 +77,8 @@ exports.status = async (req, res) => {
         return res.status(200).json({
             connected: !!connection,
             connectedAt: connection ? connection.connectedAt : null,
-            googleEmail: connection ? connection.googleEmail : null
+            googleEmail: connection ? connection.googleEmail : null,
+            includePersonal: connection ? connection.includePersonal : false
         })
     } catch (err) {
         return res.status(500).json({ message: err.message })
@@ -107,6 +110,30 @@ exports.disconnect = async (req, res) => {
         await GoogleConnection.deleteOne({ _id: connection._id })
 
         return res.status(200).json({ message: 'Google Calendar disconnected' })
+    } catch (err) {
+        return res.status(500).json({ message: err.message })
+    }
+}
+
+// Turn "Include personal commitments" on or off
+exports.updateSettings = async (req, res) => {
+    try {
+        // TEMPORARY: replace with the logged-in user once login exists
+        const userId = req.query.userId
+        if (!mongoose.isValidObjectId(userId)) {
+            return res.status(400).json({ message: 'Invalid user id' })
+        }
+
+        const connection = await GoogleConnection.findOneAndUpdate(
+            { user: userId },
+            { includePersonal: Boolean(req.body.includePersonal) },
+            { new: true }
+        )
+        if (!connection) {
+            return res.status(404).json({ message: 'Google Calendar is not connected' })
+        }
+
+        return res.status(200).json({ includePersonal: connection.includePersonal })
     } catch (err) {
         return res.status(500).json({ message: err.message })
     }
