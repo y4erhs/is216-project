@@ -29,7 +29,8 @@ const routes = [
 
   { path: "/calendar", name: "Calendar", component: Calendar },
 
-  { path: "/lobby", name: "Lobby", component: LobbyHub },
+  { path: '/lobby/:lobbyId?', component: () => import('../views/Lobbyhub.vue') },
+  { path: '/friends', component: () => import('../views/Friends.vue') },
 
   { path: "/activity-tracking", name: "Activty Tracking", component: tracking },
 

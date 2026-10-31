@@ -301,3 +301,18 @@ exports.getPreferences = async (req, res) => {
     }
 };
 
+// search for users
+exports.searchUsers = async (req, res) => {
+  try {
+    const { q = '', userId } = req.query;
+    if (q.trim().length < 2) return res.json([]);
+    const safe = q.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // escape regex characters
+    const users = await User.find({
+      username: { $regex: safe, $options: 'i' },
+      ...(userId && { _id: { $ne: userId } }),
+    }).select('_id username').limit(10);
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};

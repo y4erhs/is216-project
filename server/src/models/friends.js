@@ -23,14 +23,40 @@ const friendSchema = new mongoose.Schema({
     }
 });
 
-friendSchema.statics.sendFriendRequest = function(requesterId, receiverId) {
-    const request = new this({
-        requester: requesterId,
-        receiver: receiverId,
-        status: 'pending'
-    });
+friendSchema.index({ requester: 1, receiver: 1 }, { unique: true });
 
-    return request.save();
+friendSchema.statics.sendFriendRequest = async function (requesterId, receiverId) {
+  if (String(requesterId) === String(receiverId)) {
+    throw new Error("You can't add yourself");
+  }
+  const existing = await this.findOne({
+    $or: [
+      { requester: requesterId, receiver: receiverId },
+      { requester: receiverId, receiver: requesterId },
+    ],
+  });
+  if (existing) throw new Error('Request or friendship already exists');
+  return this.create({ requester: requesterId, receiver: receiverId });
+};
+
+friendSchema.statics.getPendingRequests = function (userId) {
+  return this.find({ receiver: userId, status: 'pending' })
+    .populate('requester', 'username');
+};
+
+friendSchema.statics.areFriends = async function (a, b) {
+  const doc = await this.findOne({
+    status: 'accepted',
+    $or: [
+      { requester: a, receiver: b },
+      { requester: b, receiver: a },
+    ],
+  });
+  return !!doc;
+};
+
+friendSchema.statics.removeFriendById = function (friendshipId) {
+  return this.findByIdAndDelete(friendshipId);
 };
 
 friendSchema.statics.acceptFriendRequest = function(friendshipId) {

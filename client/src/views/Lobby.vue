@@ -65,12 +65,16 @@
 
             <section>
               <h3 class="section-title">Invite friends</h3>
+              <p v-if="!friends.length" class="section-sub">
+              No friends yet. <RouterLink to="/friends" style="color:#fff">Add some</RouterLink>
+              </p>
               <div class="scroll">
                 <ul class="people">
                   <li v-for="f in friends" :key="f.id" class="person">
                     <span class="avatar" :style="{ background: f.color }">{{ initials(f.name) }}</span>
                     <span class="who">{{ f.name }}</span>
-                    <span v-if="statusOf(f.id)" class="badge-pill" :class="`pill-${statusOf(f.id)}`">{{ statusLabel[statusOf(f.id)] }}</span>
+                    <!-- Re-invite declined friends -->
+                    <span v-if="statusOf(f.id) && statusOf(f.id) !== 'declined'" class="badge-pill" :class="`pill-${statusOf(f.id)}`">{{ statusLabel[statusOf(f.id)] }}</span>
                     <button v-else class="badge-pill pill-invite" type="button" :disabled="registered" @click="invite(f)">Invite</button>
                   </li>
                 </ul>
@@ -300,7 +304,7 @@ function deleteLobby() {
 }
 
 /* ---------- lobby state ---------- */
-const inviteLink = computed(() => `https://campuscompass.app/lobby/${props.lobbyId}`)
+const inviteLink = computed(() => `${window.location.origin}/lobby/${props.lobbyId}`)
 const copied = ref(false)
 const flashIds = reactive(new Set())
 const removingId = ref(null) // which roster card is asking "Remove …?"

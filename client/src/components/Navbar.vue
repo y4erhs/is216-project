@@ -1,4 +1,6 @@
 <script setup>
+import { onMounted } from 'vue'
+import { useFriendRequests } from '../composables/useFriendRequests'
 import { ref, watch } from "vue";
 import "../assets/theme.css";
 
@@ -13,6 +15,9 @@ defineProps({
     default: false,
   },
 });
+
+const reqs = useFriendRequests();
+onMounted(() => reqs.load());
 
 const isCollapsed = ref(false);
 
@@ -118,6 +123,17 @@ watch(isCollapsed, (value) => {
         <span v-if="!isCollapsed" class="pill-neck"></span>
         <div v-if="!isCollapsed" class="pill-label">
           <span class="header-style">Profile & Settings</span>
+        </div>
+      </RouterLink>
+
+      <RouterLink to="/friends" class="tab-pill theme-grey" :title="isCollapsed ? 'Friends' : ''">
+        <div class="pill-icon position-relative">
+          <i class="bi bi-person-plus fs-5"></i>
+          <span v-if="reqs.state.incoming.length" class="req-badge">{{ reqs.state.incoming.length }}</span>
+        </div>
+        <span v-if="!isCollapsed" class="pill-neck"></span>
+        <div v-if="!isCollapsed" class="pill-label">
+          <span class="header-style">Friends</span>
         </div>
       </RouterLink>
     </div>
@@ -396,6 +412,13 @@ aside.collapsed .tab-pill:hover {
 aside.collapsed .user-profile {
   justify-content: center !important;
   width: 100%;
+}
+
+.req-badge {
+  position: absolute; top: 2px; right: 2px;
+  min-width: 16px; height: 16px; padding: 0 4px;
+  border-radius: 8px; background: var(--color-blue, #4c74fa);
+  color: #fff; font-size: 10px; line-height: 16px; text-align: center;
 }
 
 @media (max-width: 767.98px) {

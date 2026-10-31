@@ -5,19 +5,16 @@
   and replace the `view` ref with route navigation (see the comments in the template).
 -->
 <template>
-  <MyLobbies v-if="view === 'list'"
-             @open="open" @create="view = 'create'" @open-calendar="$emit('open-calendar')" />
+  <CreateLobby v-if="creating" @cancel="toList" @created="open" />
 
-  <CreateLobby v-else-if="view === 'create'"
-               @cancel="view = 'list'" @created="open" />
+  <MyLobbies v-else-if="!currentId"
+             @open="open" @create="creating = true" @open-calendar="$emit('open-calendar')" />
 
-  <!-- you host this lobby: full host controls -->
   <Lobby v-else-if="current && store.isHost(current)" :key="current.id" :lobby-id="current.id"
-              @back="view = 'list'" @deleted="view = 'list'" />
+         @back="toList" @deleted="toList" />
 
-  <!-- you were invited: the accept / decline screen -->
   <div v-else-if="current" class="member-page theme-blue">
-    <button class="btn btn-light" type="button" @click="view = 'list'">← My lobbies</button>
+    <button class="btn btn-light" type="button" @click="toList">← My lobbies</button>
     <div class="member-wrap">
       <LobbyInvite :closable="false" :lobby-name="current.name" :description="current.description"
                    :host-name="store.hostName(current)" :event="currentEvent"
@@ -26,39 +23,41 @@
                    @respond="(s) => store.setStatus(current.id, store.meId(), s)" />
     </div>
   </div>
+
+  <JoinPrompt v-else-if="needsJoin" :lobby-id="currentId" @back="toList" />
+
+  <p v-else class="member-page theme-blue">Loading…</p>
 </template>
 
 <script setup>
-  import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
-  import MyLobbies from '../views/MyLobbies.vue'
-  import CreateLobby from '../views/CreateLobby.vue'
-  import Lobby from '../views/Lobby.vue'
-  import LobbyInvite from '../views/LobbyInvite.vue'
-  import { useLobbies } from '../composables/useLobbies'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import MyLobbies from '../views/MyLobbies.vue'
+import CreateLobby from '../views/CreateLobby.vue'
+import Lobby from '../views/Lobby.vue'
+import LobbyInvite from '../views/LobbyInvite.vue'
+import JoinPrompt from '../views/JoinPrompt.vue'
+import { useLobbies } from '../composables/useLobbies'
 
-  defineEmits(['open-calendar'])
+defineEmits(['open-calendar'])
 
-  const store = useLobbies()
-  const view = ref('list') // 'list' | 'create' | 'lobby'
-  const currentId = ref(null)
+const route = useRoute()
+const router = useRouter()
+const store = useLobbies()
 
-  const current = computed(() => store.get(currentId.value))
-  const currentEvent = computed(() => store.events.find((e) => e.id === current.value?.pitchedEventId) || null)
-  const memberRows = computed(() => current.value?.members.map((m) => ({ ...m, host: m.id === current.value.hostId })) ?? [])
+const creating = ref(false)
+const currentId = computed(() => route.params.lobbyId || null)
+const current = computed(() => store.get(currentId.value))
+const needsJoin = computed(() => currentId.value && !current.value && store.state.loaded)
+const currentEvent = computed(() => store.events.find((e) => e.id === current.value?.pitchedEventId) || null)
+const memberRows = computed(() => current.value?.members.map((m) => ({ ...m, host: m.id === current.value.hostId })) ?? [])
 
-  function open(id) {
-    currentId.value = id
-    view.value = 'lobby'
-  }
-  watch(current, (l) => { if (view.value === 'lobby' && !l) view.value = 'list' })
+function open(id) { creating.value = false; router.push(`/lobby/${id}`) }
+function toList() { creating.value = false; router.push('/lobby') }
 
-  // Load now, then every 15 seconds so replies from friends show up
-  let timer
-  onMounted(() => {
-    store.load()
-    timer = setInterval(store.load, 15000)
-  })
-  onBeforeUnmount(() => clearInterval(timer))
+let timer
+onMounted(() => { store.load(); timer = setInterval(store.load, 15000) })
+onBeforeUnmount(() => clearInterval(timer))
 </script>
 
 <style scoped>

@@ -99,14 +99,11 @@ lobbySchema.statics.inviteUser = function(lobbyId, userId) {
     return this.findByIdAndUpdate(
         lobbyId,
         {
-            $addToSet: {
-                invited: userId
-            },
+            $pull: { declined: userId },
+            $addToSet: { invited: userId },
             lastActiveAt: Date.now()
         },
-        {
-            new: true
-        }
+        { new: true }
     )
     .populate('host', 'username')
     .populate('invited', 'username')

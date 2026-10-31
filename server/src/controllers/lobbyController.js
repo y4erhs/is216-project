@@ -1,3 +1,4 @@
+const Friends = require('../models/friends');
 const Lobby = require('../models/Lobby')
 const mongoose = require('mongoose')
 
@@ -93,15 +94,31 @@ exports.getLobbyById = async (req, res) => {
     }
 };
 
-exports.inviteUser = async(req,res) =>{
-    try{
-        const {lobbyId, userId} = req.body;
-        const updated = await Lobby.inviteUser(lobbyId, userId);
-        res.json(updated)
-    }catch(err){
-        res.status(500).json({ error:err.message})
+exports.inviteUser = async (req, res) => {
+  try {
+    const { lobbyId, userId, inviterId } = req.body;
+
+    const lobby = await Lobby.findById(lobbyId);
+    if (!lobby) return res.status(404).json({ message: 'Lobby not found' });
+
+    const same = (a, b) => String(a) === String(b);
+    if (!lobby.participants.some(id => same(id, inviterId))) {
+      return res.status(403).json({ message: 'Only lobby members can invite' });
     }
-}
+    if ([...lobby.participants, ...lobby.invited].some(id => same(id, userId))) {
+      return res.status(400).json({ message: 'Already in this lobby or invited' });
+    }
+    if (!(await Friends.areFriends(inviterId, userId))) {
+      return res.status(403).json({ message: 'You can only invite friends' });
+    }
+
+    const updated = await Lobby.inviteUser(lobbyId, userId);
+    // TODO (notifications): create 'lobby_invite' notification for userId
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
 
 exports.acceptInvite = async (req,res) =>{
     try{
@@ -222,4 +239,22 @@ exports.planNext = async (req, res) => {
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
+};
+
+exports.joinViaLink = async (req, res) => {
+  try {
+    const { lobbyId } = req.params;
+    const { userId } = req.body; // from auth later
+    if (!mongoose.isValidObjectId(lobbyId)) {
+      return res.status(400).json({ message: 'Invalid lobby id' });
+    }
+    const lobby = await Lobby.findById(lobbyId);
+    if (!lobby) return res.status(404).json({ message: 'Lobby not found' });
+
+    const updated = await Lobby.acceptInvite(lobbyId, userId);
+    // TODO (notifications): 'lobby_joined_via_link' goes here, giselle's part
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
