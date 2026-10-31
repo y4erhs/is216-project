@@ -3,10 +3,18 @@
     import 'bootstrap/dist/js/bootstrap.bundle.min.js'
 
     import { ref, computed } from 'vue'
+    import { useRouter } from 'vue-router'
     import BaseButton from '../components/BaseButton.vue'
     import FolderTabs from '../components/FolderTabs.vue'
     import BaseInput from '../components/BaseInput.vue'
     import '../assets/theme.css'
+
+    // CREATE ACCOUNT DATA
+    const fullName = ref('');
+    const email = ref('');
+    const password = ref('');
+    const confirmPassword = ref('');
+
 
     const categories = [
   { id: 'create-acc', label: 'ACCOUNT', theme: 'theme-green' },
@@ -19,7 +27,7 @@
   
     const years = ['Year 1', 'Year 2', 'Year 3', 'Year 4', 'Year 5']
   
-  const activeTab = ref('create-acc')
+    const activeTab = ref('create-acc')
     const selectedSchool = ref('')
     const selectedYear = ref('')
     const displayName = ref('')
@@ -29,6 +37,7 @@
     const profileImage = ref(null)
     const imagePreview = ref(null)
     const bannerPreview = ref(null)
+    const bannerImage = ref(null)
 
     // check if it is uploaded
     const defaultBanner = ref('')
@@ -59,6 +68,7 @@
     const handleBannerUpload = (event) => {
       const file = event.target.files[0]
       if (file) {
+        bannerImage.value = file
         bannerPreview.value = URL.createObjectURL(file)
       }
     }
@@ -87,6 +97,37 @@
         selectedInterests.value.push(id)
       }
     }
+
+    const router = useRouter();
+  
+    const handleSubmit = async () => {
+      try {
+        // gather all form data from the three steps
+        const completeUserData = {
+          fullName: fullName.value,
+          email: email.value,
+          password: password.value,
+          displayName: displayName.value,
+          username: username.value,
+          school: selectedSchool.value,
+          year: selectedYear.value,
+          interests: selectedInterests.value,
+          profileImage: profileImage.value,
+          bannerImage: bannerImage.value
+        }
+        // Submit your data to backend / API here
+        console.log('Submitting selected interests:', selectedInterests.value)
+
+        // Example API request:
+        // await axios.post('/api/user/interests', { interests: selectedInterests.value })
+
+        // 3. Navigate to home.vue upon success
+        router.push('/home') 
+        // Note: Use router.push({ name: 'Home' }) if you are using named routes
+      } catch (error) {
+        console.error('Submission failed:', error)
+      }
+    }
 </script>
 
 <template>
@@ -98,13 +139,13 @@
          <div>
             <h1> CREATE AN ACCOUNT </h1>
             <form action="">
-                <input type="text" placeholder="Full Name">
-                <input type="email" placeholder="Email">
-                <input type="password" placeholder="Password">
-                <input type="password" placeholder="Confirm Password"><br>
+                <input type="text" v-model='fullName' placeholder="Full Name">
+                <input type="email" v-model='email' placeholder="Email">
+                <input type="password" v-model='password' placeholder="Password">
+                <input type="password" v-model='confirmPassword' placeholder="Confirm Password"><br>
                 
                 <BaseButton type="submit" class="auth-btn" @click.prevent="activeTab = 'edit-profile'" >REGISTER</BaseButton>
-                <span class="or-text">Or</span>
+                <span>Or</span>
                 <BaseButton type="button" class="auth-btn"> <img src="/google-green-icon.png" style="width: 16px; height: 16px;">  CONTINUE WITH GOOGLE</BaseButton>
                 <div class="log-in">
                   <p>Have an account? <router-link to="/login"> Log in</router-link></p>
@@ -219,7 +260,7 @@
           </label>
         </div>
 
-        <BaseButton type="submit" class="next-btn" @click.prevent="activeTab = 'interests'">NEXT</BaseButton>
+        <BaseButton type="submit" class="auth-btn" @click.prevent="activeTab = 'interests'">NEXT</BaseButton>
       </form>
     </div>
   </div>
@@ -228,25 +269,27 @@
     <template #interests>
       <div class="cards-list">
         <!-- interest event cards -->
-        <h1> CHOOSE YOUR INTERESTS </h1>
-      <div class="interest-grid">
-        <div 
-      v-for="interest in availableInterests"
-      :key="interest.id"
-      class="card mb-3" 
-      style="width: 18rem;">
-        <img src="/test-img.jpeg" class="card-img-top" alt="...">
-        <div class="card-body">
-          <p class="card-text">
-            <label class="w-100">
-              <input type="checkbox" :value="interest.id" v-model="selectedInterests">
-              {{interest.label}}
-            </label>
-            
-          </p>
+        <h1 class="interest-title"> CHOOSE YOUR INTERESTS </h1>
+        <div class="folder-scroll-container">
+          <div class="interest-grid">
+            <div 
+            v-for="interest in availableInterests"
+            :key="interest.id"
+            class="card interest-card"
+            >
+            <img src="/test-img.jpeg" class="card-img-top interest-card-img" alt="...">
+            <div class="card-body p-2">
+              <p class="card-text mb-0">
+                <label class="w-100 d-flex align-items-center gap-2 mb-0">
+                  <input type="checkbox" :value="interest.id" v-model="selectedInterests">
+                  <span> {{interest.label}} </span>
+                </label>
+              </p>
+            </div>
+          </div>
+          <BaseButton type="submit" class="final-btn" @click="handleSubmit" >FINISH SIGN UP</BaseButton>
+          </div>
         </div>
-      </div>
-      </div>
       </div>
     </template>
   </FolderTabs>
@@ -255,6 +298,8 @@
 </template>
 
 <style scoped>
+
+/* Container for all the Folder Tabs */
 .page-wrapper {
     display: flex;
     justify-content: center;
@@ -266,7 +311,7 @@
 /* Allow the wrapper to take up more space */
 .page-wrapper > * {
     width: 90%;
-    max-width: 900px; /* Make this as wide as you want the folder to be */
+    max-width: 900px; 
 }
 
 /* Force FolderTabs and its internal card lists to respect the new wider size */
@@ -275,14 +320,6 @@
 :deep(.tab-content) {
     width: 100% !important;
     max-width: 100% !important;
-}
-
-.profile-cards-list {
-    display: flex !important;
-    flex-direction: row !important;
-    gap: 2rem !important;
-    align-items: flex-start !important;
-    width: 100%;
 }
 
 :deep(h1) {
@@ -344,20 +381,13 @@ input:focus {
   color: var(--color-green);
   opacity: 0.75;
 }
-.interest-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 50px;
-  width: 100%;
-}
 
-/* school selection styles */
-.select-school {
-  width: 100%;
-}
-
-.select-year {
-  width: 100%;
+.profile-cards-list {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 2rem !important;
+    align-items: flex-start !important;
+    width: 100%;
 }
 
 .left-column {
@@ -382,6 +412,25 @@ input:focus {
   margin-bottom: 35px;
 }
 
+.profile-banner-preview {
+  aspect-ratio: 5 / 2;
+  background-color: var(--color-dark-green);
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+/* Style for when no banner is uploaded */
+.banner-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6c757d;
+  font-weight: 600;
+  font-size: 0.9rem;
+  background-color: #e2e8f0;
+}
 
 .banner-img {
   width: 100%;
@@ -405,11 +454,20 @@ input:focus {
   overflow: hidden;
 }
 
-.profile-banner-preview {
-  aspect-ratio: 5 / 2;
-  background-color: var(--color-dark-green);
-  border-radius: 20px;
-  overflow: hidden;
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+
+}
+
+/* Style for the text initials inside the avatar box */
+.avatar-initials {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #2b3a4a;
+  text-transform: uppercase;
+  
 }
 
 .user-info p {
@@ -491,8 +549,7 @@ input:focus {
 .pill.purple { background-color: #ba68c8; width: 55px; }
 .pill.blue { background-color: #3f51b5; width: 40px; }
 
-
-/* ================= RIGHT COLUMN (Form Section) ================= */
+/* RIGHT COLUMN (Form Section) */
 .right-section {
   flex: 1.2;
   display: flex;
@@ -520,16 +577,26 @@ input:focus {
 .right-section input[type="text"] {
   background: transparent;
   border: none;
-  border-bottom: 2px solid rgba(255, 255, 255, 0.7);
-  color: white;
+  border-bottom: 2px solid var(--color-white);
+  color: var(--color-white);
   padding: 0.4rem 0;
   font-size: 0.95rem;
   outline: none;
   width: 100%;
 }
 
+/* school selection styles */
+.select-school {
+  width: 100%;
+}
+
+.select-year {
+  width: 100%;
+}
+
 .right-section input[type="text"]::placeholder {
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--color-white);
+  opacity: 0.75;
 }
 
 
@@ -545,7 +612,7 @@ input:focus {
   color: #ffffff;
 }
 
-/* Custom styled maroon button for file uploads */
+/* style for file uploads button */
 .custom-file-upload {
   display: inline-block;
   background-color: #801d18;
@@ -560,36 +627,46 @@ input:focus {
 }
 
 .file-input {
-  display: none; /* Hides default ugly browse button */
+  display: none; /* hide default button */
 }
 
-.avatar-img {
+
+/* interests Folder tab */
+.interest-title{
+  margin-bottom: 20px;
+}
+
+.folder-scroll-container {
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 8px;
+
+}
+
+.interest-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
   width: 100%;
-  height: 100%;
+  margin-bottom: 20px;
+}
+
+.interest-card {
+  width: 100%;
+  font-size: 0.85rem;
+}
+
+.interest-card-img {
+  /* height: 65px; */
   object-fit: cover;
-
 }
 
-/* Style for when no banner is uploaded */
-.banner-placeholder {
-  width: 100%;
-  height: 100%;
+/* final submit button */
+.final-btn {
+  width: 70%;
+  max-width: 500px;
   display: flex;
-  align-items: center;
   justify-content: center;
-  color: #6c757d;
-  font-weight: 600;
-  font-size: 0.9rem;
-  background-color: #e2e8f0;
-}
-
-/* Style for the text initials inside the avatar box */
-.avatar-initials {
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: #2b3a4a;
-  text-transform: uppercase;
-  
 }
 
 </style>
