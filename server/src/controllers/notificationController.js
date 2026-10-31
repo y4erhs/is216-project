@@ -501,6 +501,60 @@ exports.notifyUpcomingEvent = async (userId, event) => {
   });
 };
 
+exports.dispatchUpcomingEvents = async (req, res) => {
+  try {
+    const Event = require('../models/events');
+    const now = new Date();
+    const next24Hours = new Date(
+      now.getTime() + 24 * 60 * 60 * 1000
+    );
+    const events = await Event.find({
+      attendees: { $exists: true, $ne: [] },
+      sessions: {
+        $elemMatch: {
+          startTime: {
+            $gte: now,
+            $lte: next24Hours
+          }
+        }
+      }
+    }).populate('attendees', '_id');
+    let count = 0;
+    for (const event of events) {
+      for (const attendee of event.attendees) {
+        const existing =
+          await Notification.findOne({
+            userId: attendee._id,
+            eventId: event._id,
+            type: 'upcoming_event'
+          });
+        if (!existing) {
+          await exports.notifyUpcomingEvent(
+            attendee._id,
+            event
+          );
+          count++;
+        }
+      }
+    }
+    const payload = {
+      processed: count
+    };
+    if (res) {
+      return res.json(payload);
+    }
+    return payload;
+  } catch (err) {
+    if (res) {
+      return res.status(500).json({
+        message: 'Failed to dispatch upcoming notifications',
+        error: err.message
+      });
+    }
+    throw err;
+  }
+};
+
 exports.notifyGroupFreeSlots = async (userIds, group, slotsSummary) => {
   return Promise.all(
     userIds.map((userId) =>
@@ -538,6 +592,22 @@ exports.notifyRsvpUpdate = async (userId, event, status) => {
     message: `Your status for ${event.title} is now "${status}".`,
     eventId: event._id,
     metadata: { status },
+  });
+};
+
+exports.notifyFriendRequest = async (receiverId,requesterName,friendshipId) => {
+  return createNotification({
+    userId: receiverId,
+
+    type: "friend_request",
+
+    title: "Friend Request",
+
+    message: `${requesterName} sent you a friend request.`,
+
+    metadata: {
+      friendshipId
+    }
   });
 };
 

@@ -13,6 +13,7 @@ router.get("/reminders", notificationsController.getMyReminders);
 router.post("/reminders", notificationsController.createReminder);
 router.patch("/reminders/:id", notificationsController.updateReminder);
 router.delete("/reminders/:id", notificationsController.deleteReminder);
+router.post('/dispatch-upcoming', notificationsController.dispatchUpcomingEvents);
 
 router.get("/:id", notificationsController.getNotificationById);
 router.patch("/:id/read", notificationsController.markAsRead);

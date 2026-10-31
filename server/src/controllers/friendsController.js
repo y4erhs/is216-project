@@ -1,11 +1,14 @@
 const Friends = require('../models/friends')
-
+const notificationController =require('./notificationController');
+const User = require('../models/user');
 exports.sendFriendRequest = async(req,res) =>{
     try{
-        const { requesterId, receiverId } = req.body;
-        const request = await Friends.sendFriendRequest(requesterId, receiverId)
-        res.status(201).json(request)
-    }catch(err){
+        const {requesterId,receiverId} = req.body;
+        const request =await Friends.sendFriendRequest(requesterId,receiverId);
+        const requester =await User.findById(requesterId);
+        await notificationController.notifyFriendRequest(receiverId,requester.username,request._id);
+        res.status(201).json(request);
+    }catch(err){    
         res.status(500).json({error: err.message});
     }
 };
