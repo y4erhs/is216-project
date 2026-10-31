@@ -2,7 +2,7 @@
 import { onMounted, onBeforeUnmount } from 'vue'
 import { useNotifications } from '../composables/useNotifications'
 
-const emit = defineEmits(['open-item'])
+const emit = defineEmits(['open-item', 'accept-friend', 'reject-friend'])
 const n = useNotifications()
 
 function onDocClick(e) {
@@ -26,6 +26,18 @@ function openItem(item) {
   n.close()
   emit('open-item', item) // parent can route to lobby / event
 }
+
+function acceptFriend(item) {
+  console.log('Accept friend', item)
+  n.acceptFriend(item)
+  emit('accept-friend', item)
+}
+
+function rejectFriend(item) {
+  console.log('Reject friend', item)
+  n.rejectFriend(item)
+  emit('reject-friend', item)
+}
 </script>
 
 <template>
@@ -34,47 +46,55 @@ function openItem(item) {
       class="pill-badge icon-pill notif-pill"
       type="button"
       aria-label="Notifications"
-      :aria-expanded="n.open.value"
+      :aria-expanded="n.open"
       @click.stop="n.toggle()"
     >
       <span class="bell-icon">
         <i class="bi bi-bell-fill text-white"></i>
       </span>
-      <span v-if="n.hasUnread.value" class="notif-dot"></span>
+      <span v-if="n.hasUnread" class="notif-dot"></span>
     </button>
 
-    <div v-if="n.open.value" class="notif-panel" role="dialog" aria-label="Notifications">
+    <div v-if="n.open" class="notif-panel" role="dialog" aria-label="Notifications">
       <div class="notif-head">
         <h3>Notifications</h3>
         <button
           class="link-btn"
           type="button"
-          :disabled="!n.hasUnread.value"
+          :disabled="!n.hasUnread"
           @click="n.markAllRead()"
         >
           Mark all read
         </button>
       </div>
 
-      <p v-if="n.loading.value && !n.items.value.length" class="notif-empty">Loading…</p>
-      <p v-else-if="!n.items.value.length" class="notif-empty">You're all caught up.</p>
+      <p v-if="n.loading && !n.items.length" class="notif-empty">Loading…</p>
+      <p v-else-if="!n.items.length" class="notif-empty">You're all caught up.</p>
 
       <ul v-else class="notif-list">
-        <li
-          v-for="item in n.items.value"
-          :key="item._id"
-          class="notif-row"
-          :class="{ unread: !item.isRead }"
-        >
-          <button class="notif-btn" type="button" @click="openItem(item)">
-            <span class="type-icon"><i class="bi" :class="n.meta(item.type).icon"></i></span>
-            <span class="notif-body">
-              <strong>{{ item.title }}</strong>
-              <span class="msg">{{ item.message }}</span>
-              <small>{{ n.meta(item.type).label }} · {{ n.timeAgo(item.createdAt) }}</small>
+        <li v-for="item in n.items":key="item._id"class="notif-row":class="{ unread: !item.isRead }">
+          <div class="notif-container">
+            <button class="notif-btn" type="button"@click="openItem(item)">
+            <span class="type-icon">
+              <i class="bi" :class="n.meta(item.type).icon"></i>
             </span>
-            <span v-if="!item.isRead" class="unread-pip"></span>
-          </button>
+            <span class="notif-body">
+              <div class="notif-top">
+                <div>
+                  <strong>{{ item.title }}</strong>
+                  <span class="msg">{{ item.message }}</span>
+                  <small>{{ n.meta(item.type).label }} ·{{ n.timeAgo(item.createdAt) }}</small>
+                </div>
+                <div v-if="item.type === 'friend_request'"class="notif-actions">
+                  <button class="accept-btn" @click.stop="acceptFriend(item)">✓</button>
+                  <button class="reject-btn" @click.stop="rejectFriend(item)">✕</button>
+                </div>
+          </div>
+            </span>
+            <span v-if="!item.isRead" class="unread-pip">
+            </span>
+            </button>
+          </div>
         </li>
       </ul>
     </div>
@@ -166,7 +186,7 @@ function openItem(item) {
 
 .notif-btn {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 10px;
   width: 100%;
   padding: 10px 8px;
@@ -187,7 +207,7 @@ function openItem(item) {
   color: #4338ca;
   font-size: 13px;
 }
-.notif-body { display: grid; gap: 2px; min-width: 0; flex: 1; }
+.notif-body {  min-width: 0;flex: 1; }
 .notif-body strong {
   font-size: 13px;
   font-weight: 700;
@@ -210,5 +230,42 @@ function openItem(item) {
   flex: none;
   border-radius: 50%;
   background: var(--color-blue, #4c74fa);
+}
+.notif-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.accept-btn,
+.reject-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+}
+.accept-btn {
+  background: #b8df52;
+}
+.reject-btn {
+  background: #ff8a50;
+  color: white;
+}
+.notif-container {
+  display: flex;
+  flex-direction: column;
+}
+.notif-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.notif-body strong,
+.notif-body .msg,
+.notif-body small {
+  display: block;
 }
 </style>

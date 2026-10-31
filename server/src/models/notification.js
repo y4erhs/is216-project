@@ -16,6 +16,7 @@ const NOTIFICATION_TYPES = [
   "group_free_slot",
   "group_recommendation",
   "rsvp_update",
+  "friend_request"
 ];
 
 const notificationSchema = new mongoose.Schema(

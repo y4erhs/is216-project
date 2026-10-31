@@ -1,4 +1,5 @@
 const Event = require('../models/events');
+const notificationController = require('./notificationController');
 
 // CREATE an event
 exports.createEvent = async (req, res) => {
@@ -131,6 +132,12 @@ exports.signUpUser = async (req, res) => {
                 message: 'Event not found'
             });
         }
+
+        await notificationController.notifyRsvpUpdate(
+            userId,
+            updatedEvent,
+            'Registered'
+        );
 
         return res.status(200).json(updatedEvent);
 

@@ -1,5 +1,5 @@
 const Lobby = require('../models/Lobby')
-
+const notificationController = require('./notificationController')
 exports.createLobby = async(req,res) =>{
     try{
         const lobby = await Lobby.createLobby(req.body);
@@ -96,6 +96,7 @@ exports.inviteUser = async(req,res) =>{
     try{
         const {lobbyId, userId} = req.body;
         const updated = await Lobby.inviteUser(lobbyId, userId);
+        await notificationController.notifyLobbyInvite(userId, updated, updated.host?.username || 'Someone');
         res.json(updated)
     }catch(err){
         res.status(500).json({ error:err.message})
@@ -106,6 +107,8 @@ exports.acceptInvite = async (req,res) =>{
     try{
         const {lobbyId, userId} = req.body;
         const updated = await Lobby.acceptInvite(lobbyId, userId);
+        const member = updated.participants?.find(p => String(p._id) === String(userId));
+        await notificationController.notifyMemberResponded(updated.host,updated,member || { name: 'A user' },'accepted');
         res.json(updated)
     }catch(err){
         res.status(500).json({ error:err.message})
@@ -116,6 +119,8 @@ exports.declineInvite = async(req,res) =>{
     try{
         const {lobbyId, userId} = req.body;
         const updated = await Lobby.declineInvite(lobbyId, userId);
+        const member =updated.declined?.find(p => String(p._id) === String(userId));
+        await notificationController.notifyMemberResponded(updated.host,updated,member || { name: 'A user' },'declined');
         res.json(updated)
     }catch(err){
         res.status(500).json({ error: err.message})
@@ -126,6 +131,7 @@ exports.removeUser = async (req,res) =>{
     try{
         const {lobbyId, userId} = req.body;
         const updated = await Lobby.removeUser(lobbyId, userId);
+        await notificationController.notifyRemovedFromLobby(userId,updated);
         res.json(updated)
     }catch(err){
         res.status(500).json({ error: err.message})
@@ -135,7 +141,11 @@ exports.removeUser = async (req,res) =>{
 exports.signUpLobbyForEvent = async (req, res) => {
   try {
     const { lobbyId } = req.params;
+    const lobby = await Lobby.getLobbyById(lobbyId);
     const updatedEvent = await Lobby.signUpLobbyForEvent(lobbyId);
+    const acceptedUserIds = lobby.participants.map(p => p._id);
+    const pendingUserIds = lobby.invited.map(p => p._id);
+    await notificationController.notifyGroupRegistered(acceptedUserIds,pendingUserIds,lobby,updatedEvent);
     res.json(updatedEvent);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -145,10 +155,15 @@ exports.signUpLobbyForEvent = async (req, res) => {
 exports.deleteLobby = async(req,res) =>{
     try{
         const {lobbyId} = req.params;
-        const deleted = await Lobby.deleteLobby(lobbyId);
-        if(!deleted){
-            return res.status(404).json({ message: 'Lobby not found'});
+        const lobby =
+            await Lobby.getLobbyById(lobbyId);
+
+        if(!lobby){
+            return res.status(404).json({message: 'Lobby not found'});
         }
+        const memberIds = [...lobby.participants.map(p => p._id),...lobby.invited.map(p => p._id)];
+        await notificationController.notifyLobbyDeleted(memberIds,lobby);
+        await Lobby.deleteLobby(lobbyId);
         res.json({ message: 'Lobby deleted'})
     }catch(err){
         res.status(500).json({ error: err.message})
