@@ -40,7 +40,6 @@ function handleCollapseChange(value) {
   display: flex;
   width: 100vw;
   height: 100vh;
-  overflow: hidden;
 }
 
 .main-container {
@@ -58,14 +57,13 @@ function handleCollapseChange(value) {
   display: flex;
   flex-direction: column;
   padding: 0 16px 16px 16px;
-  overflow: hidden;
 }
 
 .content-scroll {
   flex: 1;
   min-height: 0;
-  overflow: hidden;
   display: flex;
+  overflow-y: auto;
   flex-direction: column;
 }
 
