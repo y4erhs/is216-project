@@ -58,8 +58,8 @@ defineEmits(['click'])
 
 .btn-custom:not(.btn-circle) {
   gap: 8px;
-  padding: 3px 13px 6px 13px;
-  font-size: 11px;
+  padding: 0px 10px 3px 10px;
+  font-size: 10px;
   border-radius: 25px;
 }
 

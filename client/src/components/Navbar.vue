@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from "vue";
+import { ref, watch } from "vue";
 import "../assets/theme.css";
 
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -14,9 +14,13 @@ defineProps({
   },
 });
 
-const emit = defineEmits(["close"]);
-
 const isCollapsed = ref(false);
+
+const emit = defineEmits(["close", "collapse-change"]);
+
+watch(isCollapsed, (value) => {
+  emit("collapse-change", value);
+});
 </script>
 
 <template>
