@@ -37,6 +37,7 @@ const emit = defineEmits(['update:modelValue'])
 
 const isDropdownOpen = ref(false)
 const dropdownRef = ref(null)
+const isDateFocused = ref(false)
 
 function toggleDropdown() {
   if (!props.disabled) {
@@ -123,14 +124,17 @@ onBeforeUnmount(() => {
 
     <!-- INPUT STANDARD -->
     <input
-      v-else
-      :type="type"
-      class="base-field"
-      :placeholder="placeholder"
-      :value="modelValue"
-      :disabled="disabled"
-      @input="$emit('update:modelValue', $event.target.value)"
-    />
+    v-else
+    :type="type === 'date' && !isDateFocused && !modelValue ? 'text' : type"
+    class="base-field"
+    :class="{ 'date-placeholder': type === 'date' && !modelValue && !isDateFocused }"
+    :placeholder="type === 'date' ? placeholder : placeholder"
+    :value="modelValue"
+    :disabled="disabled"
+    @focus="type === 'date' && (isDateFocused = true)"
+    @blur="type === 'date' && (isDateFocused = false)"
+    @input="$emit('update:modelValue', $event.target.value)"
+  />
   </div>
 </template>
 
@@ -182,6 +186,10 @@ onBeforeUnmount(() => {
   padding-bottom: 10px;
   resize: vertical;
   max-height: 120px;
+}
+
+.date-placeholder {
+  color: var(--color-white);
 }
 
 .custom-dropdown-container {
