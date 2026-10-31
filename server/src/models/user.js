@@ -80,7 +80,17 @@ const userSchema = new mongoose.Schema({
             type: Number,
             default: 15
         }
+    },
+
+    resetPasswordToken: { 
+        type: String, 
+        default: null 
+    },
+    resetPasswordExpires: { 
+        type: Date, 
+        default: null
     }
+        
 });
 
 userSchema.statics.createUser = function({
