@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, provide } from 'vue'
 import { useRoute } from 'vue-router'
 import Navbar from '@/components/Navbar.vue'
 import Header from '@/components/Header.vue'
@@ -7,21 +7,21 @@ import Header from '@/components/Header.vue'
 import '@/assets/theme.css'
 
 const isMobileNavOpen = ref(false)
+const isNavbarCollapsed = ref(false)
+
+provide('isNavbarCollapsed', isNavbarCollapsed)
+
 const route = useRoute()
 
-function toggleMobileNav() {
-  isMobileNavOpen.value = !isMobileNavOpen.value
-}
-
-function closeMobileNav() {
-  isMobileNavOpen.value = false
+function handleCollapseChange(value) {
+  isNavbarCollapsed.value = value
 }
 </script>
 
 <template>
-  <router-view v-if ="route.meta.hideLayout" class="standalone-page"/>
+  <router-view v-if="route.meta.hideLayout" class="standalone-page" />
   <div v-else class="app-layout">
-    <Navbar :is-open="isMobileNavOpen" @close="closeMobileNav" />
+    <Navbar :is-open="isMobileNavOpen" @close="closeMobileNav" @collapse-change="handleCollapseChange" />
 
     <main class="main-container theme-blue">
       <Header @toggle-menu="toggleMobileNav" />
@@ -63,15 +63,17 @@ function closeMobileNav() {
 
 .content-scroll {
   flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding-top: 20px;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 @media (max-width: 767.98px) {
   .content-wrapper {
     padding: 0 12px 12px 12px;
   }
+
   .content-scroll {
     border-radius: 20px;
     padding: 16px;

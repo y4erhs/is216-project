@@ -26,6 +26,8 @@
   --color-orange: #ff7b4f;
   --color-dark-orange: #ac3323;
   --color-yellow: #f6bc3f;
+  --color-dark-yellow: #d18514;
+  --color-yellow-text: #8d4503;
   --color-green: #c8ec5c;
   --color-dark-green: #617029;
   --color-blue: #4150dc;
@@ -38,11 +40,13 @@
 /* COLOR THEMES */
 .theme-light {
   --bg: var(--color-white);
+  --bg-dark: var(--color-grey);
   --text: var(--color-black);
 }
 
 .theme-grey {
   --bg: var(--color-grey);
+  --bg-dark: #7485a0;
   --text: var(--color-black);
 }
 
@@ -75,7 +79,8 @@
 
 .theme-yellow {
   --bg: var(--color-yellow);
-  --text: var(--color-dark-orange);
+  --bg-dark: var(--color-dark-yellow);
+  --text: var(--color-yellow-text);
 }
 
 
@@ -95,7 +100,7 @@
 
 .theme-dark-blue {
   --bg: var(--color-dark-blue);
-  --bg-dark: var(--color-dark-green);
+  --bg-dark: var(--color-dark-blue);
 
   --text: var(--color-white);
 }
