@@ -4,6 +4,8 @@
 
     import { ref, computed } from 'vue'
     import { useRouter } from 'vue-router'
+    import { useUserStore } from '@/stores/userStore';
+
     import BaseButton from '../components/BaseButton.vue'
     import FolderTabs from '../components/FolderTabs.vue'
     import BaseInput from '../components/BaseInput.vue'
@@ -98,36 +100,37 @@
       }
     }
 
+    const userStore = useUserStore();
     const router = useRouter();
   
     const handleSubmit = async () => {
-      try {
-        // gather all form data from the three steps
-        const completeUserData = {
-          fullName: fullName.value,
-          email: email.value,
-          password: password.value,
-          displayName: displayName.value,
-          username: username.value,
-          school: selectedSchool.value,
-          year: selectedYear.value,
-          interests: selectedInterests.value,
-          profileImage: profileImage.value,
-          bannerImage: bannerImage.value
-        }
-        // Submit your data to backend / API here
-        console.log('Submitting selected interests:', selectedInterests.value)
+    console.log("SUBMIT BUTTON CLICKED!");
+    try {
+    // 1. Create and populate the FormData object first
+      const formData = new FormData();
+      formData.append('fullName', fullName.value);
+      formData.append('email', email.value);
+      formData.append('password', password.value);
+      formData.append('displayName', displayName.value);
+      formData.append('username', username.value);
+      formData.append('school', selectedSchool.value);
+      formData.append('year', selectedYear.value);
+      formData.append('interests', JSON.stringify(selectedInterests.value));
 
-        // Example API request:
-        // await axios.post('/api/user/interests', { interests: selectedInterests.value })
-
-        // 3. Navigate to home.vue upon success
-        router.push('/home') 
-        // Note: Use router.push({ name: 'Home' }) if you are using named routes
-      } catch (error) {
-        console.error('Submission failed:', error)
+      if (profileImage.value) {
+        formData.append('profileImage', profileImage.value);
       }
-    }
+      if (bannerImage.value) {
+        formData.append('bannerImage', bannerImage.value);
+      }
+
+      await userStore.register(formData);
+      router.push('/');
+       
+      } catch (error) {
+        console.error('Failed to connect:', error.message || error);
+      }
+}
 </script>
 
 <template>

@@ -28,11 +28,15 @@ const userSchema = new mongoose.Schema({
         type: String,
         default: '/uploads/default.png'
     },
+    banner: {
+        type: String,
+        default: '/uploads/default.png'
+    },
     dob: {
         type: Date,
         default: null
     },
-    preferences: {
+    interests: {
         type: [String],
         default: []
     },
@@ -51,7 +55,7 @@ const userSchema = new mongoose.Schema({
     Calendar: {
 
     },
-    major: {
+    school: {
         type: String,
         default: ''
     },
@@ -86,10 +90,11 @@ userSchema.statics.createUser = function({
     email,
     password,
     dob,
-    preferences,
+    interests,
     avatar,
+    banner,
     bio,
-    major,
+    school,
     year,
     ccas
 }) {
@@ -100,10 +105,11 @@ userSchema.statics.createUser = function({
         email,
         password,
         dob,
-        preferences,
+        interests,
         avatar,
+        banner,
         bio,
-        major,
+        school,
         year,
         ccas
     });
