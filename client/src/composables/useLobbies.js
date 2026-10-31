@@ -24,7 +24,14 @@ export function colorFor(id) {
 const { userId } = useAuth()
 const meId = () => userId.value
 
-const state = reactive({ lobbies: [], friends: [], events: [], loading: false, error: '' })
+const state = reactive({
+  lobbies: [],
+  friends: [],
+  events: [],
+  loading: false,
+  loaded: false,   // NEW: true after the first load finishes
+  error: '',
+})
 
 /* ---------- helpers ---------- */
 const ts = (d) => (d ? new Date(d).getTime() : Date.now())
@@ -32,7 +39,8 @@ const idOf = (x) => (x && x._id ? String(x._id) : x ? String(x) : null)
 // Replace an array's contents without replacing the array (pages hold on to it)
 const replaceIn = (arr, items) => arr.splice(0, arr.length, ...items)
 
-async function api(path, options = {}) {
+// NEW: exported so friendsApi.js can reuse it
+export async function api(path, options = {}) {
   const res = await fetch(`${API_URL}${path}`, {
     ...options,
     headers: { 'Content-Type': 'application/json' },
@@ -104,28 +112,40 @@ function toEvent(raw) {
 }
 
 /* ---------- loading ---------- */
+// NEW: friends loading pulled out so the Friends page can call it after accept/remove
+async function loadFriends() {
+  if (!meId()) return
+  const friends = await api(`/api/friends/${meId()}/accepted`).catch(() => [])   // 404 = no friends yet
+  replaceIn(state.friends, friends.map((f) => {
+    const other = idOf(f.requester) === meId() ? f.receiver : f.requester
+    return {
+      id: idOf(other),
+      friendshipId: idOf(f),   // NEW: needed to remove a friend
+      name: other.username,
+      color: colorFor(idOf(other)),
+    }
+  }))
+}
+
 async function load() {
   if (!meId()) return
   state.loading = true
   state.error = ''
   try {
-    const [lobbies, friends, events] = await Promise.all([
+    const [lobbies, , events] = await Promise.all([
       api(`/api/lobbies/user/${meId()}`),
-      api(`/api/friends/${meId()}/accepted`).catch(() => []),   // 404 = no friends yet
+      loadFriends(),
       api('/api/events'),
     ])
 
     replaceIn(state.events, (Array.isArray(events) ? events : events.events || []).map(toEvent))
-    replaceIn(state.friends, friends.map((f) => {
-      const other = idOf(f.requester) === meId() ? f.receiver : f.requester
-      return { id: idOf(other), name: other.username, color: colorFor(idOf(other)) }
-    }))
     replaceIn(state.lobbies, lobbies.map(toLobby))
   } catch (err) {
     console.error(err)
     state.error = 'Could not load lobbies.'
   } finally {
     state.loading = false
+    state.loaded = true   // NEW
   }
 }
 
@@ -161,6 +181,7 @@ export function useLobbies() {
     events: state.events,
     state,
     load,
+    loadFriends,   // NEW
     refresh,
     get,
     meId,
@@ -169,6 +190,14 @@ export function useLobbies() {
     myStatus,
     needsReply: (l) => l.hostId !== meId() && !l.registered && myStatus(l) === 'pending',
     isInactive: (l) => daysAgo(l.lastActiveAt) >= INACTIVE_DAYS,
+
+    // NEW: look at a lobby without adding it to your list (used by the join page)
+    preview: (id) => api(`/api/lobbies/lobby/${id}`),
+    // NEW: join through the shared link
+    async joinLobby(id) {
+      await api(`/api/lobbies/${id}/join`, { method: 'POST', body: { userId: meId() } })
+      await refresh(id)
+    },
 
     async createLobby({ name, description }) {
       const raw = await api('/api/lobbies', {
@@ -183,8 +212,12 @@ export function useLobbies() {
       act(id, () => api(`/api/lobbies/${id}`, { method: 'PATCH', body: { name, description } })),
     deleteLobby: (id) =>
       act(id, () => api(`/api/lobbies/${id}`, { method: 'DELETE' })),
+    // CHANGED: now sends inviterId so the backend can check the inviter is in the lobby
     addMember: (id, person) =>
-      act(id, () => api('/api/lobbies/invite', { method: 'PUT', body: { lobbyId: id, userId: person.id } })),
+      act(id, () => api('/api/lobbies/invite', {
+        method: 'PUT',
+        body: { lobbyId: id, userId: person.id, inviterId: meId() },
+      })),
     removeMember: (id, memberId) =>
       act(id, () => api('/api/lobbies/remove', { method: 'PUT', body: { lobbyId: id, userId: memberId } })),
     setStatus(id, memberId, status) {

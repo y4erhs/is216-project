@@ -20,6 +20,15 @@ exports.acceptFriendRequest = async(req,res) => {
     }
 };
 
+exports.getPendingRequests = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    res.json(await Friends.getPendingRequests(userId)); // [] when none
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 exports.getAcceptedFriends = async(req,res) =>{
     try{
         const {userId} = req.params;
@@ -54,4 +63,14 @@ exports.removeFriend = async(req,res) =>{
     }catch(err){
         res.status(500).json({ error: err.message});
     }
+};
+
+exports.removeFriendById = async (req, res) => {
+  try {
+    const removed = await Friends.removeFriendById(req.params.friendshipId);
+    if (!removed) return res.status(404).json({ message: 'Friendship not found' });
+    res.json({ message: 'Removed' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };

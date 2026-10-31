@@ -12,12 +12,11 @@ const searchQuery = ref('')
 
 // --- Notification ---
 function onNotification(item) {
-  if (item.lobbyId) {
-    const id = item.lobbyId._id || item.lobbyId
-    // If you have a specific lobby page, use it. Otherwise, go to my lobby:
-    router.push(`/lobby`) // for actual one change to router.push(`/lobby/${id}`)
-  } 
-  else if (item.eventId) {
+  if (item.type === 'friend_request') {
+    router.push({ path: '/friends', query: { tab: 'requests' } })
+  } else if (item.type === 'friend_accepted') {
+    router.push('/friends')
+  } else if (item.lobbyId) {
     const id = item.eventId._id || item.eventId
     router.push(`/activity-tracking/`) // for actual one change to router.push(`/event/${id}`)
   } 
