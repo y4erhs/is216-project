@@ -1,6 +1,9 @@
 const express = require('express');
 const dotenv = require('dotenv');
 
+
+
+
 dotenv.config({ path: './config.env' });
 const bot = process.env.TELEGRAM_BOT_TOKEN ? require('./telegramBot') : null;
 
@@ -21,6 +24,9 @@ const googleRoutes = require('./src/routes/googleRoutes')
 const notificationRoutes = require('./src/routes/notificationRoutes');
 const planRoutes = require('./src/routes/planRoutes');
 const scheduleRoutes = require('./src/routes/scheduleRoutes');
+
+
+
 
 const server = express();
 
@@ -61,6 +67,8 @@ server.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 server.use('/api/plans', planRoutes);
 server.use('/api/schedule', scheduleRoutes);
 
+
+
 async function connectDB() {
   try {
     await mongoose.connect(process.env.DB);
@@ -93,3 +101,4 @@ connectDB().then(() => {
 
 process.once("SIGINT", () => bot?.stop());
 process.once("SIGTERM", () => bot?.stop());
+

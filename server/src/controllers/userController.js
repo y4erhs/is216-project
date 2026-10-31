@@ -1,13 +1,16 @@
+const { LengthFinishReasonError } = require('openai/error.js');
 const User = require('../models/user');
 const bcrypt = require('bcryptjs');
 
 
 // CREATE a user
 exports.createUser = async (req, res) => {
+    console.log("backend reached! /api/users/register was called with body:", req.body);
+    console.log("📁 Files received:", req.files);
     try {
-        const {
+        let {
             username, fullName, displayName, email, password,
-            dob, preferences, avatar, bio, major, year, ccas
+            dob, interests, avatar, bio, major, year, ccas
         } = req.body;
 
         if (!username || !email || !password) {
@@ -20,13 +23,32 @@ exports.createUser = async (req, res) => {
                 message: 'Only SMU email addresses are allowed'
             })
         };
+
+        if (req.files) {
+            if (req.files.profileImage && req.files.profileImage[0]) {
+                avatar = `/uploads/${req.files.profileImage[0].filename}`;
+            } else if (req.files.avatar && req.files.avatar[0]) {
+                avatar = `/uploads/${req.files.avatar[0].filename}`;
+            }
+        }
+
+        if (typeof interests === 'string') {
+            try { interests = JSON.parse(interests); } catch (e) { interests = {}; }
+        }
+        if (year !== undefined && year !== null && year !== '') {
+            const parsedYear = Number(year);
+            year = isNaN(parsedYear) ? undefined : parsedYear;
+        } else {
+            year = undefined; 
+        }
+
         const hashedPassword = await bcrypt.hash(password, 12);
 
         const user = await User.createUser({
             username, fullName, displayName,
             email,
             password: hashedPassword,
-            dob, preferences, avatar, bio, major, year, ccas
+            dob, interests, avatar, bio, major, year, ccas
         });
 
         const result = user.toObject();
@@ -119,7 +141,7 @@ exports.updateUser = async (req, res) => {
             'displayName',
             'email',
             'dob',
-            'preferences',
+            'interests',
             'avatar',
             'bio',
             'major',
@@ -195,7 +217,7 @@ exports.getPreferences = async (req, res) => {
             });
         }
 
-        return res.status(200).json(user.preferences);
+        return res.status(200).json(user.interests);
 
     } catch (err) {
         return res.status(400).json({

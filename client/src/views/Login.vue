@@ -25,6 +25,8 @@ const categories = [
   { id: 'login', label: 'LOGIN', theme: 'theme-blue' },
   { id: 'reset', label: 'PASSWORD RESET', theme: 'theme-orange' }
 ]
+
+
 // for password reset link:
 const isSent = ref(false);
 

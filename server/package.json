@@ -17,6 +17,7 @@
     "grammy": "^1.46.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^7.6.0",
+    "multer": "^2.5.0",
     "openai": "^7.32.0"
   },
   "devDependencies": {
