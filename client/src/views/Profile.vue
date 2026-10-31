@@ -4,8 +4,8 @@ import '../assets/theme.css'
 
 import BaseButton from '../components/BaseButton.vue';
 import BaseInput from '../components/BaseInput.vue';
-import EditInterests from '../components/EditInterests.vue';
-import GoogleCalendarCard from '../components/GoogleCalendarCard.vue';
+import CategoryPill from '@/components/CategoryPill.vue'
+
 
 const setting1Push = ref(true)
 const setting1Email = ref(true)
@@ -31,7 +31,26 @@ const courses = [
 ]
 const yearOptions = ['Year 1', 'Year 2', 'Year 3', 'Year 4']
 const gradOptions = ['2027', '2028', '2029', '2030']
+const clubs = ['SMUKI', 'Odyssey', 'Project Obscura']
 
+// State buat Interests & Floating Dropdown
+const categories = ref(['Tech', 'Career', 'Arts'])
+const showInterestDropdown = ref(false)
+
+// List semua opsi interest yang bisa dipilih
+const allAvailableInterests = [
+  'Tech', 'Arts', 'Cultural Clubs', 'Community Service',
+  'Sports and Outdoors', 'Career', 'Overseas Activities',
+  'Networking Event', 'Skills Upgrading Workshop', 'Food', 'Wellness', 'Guest Lectures'
+]
+
+function toggleInterest(cat) {
+  if (categories.value.includes(cat)) {
+    categories.value = categories.value.filter(item => item !== cat)
+  } else {
+    categories.value.push(cat)
+  }
+}
 </script>
 
 <template>
@@ -81,36 +100,44 @@ const gradOptions = ['2027', '2028', '2029', '2030']
           </div>
 
           <div class="badges-section mt-3">
+            <!-- CLUBS -->
             <div class="badge-group">
               <span class="badge-title">Your Clubs</span>
-              <div class="badge-pills">
-                <span class="badge-pill">SMUKI</span>
-                <span class="badge-pill">Odyssey</span>
-                <span class="badge-pill">Obscura</span>
+              <div class="badge-row">
+                <CategoryPill v-for="(club, index) in clubs" :key="index" :category="club" type="club" />
                 <BaseButton variant="small">+</BaseButton>
               </div>
             </div>
 
-            <div class="badge-group mt-2">
+            <!-- INTERESTS (WITH FLOATING MULTISELECT DROPDOWN) -->
+            <div class="badge-group mt-2" style="position: relative;">
               <span class="badge-title">Interests</span>
-              <div class="badge-pills">
-                <span class="badge-pill">Cultural Clubs</span>
-                <span class="badge-pill">Arts</span>
-                <span class="badge-pill">Music</span>
-                <BaseButton variant="small">+</BaseButton>
+              <div class="badge-row">
+                <CategoryPill v-for="(cat, index) in categories" :key="index" :category="cat" />
+
+                <div style="position: relative; display: inline-block;">
+                  <BaseButton variant="small" @click="showInterestDropdown = !showInterestDropdown">+</BaseButton>
+
+                  <!-- Floating Dropdown Box -->
+                  <div v-if="showInterestDropdown" class="floating-dropdown">
+                    <p class="dropdown-header">Select Interests</p>
+                    <div v-for="item in allAvailableInterests" :key="item" class="dropdown-item"
+                      @click="toggleInterest(item)">
+                      <input class="checkboxes" type="checkbox" :checked="categories.includes(item)"
+                        @click.stop="toggleInterest(item)" />
+                      <span>{{ item }}</span>
+                    </div>
+                  </div>
+                </div>
+
               </div>
             </div>
           </div>
         </div>
-
-        <!-- CONNECT CALENDAR (NEED TO CHANGE ONCE USER AND LOGIN IS DONE)-->
-        <GoogleCalendarCard userId="6acd9e65046b9013f579fc79" />
-
       </div>
 
       <!-- SETTINGS -->
       <div class="settings-card">
-
         <div class="settings-header-row">
           <span class="header-col-title">ALERT TYPE</span>
           <div class="header-col-switches">
@@ -125,21 +152,15 @@ const gradOptions = ['2027', '2028', '2029', '2030']
             <p class="setting-desc">Short description/example</p>
           </div>
           <div class="setting-switches">
-            <!-- Switch 1: PUSH -->
             <label class="toggle-switch">
               <input type="checkbox" v-model="setting1Push" />
               <span class="slider"></span>
             </label>
-            <!-- Switch 2: EMAIL -->
             <label class="toggle-switch">
               <input type="checkbox" v-model="setting1Email" />
               <span class="slider"></span>
             </label>
           </div>
-        </div>
-
-        <div class="settings-item-row">
-          <EditInterests />
         </div>
       </div>
 
@@ -194,116 +215,6 @@ const gradOptions = ['2027', '2028', '2029', '2030']
   flex-direction: column;
   gap: 15px;
   width: 100%;
-}
-
-.calendar-card {
-  background-color: var(--color-white);
-  border-radius: 25px;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  box-sizing: border-box;
-}
-
-.calendar-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.calendar-title {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--color-black);
-}
-
-.btn-manage {
-  background: none;
-  border: none;
-  color: var(--color-blue);
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  padding: 0;
-}
-
-.calendar-provider {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.bi {
-  color: var(--color-dark-blue);
-  margin: 0 10px;
-}
-
-.cal-provider-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.cal-name {
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--color-black);
-}
-
-.cal-email {
-  font-size: 12px;
-  color: #64748b;
-}
-
-.cal-badge {
-  display: inline-flex;
-  align-items: center;
-  background-color: var(--color-green);
-  color: var(--color-dark-green);
-  font-size: 12px;
-  font-weight: 600;
-  padding: 5px 12px 1px 12px;
-  border-radius: 9999px;
-  width: fit-content;
-}
-
-.cal-sync-info {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  font-size: 12px;
-  color: #64748b;
-}
-
-.cal-sync-info p {
-  margin: 0;
-}
-
-.cal-toggle-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--color-black);
-  padding: 4px 0;
-}
-
-.cal-actions {
-  display: flex;
-  gap: 10px;
-}
-
-.btn-cal-action:hover {
-  background-color: #f8fafc;
-}
-
-.cal-disclaimer {
-  margin: 0;
-  font-size: 11px;
-  color: #94a3b8;
-  line-height: 1.4;
 }
 
 .profile-card {
@@ -403,19 +314,86 @@ const gradOptions = ['2027', '2028', '2029', '2030']
   color: var(--color-black);
 }
 
-.badge-pills {
+.badge-row {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
   align-items: center;
 }
 
-.badge-pill {
-  display: inline-block;
-  height: 22px;
-  border-radius: 9999px;
-  background-color: var(--color-grey);
-  padding: 5px 12px 18px 12px;
+.checkboxes {
+  appearance: none;
+  /* Buat ilangin style bawaan browser yang jelek */
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 4px;
+  background-color: #ffffff;
+  cursor: pointer;
+  display: grid;
+  place-content: center;
+  transition: all 0.2s ease;
+  margin: 0;
+}
+
+.checkboxes:checked {
+  background-color: var(--color-blue);
+  border-color: var(--color-blue);
+}
+
+.checkboxes:checked::before {
+  content: "";
+  width: 4px;
+  height: 8px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+  margin-bottom: 2px;
+}
+
+/* FLOATING DROPDOWN STYLING */
+.floating-dropdown {
+  position: absolute;
+  top: 35px;
+  left: 0;
+  width: 220px;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  border: 1px solid #e2e8f0;
+  padding: 8px 0;
+  z-index: 100;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.dropdown-header {
   font-size: 11px;
+  font-weight: 700;
+  color: #94a3b8;
+  padding: 4px 12px;
+  margin: 0 0 4px 0;
+  letter-spacing: 0.5px;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  font-size: 12px;
+  color: #1e293b;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.dropdown-item:hover {
+  background-color: #f1f5f9;
+}
+
+.dropdown-item input[type="checkbox"] {
+  cursor: pointer;
 }
 
 .settings-card {

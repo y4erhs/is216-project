@@ -77,13 +77,13 @@
 <script setup>
 import { ref, computed } from 'vue'
 import BaseInput from '../components/BaseInput.vue'
-import { useLobbies, EVENTS, timeAgo } from '../composables/useLobbies.js'
+import { useLobbies, timeAgo } from '../composables/useLobbies.js'
 
 defineEmits(['open', 'create', 'open-calendar'])
 
 const store = useLobbies()
 const lobbies = store.lobbies
-const events = EVENTS
+const events = store.events
 
 const q = ref('')
 const filter = ref('all')
@@ -93,11 +93,11 @@ const eventTitle = (id) => events.find((e) => e.id === id)?.title ?? 'Event'
 const initials = (name) => name.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase()
 
 /* options for the BaseInput dropdown */
-const eventOptions = [
+const eventOptions = computed(() => [
   { label: 'All events', value: 'all' },
   ...events.map((e) => ({ label: e.title, value: e.id })),
   { label: 'No event yet', value: 'none' },
-]
+])
 
 /* card pill: Pending (invite waiting for you) / Host / Member, same colours as the filters */
 const roleLabel = (l) => (store.needsReply(l) ? 'Needs Reply' : store.isHost(l) ? 'Host' : 'Member')

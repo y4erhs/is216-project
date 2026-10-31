@@ -20,12 +20,14 @@
   --color-black: #0a1d2b;
   --color-white: #f1f2f7;
   --color-grey: #d1dbec;
-  --color-dark-grey: #6b7b96;
+  --color-dark-grey: #3f4f69;
   --color-red: #e63c25;
   --color-dark-red: #912222;
   --color-orange: #ff7b4f;
   --color-dark-orange: #ac3323;
   --color-yellow: #f6bc3f;
+  --color-dark-yellow: #d18514;
+  --color-yellow-text: #8d4503;
   --color-green: #c8ec5c;
   --color-dark-green: #617029;
   --color-blue: #4150dc;
@@ -42,6 +44,17 @@
   --text: var(--color-black);
 }
 
+.theme-grey {
+  --bg: var(--color-grey);
+  --bg-dark: #7485a0;
+  --text: var(--color-black);
+}
+
+.theme-dark-grey {
+  --bg: var(--color-dark-grey);
+  --text: var(--color-white);
+}
+
 .theme-dark {
   --bg: var(--color-black);
   --text: var(--color-white);
@@ -53,30 +66,53 @@
   --text: var(--color-dark-green);
 }
 
+.theme-dark-green {
+  --bg: var(--color-dark-green);
+  --text: var(--color-white);
+}
+
 .theme-orange {
   --bg: var(--color-orange);
   --bg-dark: var(--color-dark-orange);
   --text: var(--color-dark-orange);
 }
 
+.theme-yellow {
+  --bg: var(--color-yellow);
+  --bg-dark: var(--color-dark-yellow);
+  --text: var(--color-yellow-text);
+}
+
+
+.theme-dark-orange {
+  --bg: var(--color-dark-orange);
+  --text: var(--color-white);
+}
+
 .theme-blue {
   --bg: var(--color-blue);
-  --bg-dark: var(--color-dark-blue);
   --text: var(--color-white);
+  --bg-dark: var(--color-dark-blue);
 
   background-color: var(--color-blue);
   color: var(--color-white);
 }
 
-.theme-grey {
-  --bg: var(--color-grey);
-  --bg-dark: var(--color-dark-grey);
-  --text: var(--color-black);
+.theme-dark-blue {
+  --bg: var(--color-dark-blue);
+  --bg-dark: var(--color-dark-blue);
+
+  --text: var(--color-white);
 }
 
 .theme-red {
   --bg: var(--color-red);
   --bg-dark: var(--color-dark-red);
+  --text: var(--color-white);
+}
+
+.theme-dark-red {
+  --bg: var(--color-dark-red);
   --text: var(--color-white);
 }
 
@@ -86,5 +122,8 @@
   --text: var(--color-dark-purple);
 }
 
-
+.theme-dark-purple {
+  --bg: var(--color-dark-purple);
+  --text: var(--color-white);
+}
 

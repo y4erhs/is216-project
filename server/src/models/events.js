@@ -60,7 +60,9 @@ const eventSchema = new mongoose.Schema({
     type: String,
     enum: ['pending', 'published', 'rejected'],
     default: 'published'
-    }
+    },
+    minGroup: { type: Number, default: null },   // null = no minimum
+    maxGroup: { type: Number, default: null },   // null = no maximum
 },
 { timestamps: true });
 
