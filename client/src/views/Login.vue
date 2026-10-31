@@ -3,9 +3,15 @@ import 'bootstrap/dist/css/bootstrap.min.css'
 import 'bootstrap/dist/js/bootstrap.bundle.min.js'
 
 import { ref, onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { useUserStore } from '../stores/userStore'
+import axios from 'axios'
 import BaseButton from '../components/BaseButton.vue'
 import FolderTabs from '../components/FolderTabs.vue'
 import '../assets/theme.css'
+
+const router = useRouter()
+const userStore = useUserStore()
 
 onMounted(() => {
   document.documentElement.style.overflow = 'hidden'
@@ -27,12 +33,41 @@ const categories = [
   { id: 'reset', label: 'PASSWORD RESET', theme: 'theme-orange' }
 ]
 
+const username = ref('')
+const password = ref('')
 
-// for password reset link:
-const isSent = ref(false);
+const handleLogin = async () => {
+  try {
+    await userStore.login({
+      username: username.value,
+      password: password.value
+    })
+    console.log("Login successful!")
+    router.push('/')
+  } catch (error) {
+    console.error('Login failed:', error)
+  }
+}
 
-const handleSendReset = () => {
-  isSent.value = true;
+const resetEmail = ref('')
+const isSent = ref(false)
+const resetMessage = ref('')
+const resetError = ref('')
+
+const handleSendReset = async () => {
+  try {
+    resetError.value = ''
+    resetMessage.value = ''
+
+    const response = await axios.post('http://localhost:8000/api/users/forgot-password', {
+      email: resetEmail.value
+    })
+
+    isSent.value = true
+    resetMessage.value = response.data.message
+  } catch (error) {
+    resetError.value = error.response?.data?.message || 'Failed to send reset link.'
+  }
 }
 </script>
 
@@ -49,7 +84,7 @@ const handleSendReset = () => {
       >
         <template #login>
           <div class="log-in">
-            <form @submit.prevent>
+            <form @submit.prevent="handleLogin">
               <div class="cc-logo">
                 <img src="/main-logo.svg" alt="">
               </div>
@@ -58,18 +93,20 @@ const handleSendReset = () => {
                   id="username"
                   type="text"
                   placeholder="Username"
+                  v-model="username"
                 />
                 <input
                   id="password"
                   type="password"
                   placeholder="Password"
+                  v-model="password"
                 />
                 <div class="pwd-reset">
                   <p> Forgor password? Loser.</p>
                   jk, <a class="click-here" href="#" @click.prevent="activeTab = 'reset'">click here</a>
                 </div>
                 
-              <BaseButton type="button" class=" w-100 login-btn" <router-link to="/signup"> >
+              <BaseButton type="button" class=" w-100 login-btn" @click="handleLogin">
                 LOG IN
               </BaseButton>
               <span class="or-text">Or</span>
@@ -83,22 +120,28 @@ const handleSendReset = () => {
 
         <template #reset>
           <div class="log-in">
-            <form @submit.prevent>
+            <form @submit.prevent="handleSendReset">
               <div class="cc-logo">
                 <img src="/main-logo.svg" alt="">
               </div>
               <h1>PASSWORD RESET</h1>
-                <input
-                  id="email"
-                  type="email"
-                  placeholder="Enter Email"
-                  v-model="resetEmail"
-                />
-                
-              <BaseButton type="button" class=" w-100 pwd-link-btn" @click = "handleSendReset">
+
+              <input
+                id="email"
+                type="email"
+                placeholder="Enter Email"
+                v-model="resetEmail"
+                required
+              />
+
+              <!-- Feedback messages -->
+              <p v-if="resetError" style="color: #ff6b6b; font-size: 12px; margin-top: 5px;">{{ resetError }}</p>
+              <p v-if="resetMessage" style="color: #51cf66; font-size: 12px; margin-top: 5px;">{{ resetMessage }}</p>
+
+              <BaseButton type="submit" class="w-100 pwd-link-btn">
                 {{ isSent ? 'RESEND LINK' : 'SEND PASSWORD RESET LINK' }}
               </BaseButton>
-              <a class="go-back" href="#" @click.prevent="activeTab = 'login'"> Back to Login</a>
+              <a class="go-back" href="#" @click.prevent="activeTab = 'login'">Back to Login</a>
             </form>
           </div>
         </template>

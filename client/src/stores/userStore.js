@@ -17,6 +17,17 @@ export const useUserStore = defineStore('user', {
       } catch (error) {
         throw error.response?.data || error.message;
       }
+    },
+
+    async login(credentials) {
+      try {
+        const response = await axios.post('http://localhost:8000/api/users/login', credentials);
+        this.currentUser = response.data.user;
+        localStorage.setItem('token', response.data.token);
+        return response.data;
+      } catch (error) {
+        throw error.response?.data || error.message;
+      }
     }
   }
 });

@@ -1,6 +1,7 @@
 const { LengthFinishReasonError } = require('openai/error.js');
 const User = require('../models/user');
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 
 
 // CREATE a user
@@ -101,6 +102,11 @@ exports.getUserById = async (req, res) => {
 exports.login = async(req,res) =>{
     try{
         const { username, password} = req.body;
+
+        if (!username || !password) {
+            return res.status(400).json({ message: 'Username and password are required' });
+        }
+        
         const user = await User.findByUsername(username);
         if(!user){
             return res.status(401).json({
@@ -129,6 +135,75 @@ exports.login = async(req,res) =>{
         return res.status(500).json({
             message: err.message
         });
+    }
+};
+
+exports.forgotPassword = async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(400).json({ message: 'Email is required' });
+        }
+
+        // 1. Check if user exists in the database
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(404).json({ message: 'This email is not registered in our database.' });
+        }
+
+        // 2. Generate a secure reset token & expiration (valid for 1 hour)
+        const resetToken = crypto.randomBytes(32).toString('hex');
+        user.resetPasswordToken = resetToken;
+        user.resetPasswordExpires = Date.now() + 3600000; 
+        await user.save();
+
+        // 3. Simulate sending email (Check your backend terminal for this link!)
+        const resetUrl = `http://localhost:5173/reset-password/${resetToken}`;
+        console.log(`🔗 PASSWORD RESET LINK for ${email}: ${resetUrl}`);
+
+        return res.status(200).json({ 
+            message: 'Password reset link sent to your email!' 
+        });
+
+    } catch (err) {
+        return res.status(500).json({ message: err.message });
+    }
+};
+
+exports.resetPassword = async (req, res) => {
+    try {
+        const { token } = req.params;
+        const { password } = req.body;
+
+        if (!password) {
+            return res.status(400).json({ message: 'New password is required' });
+        }
+
+        // 1. Find user by token and ensure the token hasn't expired
+        const user = await User.findOne({
+            resetPasswordToken: token,
+            resetPasswordExpires: { $gt: Date.now() } // $gt means "greater than current time"
+        });
+
+        if (!user) {
+            return res.status(400).json({ message: 'Password reset token is invalid or has expired.' });
+        }
+
+        // 2. Hash the new password
+        const salt = await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(password, salt);
+
+        // 3. Clear the reset token fields so it can't be used again
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpires = undefined;
+
+        await user.save();
+
+        return res.status(200).json({ message: 'Password has been successfully reset! You can now log in.' });
+
+    } catch (err) {
+        return res.status(500).json({ message: err.message });
     }
 };
 
