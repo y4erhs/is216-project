@@ -21,6 +21,7 @@ onUnmounted(() => {
 
 const activeTab = ref('login')
 
+
 const categories = [
   { id: 'login', label: 'LOGIN', theme: 'theme-blue' },
   { id: 'reset', label: 'PASSWORD RESET', theme: 'theme-orange' }
@@ -91,6 +92,7 @@ const handleSendReset = () => {
                   id="email"
                   type="email"
                   placeholder="Enter Email"
+                  v-model="resetEmail"
                 />
                 
               <BaseButton type="button" class=" w-100 pwd-link-btn" @click = "handleSendReset">
