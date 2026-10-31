@@ -5,6 +5,7 @@ import 'bootstrap/dist/js/bootstrap.bundle.min.js'
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '../stores/userStore'
+import axios from 'axios'
 import BaseButton from '../components/BaseButton.vue'
 import FolderTabs from '../components/FolderTabs.vue'
 import '../assets/theme.css'
@@ -47,11 +48,25 @@ const handleLogin = async () => {
   }
 }
 
-// for password reset link:
-const isSent = ref(false);
+const resetEmail = ref('')
+const isSent = ref(false)
+const resetMessage = ref('')
+const resetError = ref('')
 
-const handleSendReset = () => {
-  isSent.value = true;
+const handleSendReset = async () => {
+  try {
+    resetError.value = ''
+    resetMessage.value = ''
+
+    const response = await axios.post('http://localhost:8000/api/users/forgot-password', {
+      email: resetEmail.value
+    })
+
+    isSent.value = true
+    resetMessage.value = response.data.message
+  } catch (error) {
+    resetError.value = error.response?.data?.message || 'Failed to send reset link.'
+  }
 }
 </script>
 
@@ -104,21 +119,28 @@ const handleSendReset = () => {
 
         <template #reset>
           <div class="log-in">
-            <form @submit.prevent>
+            <form @submit.prevent="handleSendReset">
               <div class="cc-logo">
                 <img src="/main-logo.svg" alt="">
               </div>
               <h1>PASSWORD RESET</h1>
-                <input
-                  id="email"
-                  type="email"
-                  placeholder="Enter Email"
-                />
-                
-              <BaseButton type="button" class=" w-100 pwd-link-btn" @click = "handleSendReset">
+
+              <input
+                id="email"
+                type="email"
+                placeholder="Enter Email"
+                v-model="resetEmail"
+                required
+              />
+
+              <!-- Feedback messages -->
+              <p v-if="resetError" style="color: #ff6b6b; font-size: 12px; margin-top: 5px;">{{ resetError }}</p>
+              <p v-if="resetMessage" style="color: #51cf66; font-size: 12px; margin-top: 5px;">{{ resetMessage }}</p>
+
+              <BaseButton type="submit" class="w-100 pwd-link-btn">
                 {{ isSent ? 'RESEND LINK' : 'SEND PASSWORD RESET LINK' }}
               </BaseButton>
-              <a class="go-back" href="#" @click.prevent="activeTab = 'login'"> Back to Login</a>
+              <a class="go-back" href="#" @click.prevent="activeTab = 'login'">Back to Login</a>
             </form>
           </div>
         </template>

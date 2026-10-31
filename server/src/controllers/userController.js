@@ -1,6 +1,7 @@
 const { LengthFinishReasonError } = require('openai/error.js');
 const User = require('../models/user');
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 
 
 // CREATE a user
@@ -134,6 +135,39 @@ exports.login = async(req,res) =>{
         return res.status(500).json({
             message: err.message
         });
+    }
+};
+
+exports.forgotPassword = async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(400).json({ message: 'Email is required' });
+        }
+
+        // 1. Check if user exists in the database
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(404).json({ message: 'This email is not registered in our database.' });
+        }
+
+        // 2. Generate a secure reset token & expiration (valid for 1 hour)
+        const resetToken = crypto.randomBytes(32).toString('hex');
+        user.resetPasswordToken = resetToken;
+        user.resetPasswordExpires = Date.now() + 3600000; 
+        await user.save();
+
+        // 3. Simulate sending email (Check your backend terminal for this link!)
+        const resetUrl = `http://localhost:5173/reset-password/${resetToken}`;
+        console.log(`🔗 PASSWORD RESET LINK for ${email}: ${resetUrl}`);
+
+        return res.status(200).json({ 
+            message: 'Password reset link sent to your email!' 
+        });
+
+    } catch (err) {
+        return res.status(500).json({ message: err.message });
     }
 };
 

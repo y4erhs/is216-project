@@ -34,5 +34,7 @@ router.put('/:id', userController.updateUser);
 // DELETE
 router.delete('/:id', userController.deleteUser);
 
+//forgot password
+router.post('/forgot-password', userController.forgotPassword);
 
 module.exports = router
