@@ -35,6 +35,7 @@ const categories = [
 
 const username = ref('')
 const password = ref('')
+const errorMsg = ref('')
 
 const handleLogin = async () => {
   try {
@@ -46,6 +47,11 @@ const handleLogin = async () => {
     router.push('/')
   } catch (error) {
     console.error('Login failed:', error)
+
+    // get backend message from the store to display
+    const backendMsg = error.message || error.response?.data?.message || ''
+
+    errorMsg.value = backendMsg.toLowerCase();
   }
 }
 
@@ -101,6 +107,9 @@ const handleSendReset = async () => {
                   placeholder="Password"
                   v-model="password"
                 />
+
+                <p v-if="errorMsg" style="color: #e63c25;">{{ errorMsg }}</p>
+
                 <div class="pwd-reset">
                   <p> Forgor password? Loser.</p>
                   jk, <a class="click-here" href="#" @click.prevent="activeTab = 'reset'">click here</a>

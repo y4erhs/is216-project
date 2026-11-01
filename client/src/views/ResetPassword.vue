@@ -61,7 +61,7 @@ const handleResetPassword = async () => {
                 <div>
                 <input type="password" v-model='password' placeholder="Enter new Password">
                 </div>
-                <p v-if="errorMsg" class="text-danger small">{{ errorMsg }}</p>
+                <p v-if="errorMsg" class="error-msg">{{ errorMsg }}</p>
                 <p v-if="successMsg" class="text-success small">{{ successMsg }}</p>
 
                 <BaseButton type="submit" class="auth-btn" :disabled="isSubmitted">{{ isSubmitted ? 'Resetting...' : 'Update Password' }}</BaseButton>
@@ -139,6 +139,10 @@ input::placeholder {
 
 input:focus {
   border-bottom-color: var(--color-white);
+}
+
+.error-msg {
+  color: #ffffff !important;
 }
 
 .auth-btn {
