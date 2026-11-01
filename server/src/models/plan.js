@@ -9,7 +9,8 @@ const planSchema = new mongoose.Schema({
     location:      { type: String, default: '' },
     description:   { type: String, default: '' },
     invitees:      [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-    googleEventId: { type: String, default: null }   // null if not added to Google
+    googleEventId: { type: String, default: null },   // null if not added to Google
+    lobby:         { type: mongoose.Schema.Types.ObjectId, ref: 'Lobby', default: null, index: true },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Plan', planSchema, 'plans');

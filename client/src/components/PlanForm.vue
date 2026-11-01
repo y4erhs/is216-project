@@ -2,7 +2,11 @@
 import { ref, onMounted } from 'vue'
 
 const props = defineProps({
-  userId: { type: String, required: true }
+  userId: { type: String, required: true },
+  // from a lobby's shared calendar: every lobby member is invited, so no friend picker
+  lobbyId: { type: String, default: null },
+  // "YYYY-MM-DD" to start the form on
+  date: { type: String, default: '' }
 })
 const emit = defineEmits(['close', 'created'])
 
@@ -11,8 +15,9 @@ const API_URL = 'http://localhost:8000'
 // form fields
 const title = ref('')
 const allDay = ref(false)
-const start = ref('')
-const end = ref('')
+// timed by default, so a given date starts as a 9-10am slot
+const start = ref(props.date ? `${props.date}T09:00` : '')
+const end = ref(props.date ? `${props.date}T10:00` : '')
 const location = ref('')
 const description = ref('')
 
@@ -48,9 +53,14 @@ function toggleFriend(id) {
 }
 
 function onAllDayChange() {
-  // inputs switch between date and date-time, so clear old values
-  start.value = ''
-  end.value = ''
+  // inputs switch between date and date-time, so clear old values (or go back to the given date)
+  if (props.date) {
+    start.value = allDay.value ? props.date : `${props.date}T09:00`
+    end.value = allDay.value ? '' : `${props.date}T10:00`
+  } else {
+    start.value = ''
+    end.value = ''
+  }
 }
 
 async function submit() {
@@ -82,7 +92,8 @@ async function submit() {
     end: allDay.value ? (end.value || start.value) : new Date(end.value).toISOString(),
     location: location.value,
     description: description.value,
-    inviteeIds: selectedIds.value
+    inviteeIds: selectedIds.value,
+    lobbyId: props.lobbyId
   }
 
   saving.value = true
@@ -109,7 +120,9 @@ async function submit() {
   }
 }
 
-onMounted(loadFriends)
+onMounted(() => {
+  if (!props.lobbyId) loadFriends()
+})
 </script>
 
 <template>
@@ -152,7 +165,7 @@ onMounted(loadFriends)
       <textarea v-model="description" rows="3"></textarea>
     </label>
 
-    <div class="field">
+    <div v-if="!lobbyId" class="field">
       <span>Invite friends!</span>
       <p v-if="friends.length === 0" class="hint">No friends to invite yet.</p>
       <div v-else class="friend-row">

@@ -1,8 +1,9 @@
 <!--
   Lobby.vue  (Vue 3, <script setup>)
-  The host's view of one lobby: heading, folder (Invite / Roster / Register) and a
-  "Registered events" side panel. Reads/writes through the shared store (useLobbies.js).
-  Needs: FolderTabs + theme.css (design system), LobbyInvite.vue.
+  The host's view of one lobby: heading, folder (Invite / Roster / Register / Shared calendar) and a
+  side panel ("Registered events", or "Selected day" on the calendar tab).
+  Reads/writes through the shared store (useLobbies.js).
+  Needs: FolderTabs + theme.css (design system), LobbyInvite.vue, LobbyCalendar.vue.
 -->
 <template>
   <div v-if="lobby" class="app theme-blue">
@@ -164,6 +165,13 @@
             </section>
           </div>
         </template>
+
+        <!-- ===== Shared calendar ===== -->
+        <template #calendar>
+          <div class="pane">
+            <LobbyCalendar ref="calendarEl" :lobby-id="lobbyId" :user-id="userId" @select-day="selectedDay = $event" />
+          </div>
+        </template>
       </FolderTabs>
 
       <!-- Lives OUTSIDE FolderTabs so the folder body can never clip it -->
@@ -181,8 +189,35 @@
       </div>
     </main>
 
+    <!-- ───── Selected day (only on the Shared calendar tab) ───── -->
+    <aside v-if="tab === 'calendar'" class="panel-wrap" aria-label="Selected day">
+      <div class="side-panel day-panel">
+        <!-- every lobby member is invited, so the form hides its friend picker -->
+        <PlanForm v-if="showPlanForm" :user-id="userId" :lobby-id="lobbyId" :date="selectedDay?.date || ''"
+                  @close="showPlanForm = false" @created="calendarEl?.reload()" />
+
+        <template v-else>
+        <h3 class="panel-title">Selected day</h3>
+
+        <div class="ev">
+          <template v-if="selectedDay">
+            <span class="ev-title">{{ selectedDayLabel }}</span>
+            <ul v-if="selectedDay.chips.length" class="day-chips">
+              <li v-for="(chip, i) in selectedDay.chips" :key="i" class="chip" :class="{ 'chip-lobby': chip.lobby }"
+                  :style="chip.colour ? { background: chip.colour } : null">{{ chip.text }}</li>
+            </ul>
+            <p v-else class="ev-meta">Everyone's free</p>
+          </template>
+          <p v-else class="ev-meta">Pick a day on the calendar to see what's on.</p>
+        </div>
+
+        <button class="btn btn-lime add-plan" type="button" @click="showPlanForm = true">Add plan</button>
+        </template>
+      </div>
+    </aside>
+
     <!-- ───── Registered events (scrolls inside its own box) ───── -->
-    <aside class="panel-wrap" aria-label="Registered events">
+    <aside v-else class="panel-wrap" aria-label="Registered events">
       <div class="side-panel">
         <h3 class="panel-title">Registered events</h3>
 
@@ -248,6 +283,9 @@
 import { ref, reactive, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import FolderTabs from '../components/FolderTabs.vue'
 import LobbyInvite from '../views/LobbyInvite.vue'
+import LobbyCalendar from '../components/LobbyCalendar.vue'
+import PlanForm from '../components/PlanForm.vue'
+import { useAuth } from '../composables/useAuth'
 // NOTE: every page must import the SAME useLobbies file, or each page gets its own separate copy of the data.
 import { useLobbies, daysAgo, timeAgo, INACTIVE_DAYS } from '../composables/useLobbies'
 
@@ -258,6 +296,7 @@ const props = defineProps({
 const emit = defineEmits(['back', 'deleted', 'invite', 'remove', 'register', 'respond'])
 
 const store = useLobbies()
+const { userId } = useAuth()
 const friends = computed(() => store.friends)
 const events = computed(() => store.events)
 const lobby = computed(() => store.get(props.lobbyId))
@@ -272,8 +311,14 @@ const tabs = [
   { id: 'invite', label: 'INVITE', theme: 'theme-green' },
   { id: 'roster', label: 'ROSTER', theme: 'theme-orange' },
   { id: 'register', label: 'REGISTER', theme: 'theme-purple' },
+  { id: 'calendar', label: 'SHARED CALENDAR', theme: 'theme-yellow' },
 ]
 const tab = ref('invite')
+const selectedDay = ref(null)   // { date: "YYYY-MM-DD", chips } picked in the Shared calendar tab
+const selectedDayLabel = computed(() => selectedDay.value &&
+  new Date(`${selectedDay.value.date}T00:00`).toLocaleDateString('en-SG', { weekday: 'long', day: 'numeric', month: 'long' }))
+const showPlanForm = ref(false)
+const calendarEl = ref(null)
 const folderKey = ref(0)
 function goTo(id) {
   tab.value = id
@@ -626,6 +671,14 @@ button.badge-pill:disabled { opacity: 0.45; cursor: not-allowed; }
 .stat-declined b, .stat-accepted b { background: rgba(0, 0, 0, 0.3); }
 .ev-empty { display: grid; justify-items: start; gap: 10px; padding: 15px; border-radius: 15px; background: var(--card); }
 .ev-empty p { margin: 0; }
+
+/* Selected day panel: Add plan sits at the bottom; chips match LobbyCalendar.vue */
+.day-panel { display: flex; flex-direction: column; gap: 12px; }
+.day-panel .panel-title { margin-bottom: 3px; }
+.add-plan { margin-top: auto; align-self: stretch; }
+.day-chips { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; width: 100%; }
+.chip { padding: 5px 10px 4px; border-radius: 999px; background: var(--card); color: var(--ink); font-size: 11px; overflow-wrap: anywhere; }
+.chip-lobby { background: var(--dark-blue); color: #fff; font-weight: 700; }
 
 /* ── Overlays ── */
 .overlay { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 15px; overflow-y: auto; background: rgba(31, 42, 68, 0.65); }
