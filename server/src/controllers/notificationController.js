@@ -74,7 +74,7 @@ async function createNotification({
 
 exports.getMyNotifications = async (req, res) => {
   try {
-    const userId = '6acd9e65046b9013f579fc7d';
+    const userId = '6acd9e65046b9013f579fc79';
     console.log("REQ.USER:", req.user);
     console.log("USERID:", userId);
     const { unread, type, page = 1, limit = 20 } = req.query;
@@ -128,7 +128,7 @@ exports.getNotificationById = async (req, res) => {
 exports.markAsRead = async (req, res) => {
   try {
     const notification = await Notification.findOneAndUpdate(
-      { _id: req.params.id, userId: '6acd9e65046b9013f579fc7d', status: "sent" },
+      { _id: req.params.id, userId: '6acd9e65046b9013f579fc79', status: "sent" },
       { isRead: true, readAt: new Date() },
       { new: true }
     );
@@ -146,7 +146,7 @@ exports.markAllAsRead = async (req, res) => {
   try {
     console.log("MARKALLASREAD HIT")
     const result = await Notification.updateMany(
-      { userId: '6acd9e65046b9013f579fc7d', status: "sent", isRead: false },
+      { userId: '6acd9e65046b9013f579fc79', status: "sent", isRead: false },
       { isRead: true, readAt: new Date() }
     );
     return res.json({ updated: result.modifiedCount });
