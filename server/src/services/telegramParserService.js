@@ -75,7 +75,7 @@ All times are Singapore time. Never invent details; use null if something is not
             sourceLink: chatIdStr.startsWith('-100')
                 ? `https://t.me/c/${chatIdStr.slice(4)}/${msgDoc.messageId}`
                 : '',
-            status: 'pending',
+            status: 'published',
             image: msgDoc.image || ''
         };
 

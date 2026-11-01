@@ -5,6 +5,7 @@ const Friends = require('../models/friends');
 const GoogleConnection = require('../models/googleConnection');
 const Notification = require('../models/notification');
 const { createOAuthClient } = require('../utils/googleClient');
+const Lobby = require('../models/Lobby');
 
 const TIME_ZONE = 'Asia/Singapore';
 const ONE_DAY = 24 * 60 * 60 * 1000;
@@ -69,7 +70,7 @@ async function createGoogleEvent(creatorId, plan, attendeeEmails) {
     return { eventId: res.data.id, warning: null };
 }
 
-exports.createPlan = async ({ userId, title, allDay = false, start, end, location = '', description = '', inviteeIds = [] }) => {
+exports.createPlan = async ({ userId, title, allDay = false, start, end, location = '', description = '', inviteeIds = [], lobbyId = null }) => {
     if (!mongoose.isValidObjectId(userId)) throw badRequest('Invalid user id');
     if (!title || !title.trim()) throw badRequest('Title is required');
 
@@ -83,9 +84,34 @@ exports.createPlan = async ({ userId, title, allDay = false, start, end, locatio
     if (endTime < startTime) throw badRequest('End time must be after start time');
 
     // Only accepted friends can be invited
-    const uniqueIds = [...new Set(inviteeIds.map(String))];
-    const friendIds = await getFriendIds(userId);
-    if (uniqueIds.some(id => !friendIds.includes(id))) throw badRequest('You can only invite your friends');
+        let uniqueIds;
+        let lobby = null;
+
+        if (lobbyId) {
+            // Lobby plan: invite every other lobby member, no friend check
+            if (!mongoose.isValidObjectId(lobbyId)) throw badRequest('Invalid lobby id');
+
+            lobby = await Lobby.findById(lobbyId);
+            if (!lobby) {
+                const err = new Error('Lobby not found');
+                err.status = 404;
+                throw err;
+            }
+
+            const memberIds = [...new Set([String(lobby.host), ...lobby.participants.map(String)])];
+            if (!memberIds.includes(String(userId))) {
+                const err = new Error('You are not a member of this lobby');
+                err.status = 403;
+                throw err;
+            }
+
+            uniqueIds = memberIds.filter(id => id !== String(userId));
+        } else {
+            // Normal plan: only accepted friends can be invited
+            uniqueIds = [...new Set(inviteeIds.map(String))];
+            const friendIds = await getFriendIds(userId);
+            if (uniqueIds.some(id => !friendIds.includes(id))) throw badRequest('You can only invite your friends');
+        }
 
     // Use each friend's linked Google email if they have one, otherwise their account email
     const invitees = await User.find({ _id: { $in: uniqueIds } }).select('email');
@@ -102,7 +128,8 @@ exports.createPlan = async ({ userId, title, allDay = false, start, end, locatio
         endTime,
         location,
         description,
-        invitees: invitees.map(u => u._id)
+        invitees: invitees.map(u => u._id),
+        lobby: lobby ? lobby._id : null
     });
 
     let warning = null;
@@ -125,7 +152,7 @@ exports.createPlan = async ({ userId, title, allDay = false, start, end, locatio
             userId: u._id,
             type: 'plan_invite',
             title: 'New plan invite',
-            message: `${creatorName} invited you to "${plan.title}"`,
+            message: lobby ? `${creatorName} added "${plan.title}" to ${lobby.name}` : `${creatorName} invited you to "${plan.title}"`,
             channels: ['in_app'],
             status: 'sent',
             sentAt: new Date(),
