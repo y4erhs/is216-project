@@ -9,16 +9,12 @@ const NOTIFICATION_TYPES = [
   "lobby_event_pitched",
   "lobby_status",
   "group_register",
-  "lobby_left_out",
-  "lobby_plan_another",
   "lobby_removed",
   "lobby_deleted",
   "group_free_slot",
   "group_recommendation",
-  "rsvp_update",
   "friend_request",
   "friend_accepted",
-  "plan_invite"
 ];
 
 const notificationSchema = new mongoose.Schema(

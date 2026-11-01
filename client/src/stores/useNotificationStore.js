@@ -93,7 +93,7 @@ export const useNotificationStore = defineStore('notifications', () => {
     console.log('LOAD FUNCTION WAS CALLED')
     loading.value = true
     try {
-      const response = await axios.get('http://localhost:8000/api/notifications?limit=15&userId=6acd9e65046b9013f579fc7d')
+      const response = await axios.get('http://localhost:8000/api/notifications?limit=15&userId=6ae5dc7fc2ea36c372993fab')
       console.log('AXIOS SUCCESS RESPONSE:', response)
       console.log('AXIOS RESPONSE DATA:', JSON.stringify(response.data, null, 2))
       rawItems.value = response.data.items ?? []

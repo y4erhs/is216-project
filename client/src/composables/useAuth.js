@@ -1,7 +1,7 @@
 import { ref, computed } from 'vue'
 
 // TEMPORARY: pretend this user is logged in until the real login page exists.
-const DEV_USER = { _id: '6acd9e65046b9013f579fc79' }
+const DEV_USER = { _id: '6ae5dc7fc2ea36c372993fab' }
 
 function normalise(raw) {
     const u = raw?.user || raw
