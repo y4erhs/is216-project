@@ -1,7 +1,14 @@
 const express = require('express');
 const friendsController = require('../controllers/friendsController');
 const router = express.Router();
-
+router.use((req, res, next) => {
+    console.log(
+        'FRIENDS ROUTE HIT:',
+        req.method,
+        req.originalUrl
+    );
+    next();
+});
 router.post('/request', friendsController.sendFriendRequest);
 
 router.get('/:userId/requests', friendsController.getPendingRequests);

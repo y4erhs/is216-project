@@ -55,7 +55,7 @@ const DEMO_ITEMS = [
 ]
 
 export const useNotificationStore = defineStore('notifications', () => {
-  const rawItems = ref(DEMO_ITEMS)
+  const rawItems = ref([])
   const total = ref(0)
   const loading = ref(false)
   const open = ref(false)
@@ -93,15 +93,13 @@ export const useNotificationStore = defineStore('notifications', () => {
     console.log('LOAD FUNCTION WAS CALLED')
     loading.value = true
     try {
-      const response = await axios.get('/api/notifications?limit=15')
+      const response = await axios.get('http://localhost:8000/api/notifications?limit=15&userId=6acd9e65046b9013f579fc7d')
       console.log('AXIOS SUCCESS RESPONSE:', response)
-      console.log('AXIOS RESPONSE DATA:', response.data)
+      console.log('AXIOS RESPONSE DATA:', JSON.stringify(response.data, null, 2))
       rawItems.value = response.data.items ?? []
       total.value = response.data.total ?? rawItems.value.length
     } catch (err) {
       console.warn('Backend not connected, using demo notifications:', err.message)
-      rawItems.value = DEMO_ITEMS
-      total.value = rawItems.value.length
     } finally {
       loading.value = false
     }
@@ -118,7 +116,7 @@ export const useNotificationStore = defineStore('notifications', () => {
     }
 
     try {
-      await axios.put(`/api/notifications/${item._id}/read`)
+      await axios.put(`http://localhost:8000/api/notifications/${item._id}/read`)
       target.isRead = true
     } catch (err) {
       console.error('Failed to mark notification as read', err)
@@ -126,13 +124,12 @@ export const useNotificationStore = defineStore('notifications', () => {
   }
 
   async function markAllRead() {
-    if (rawItems.value.some(i => i._id.toString().startsWith('demo-'))) {
-      rawItems.value.forEach((n) => { n.isRead = true })
-      return
-    }
-
+    //if (rawItems.value.some(i => i._id.toString().startsWith('demo-'))) {
+      //rawItems.value.forEach((n) => { n.isRead = true })
+      //return
+    //}
     try {
-      await axios.put('/api/notifications/read-all')
+      await axios.put('http://localhost:8000/api/notifications/read-all')
       rawItems.value = rawItems.value.map(n => ({ ...n, isRead: true }))
     } catch (err) {
       console.error('Failed to mark all notifications as read', err)
@@ -149,7 +146,7 @@ export const useNotificationStore = defineStore('notifications', () => {
     }
 
     try {
-      await axios.delete(`/api/notifications/${item._id}`)
+      await axios.delete(`http://localhost:8000/api/notifications/${item._id}`)
       rawItems.value.splice(targetIndex, 1)
     } catch (err) {
       console.error('Failed to delete notification', err)
@@ -167,7 +164,7 @@ export const useNotificationStore = defineStore('notifications', () => {
       return
     }
     try {
-      await axios.put(`/api/friends/${friendshipId}/accept`)
+      await axios.put(`http://localhost:8000/api/friends/${friendshipId}/accept`)
       await markRead(item)
     } catch (err) {
       console.error('Error accepting friend request:', err)
@@ -185,7 +182,7 @@ export const useNotificationStore = defineStore('notifications', () => {
       return
     }
     try {
-      await axios.delete(`/api/friends/${friendshipId}/reject`)
+      await axios.delete(`http://localhost:8000/api/friends/${friendshipId}/reject`)
       await markRead(item)
     } catch (err) {
       console.error('Error rejecting friend request:',err)

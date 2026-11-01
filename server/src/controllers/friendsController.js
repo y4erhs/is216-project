@@ -14,6 +14,7 @@ exports.sendFriendRequest = async(req,res) =>{
 };
 
 exports.acceptFriendRequest = async(req,res) => {
+    console.log("ACCEPT CONTROLLER HIT")
     try{
         const { friendshipId } = req.params;
         const updated = await Friends.acceptFriendRequest(friendshipId);
@@ -25,6 +26,7 @@ exports.acceptFriendRequest = async(req,res) => {
 };
 
 exports.rejectFriendRequest = async(req,res) => {
+    console.log("REJECT CONTROLLER HIT")
     try{
         const { friendshipId } = req.params;
         const removed =await Friends.findByIdAndDelete(friendshipId);
@@ -47,8 +49,10 @@ exports.getPendingRequests = async (req, res) => {
 };
 
 exports.getAcceptedFriends = async(req,res) =>{
+    console.log("GETACCEPTEDFRIENDSHIT")
     try{
         const {userId} = req.params;
+        console.log(userId)
         const friends = await Friends.getAcceptedFriends(userId);
         if(!friends || friends.length === 0 ){
             return res.status(404).json({ message: 'No accepted friends found'})
