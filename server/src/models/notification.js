@@ -15,7 +15,9 @@ const NOTIFICATION_TYPES = [
   "lobby_deleted",
   "group_free_slot",
   "group_recommendation",
-  "rsvp_update",  
+  "rsvp_update",
+  "friend_request",
+  "friend_accepted",
   "plan_invite"
 ];
 

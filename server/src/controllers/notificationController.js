@@ -3,7 +3,7 @@ const User = require("../models/user");
 const Event = require("../models/events");
 
 function getUserId(req) {
-  return req.user?.id || req.user?._id;
+  return req.user?.id || req.user?._id || req.query.userId;
 }
 
 function defaultPrefs() {
@@ -74,13 +74,17 @@ async function createNotification({
 
 exports.getMyNotifications = async (req, res) => {
   try {
-    const userId = getUserId(req);
+    const userId = '6acd9e65046b9013f579fc79';
+    console.log("REQ.USER:", req.user);
+    console.log("USERID:", userId);
     const { unread, type, page = 1, limit = 20 } = req.query;
     const filter = { userId, status: "sent" };
-
+     console.log("FILTER:", filter);
     if (unread === "true") filter.isRead = false;
     if (type) filter.type = type;
+    const test = await Notification.find({ status: "sent" });
 
+    console.log("ALL SENT NOTIFS:", test.length);
     const pageNum = Math.max(Number(page), 1);
     const pageSize = Math.min(Math.max(Number(limit), 1), 50);
     const skip = (pageNum - 1) * pageSize;
@@ -124,7 +128,7 @@ exports.getNotificationById = async (req, res) => {
 exports.markAsRead = async (req, res) => {
   try {
     const notification = await Notification.findOneAndUpdate(
-      { _id: req.params.id, userId: getUserId(req), status: "sent" },
+      { _id: req.params.id, userId: '6acd9e65046b9013f579fc79', status: "sent" },
       { isRead: true, readAt: new Date() },
       { new: true }
     );
@@ -140,8 +144,9 @@ exports.markAsRead = async (req, res) => {
 
 exports.markAllAsRead = async (req, res) => {
   try {
+    console.log("MARKALLASREAD HIT")
     const result = await Notification.updateMany(
-      { userId: getUserId(req), status: "sent", isRead: false },
+      { userId: '6acd9e65046b9013f579fc79', status: "sent", isRead: false },
       { isRead: true, readAt: new Date() }
     );
     return res.json({ updated: result.modifiedCount });
@@ -501,6 +506,60 @@ exports.notifyUpcomingEvent = async (userId, event) => {
   });
 };
 
+exports.dispatchUpcomingEvents = async (req, res) => {
+  try {
+    const Event = require('../models/events');
+    const now = new Date();
+    const next24Hours = new Date(
+      now.getTime() + 24 * 60 * 60 * 1000
+    );
+    const events = await Event.find({
+      attendees: { $exists: true, $ne: [] },
+      sessions: {
+        $elemMatch: {
+          startTime: {
+            $gte: now,
+            $lte: next24Hours
+          }
+        }
+      }
+    }).populate('attendees', '_id');
+    let count = 0;
+    for (const event of events) {
+      for (const attendee of event.attendees) {
+        const existing =
+          await Notification.findOne({
+            userId: attendee._id,
+            eventId: event._id,
+            type: 'upcoming_event'
+          });
+        if (!existing) {
+          await exports.notifyUpcomingEvent(
+            attendee._id,
+            event
+          );
+          count++;
+        }
+      }
+    }
+    const payload = {
+      processed: count
+    };
+    if (res) {
+      return res.json(payload);
+    }
+    return payload;
+  } catch (err) {
+    if (res) {
+      return res.status(500).json({
+        message: 'Failed to dispatch upcoming notifications',
+        error: err.message
+      });
+    }
+    throw err;
+  }
+};
+
 exports.notifyGroupFreeSlots = async (userIds, group, slotsSummary) => {
   return Promise.all(
     userIds.map((userId) =>
@@ -539,6 +598,25 @@ exports.notifyRsvpUpdate = async (userId, event, status) => {
     eventId: event._id,
     metadata: { status },
   });
+};
+
+exports.notifyFriendRequest = async (receiverId,requesterName,friendshipId, requesterAvatar, fromUserId) => {
+  return createNotification({
+    userId: receiverId,
+    type: "friend_request",
+    title: "Friend Request",
+    message: `${requesterName} sent you a friend request.`,
+    metadata: {friendshipId, requesterAvatar, fromUserId}
+  });
+};
+
+exports.notifyFriendAccepted = async (userId,acceptedByName) => {
+  return createNotification({
+    userId,
+    type: "friend_accepted",
+    title: "Friend Request Accepted",
+    message:`${acceptedByName} accepted your friend request.`
+    });
 };
 
 exports.createNotification = createNotification;

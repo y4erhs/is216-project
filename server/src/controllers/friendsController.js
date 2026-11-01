@@ -1,25 +1,44 @@
 const Friends = require('../models/friends')
-
+const notificationController =require('./notificationController');
+const User = require('../models/user');
 exports.sendFriendRequest = async(req,res) =>{
     try{
-        const { requesterId, receiverId } = req.body;
-        const request = await Friends.sendFriendRequest(requesterId, receiverId)
-        res.status(201).json(request)
-    }catch(err){
+        const {requesterId,receiverId} = req.body;
+        const request =await Friends.sendFriendRequest(requesterId,receiverId);
+        const requester =await User.findById(requesterId);
+        await notificationController.notifyFriendRequest(receiverId,requester.username,request._id, requester.avatar, requesterId);
+        res.status(201).json(request);
+    }catch(err){    
         res.status(500).json({error: err.message});
     }
 };
 
 exports.acceptFriendRequest = async(req,res) => {
+    console.log("ACCEPT CONTROLLER HIT")
     try{
         const { friendshipId } = req.params;
         const updated = await Friends.acceptFriendRequest(friendshipId);
+        await notificationController.notifyFriendAccepted(updated.requester._id, updated.receiver.username)
         res.json(updated);
     }catch(err){
         res.status(500).json({error: err.message});
     }
 };
 
+exports.rejectFriendRequest = async(req,res) => {
+    console.log("REJECT CONTROLLER HIT")
+    try{
+        const { friendshipId } = req.params;
+        const removed =await Friends.findByIdAndDelete(friendshipId);
+        if(!removed){
+            return res.status(404).json({message: 'Friend request not found'});
+        }
+        res.json({
+            message: 'Friend request rejected'
+        });
+    }catch(err){
+        res.status(500).json({error: err.message});
+    }}
 exports.getPendingRequests = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -30,8 +49,10 @@ exports.getPendingRequests = async (req, res) => {
 };
 
 exports.getAcceptedFriends = async(req,res) =>{
+    console.log("GETACCEPTEDFRIENDSHIT")
     try{
         const {userId} = req.params;
+        console.log(userId)
         const friends = await Friends.getAcceptedFriends(userId);
         if(!friends || friends.length === 0 ){
             return res.status(404).json({ message: 'No accepted friends found'})
