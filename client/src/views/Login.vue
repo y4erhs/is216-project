@@ -27,6 +27,7 @@ onUnmounted(() => {
 
 const activeTab = ref('login')
 
+
 const categories = [
   { id: 'login', label: 'LOGIN', theme: 'theme-blue' },
   { id: 'reset', label: 'PASSWORD RESET', theme: 'theme-orange' }
