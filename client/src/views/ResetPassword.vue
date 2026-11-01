@@ -20,7 +20,9 @@ const errorMsg = ref('')
 const successMsg = ref('')
 const isSubmitted = ref(false)
 
-const categories = [{ id: 'reset-password', label: 'RESET', theme: 'theme-orange' },]
+const activeTab = ref('reset-password')
+
+const categories = [{ id: 'reset-password', label: 'RESET', theme: 'theme-purple' },]
 
 const handleResetPassword = async () => {
   try {
@@ -61,7 +63,7 @@ const handleResetPassword = async () => {
                 <div>
                 <input type="password" v-model='password' placeholder="Enter new Password">
                 </div>
-                <p v-if="errorMsg" class="error-msg">{{ errorMsg }}</p>
+                <p v-if="errorMsg" class="text-warning small">{{ errorMsg }}</p>
                 <p v-if="successMsg" class="text-success small">{{ successMsg }}</p>
 
                 <BaseButton type="submit" class="auth-btn" :disabled="isSubmitted">{{ isSubmitted ? 'Resetting...' : 'Update Password' }}</BaseButton>
@@ -139,10 +141,6 @@ input::placeholder {
 
 input:focus {
   border-bottom-color: var(--color-white);
-}
-
-.error-msg {
-  color: #ffffff !important;
 }
 
 .auth-btn {

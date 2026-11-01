@@ -30,7 +30,7 @@ const activeTab = ref('login')
 
 const categories = [
   { id: 'login', label: 'LOGIN', theme: 'theme-blue' },
-  { id: 'reset', label: 'PASSWORD RESET', theme: 'theme-orange' }
+  { id: 'reset', label: 'PASSWORD RESET', theme: 'theme-purple' }
 ]
 
 const username = ref('')
@@ -144,8 +144,8 @@ const handleSendReset = async () => {
               />
 
               <!-- Feedback messages -->
-              <p v-if="resetError" style="color: #ff6b6b; font-size: 12px; margin-top: 5px;">{{ resetError }}</p>
-              <p v-if="resetMessage" style="color: #51cf66; font-size: 12px; margin-top: 5px;">{{ resetMessage }}</p>
+              <p v-if="resetError" style="color: #fc5d5d; font-size: 14px; margin-top: 5px;">{{ resetError }}</p>
+              <p v-if="resetMessage" style="color: #51cf66; font-size: 14px; margin-top: 5px;">{{ resetMessage }}</p>
 
               <BaseButton type="submit" class="w-100 pwd-link-btn">
                 {{ isSent ? 'RESEND LINK' : 'SEND PASSWORD RESET LINK' }}
