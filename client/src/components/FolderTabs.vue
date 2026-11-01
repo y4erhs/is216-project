@@ -360,4 +360,22 @@ watch(() => props.modelValue, (newVal) => {
   transform: rotateX(-95deg) translateY(40px);
   opacity: 0;
 }
+
+.folder-container {
+  display: flex;
+  flex-direction: column;
+
+  width: 100%;
+  height: 100%;
+  flex: 1;
+
+  min-width: 0;
+  min-height: 0;
+
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
+
+  isolation: isolate;
+}
 </style>

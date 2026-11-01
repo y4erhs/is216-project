@@ -16,10 +16,11 @@ function onNotification(item) {
     router.push({ path: '/friends', query: { tab: 'requests' } })
   } else if (item.type === 'friend_accepted') {
     router.push('/friends')
-  } else if (item.lobbyId) {
-    const id = item.eventId._id || item.eventId
-    router.push(`/activity-tracking/`) // for actual one change to router.push(`/event/${id}`)
-  } 
+  } else if (['lobby_deleted', 'lobby_removed','lobby_invite',"lobby_joined_via_link","lobby_member_responded"].includes(item.type)) {
+    router.push('/lobby') 
+  } else if (item.type === 'event_reminder') {
+    router.push(`/activity-tracking`)
+  }
   else {
     // FALLBACK FOR DEMO: Routes to discover if no ID is present
     router.push('/') 
