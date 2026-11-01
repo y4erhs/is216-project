@@ -10,6 +10,7 @@ import CardInfo from '../components/CardInfo.vue'
 
 import { useActivities } from '../composables/useActivities'
 import { useAuth } from '../composables/useAuth'
+import { INTERESTS } from '../utils/interests'
 
 const {
     activityMap,
@@ -21,8 +22,10 @@ const {
 const { userId } = useAuth()
 
 const recommendations = ref([])
+const allEvents = ref([])   // every event, for the All tab
 const feedType = ref('weekly')
 const loading = ref(false)
+const allLoading = ref(false)
 const updating = ref(false)
 
 // Date filters
@@ -47,19 +50,18 @@ const categoryThemeMap = {
     'talks': 'theme-yellow'
 }
 
-// NEED TO SET MAX 5
-const interestCategories = [
-    'Tech',
-    'Arts',
-    'Culture',
-    'Community Service',
-]
+const interestCategories = INTERESTS
 
 const interestTabs = ref([
     {
         id: 'all',
         label: 'All',
         theme: 'theme-grey'
+    },
+    {
+        id: 'for-you',
+        label: 'For you',
+        theme: 'theme-red'
     },
     ...interestCategories.map(category => {
         const id = category.toLowerCase().replace(/\s+/g, '-')
@@ -101,6 +103,20 @@ async function loadRecommendations() {
         console.log('There was an error: ' + error.message)
     } finally {
         loading.value = false
+    }
+}
+
+// Load every event for the All tab
+async function loadAllEvents() {
+    allLoading.value = true
+
+    try {
+        const response = await axios.get('http://localhost:8000/api/events')
+        allEvents.value = response.data
+    } catch (error) {
+        console.log('There was an error: ' + error.message)
+    } finally {
+        allLoading.value = false
     }
 }
 
@@ -186,44 +202,35 @@ function matchesDateFilter(event) {
 }
 
 // Check whether event matches selected interest tab
+// Event tags are one of INTERESTS, so the tab's label must be one of them
 function matchesInterestFilter(event) {
-    if (activeInterest.value === 'all') return true
-
     const selectedTab = interestTabs.value.find(
         tab => tab.id === activeInterest.value
     )
 
     if (!selectedTab) return true
 
-    const eventInterests = [
-        ...(Array.isArray(event?.interests) ? event.interests : []),
-        ...(Array.isArray(event?.categories) ? event.categories : []),
-        ...(Array.isArray(event?.tags) ? event.tags : []),
-        event?.category,
-        event?.interest
-    ]
-        .filter(Boolean)
-        .map(value => String(value).toLowerCase())
-
     const selectedLabel = selectedTab.label.toLowerCase()
-
-    return eventInterests.some(value =>
-        value.includes(selectedLabel) ||
-        selectedLabel.includes(value)
-    )
+    return (event?.tags || []).some(tag => String(tag).toLowerCase() === selectedLabel)
 }
 
-// Filter recommendations based on active tab and dates
-const filteredRecommendations = computed(() => {
-    return recommendations.value.filter(rec => {
-        if (!rec.event) return false
+// Cards to show, filtered by the dates:
+// All = every event, For you = top recommendations, other tabs = every event with that tag
+const filteredCards = computed(() => {
+    if (activeInterest.value === 'for-you') {
+        return recommendations.value
+            .filter(rec => rec.event && matchesDateFilter(rec.event))
+            .map(rec => ({ key: rec._id, event: rec.event, score: rec.score, reason: rec.reasons?.[0] || '' }))
+    }
 
-        return (
-            matchesDateFilter(rec.event) &&
-            matchesInterestFilter(rec.event)
-        )
-    })
+    return allEvents.value
+        .filter(event => matchesDateFilter(event) &&
+            (activeInterest.value === 'all' || matchesInterestFilter(event)))
+        .map(event => ({ key: event._id, event, score: null, reason: '' }))
 })
+
+const cardsLoading = computed(() =>
+    activeInterest.value === 'for-you' ? loading.value : allLoading.value)
 
 // Regenerate recommendations
 async function regenerateRecommendations() {
@@ -253,6 +260,7 @@ async function regenerateRecommendations() {
 // Initial loading
 onMounted(async () => {
     loadActivities()
+    loadAllEvents()
 
     await loadRecommendations()
 
@@ -338,11 +346,11 @@ function handleRegister(url) {
                             <!-- EVENT GRID -->
                             <div v-else class="folder-content-area">
 
-                                <div v-if="loading" class="folder-status-state">
+                                <div v-if="cardsLoading" class="folder-status-state">
                                     <p>Finding events for you...</p>
                                 </div>
 
-                                <div v-else-if="filteredRecommendations.length === 0" class="folder-status-state">
+                                <div v-else-if="filteredCards.length === 0" class="folder-status-state">
                                     <p class="empty-text">
                                         No events found. Try another interest or adjust your filters!
                                     </p>
@@ -352,12 +360,12 @@ function handleRegister(url) {
 
                                     <div class="folder-cards-grid">
 
-                                        <EventCard v-for="rec in filteredRecommendations" :key="rec._id"
-                                            :event="rec.event" :score="rec.score" :reason="rec.reasons?.[0] || ''"
-                                            show-hide :interested="activityMap[rec.event._id]?.interested || false"
-                                            :going-by-session="activityMap[rec.event._id]?.sessions || {}"
-                                            @set-interested="v => setInterested(rec.event._id, v)"
-                                            @set-going="p => setGoing(rec.event._id, p)"
+                                        <EventCard v-for="card in filteredCards" :key="card.key"
+                                            :event="card.event" :score="card.score" :reason="card.reason"
+                                            show-hide :interested="activityMap[card.event._id]?.interested || false"
+                                            :going-by-session="activityMap[card.event._id]?.sessions || {}"
+                                            @set-interested="v => setInterested(card.event._id, v)"
+                                            @set-going="p => setGoing(card.event._id, p)"
                                             @card-click="handleCardClick" />
 
                                     </div>

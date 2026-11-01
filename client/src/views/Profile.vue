@@ -7,6 +7,7 @@ import BaseInput from '../components/BaseInput.vue';
 import CategoryPill from '@/components/CategoryPill.vue'
 import { useUserStore } from '../stores/userStore'
 import { useRouter } from 'vue-router'
+import { INTERESTS } from '../utils/interests'
 
 
 const userStore = useUserStore()
@@ -48,15 +49,11 @@ const gradOptions = ['2027', '2028', '2029', '2030']
 const clubs = ['SMUKI', 'Odyssey', 'Project Obscura']
 
 // State buat Interests & Floating Dropdown
-const categories = ref(['Tech', 'Career', 'Arts'])
+const categories = ref(['Tech', 'Arts'])
 const showInterestDropdown = ref(false)
 
 // List semua opsi interest yang bisa dipilih
-const allAvailableInterests = [
-  'Tech', 'Arts', 'Cultural Clubs', 'Community Service',
-  'Sports and Outdoors', 'Career', 'Overseas Activities',
-  'Networking Event', 'Skills Upgrading Workshop', 'Food', 'Wellness', 'Guest Lectures'
-]
+const allAvailableInterests = INTERESTS
 
 function toggleInterest(cat) {
   if (categories.value.includes(cat)) {
