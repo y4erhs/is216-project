@@ -17,6 +17,7 @@ const NOTIFICATION_TYPES = [
   "group_recommendation",
   "rsvp_update",
   "friend_request",
+  "friend_accepted",
   "plan_invite"
 ];
 

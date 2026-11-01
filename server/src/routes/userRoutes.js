@@ -23,6 +23,7 @@ router.post('/login', userController.login);
 
 // READ
 router.get('/', userController.getUsers);
+router.get('/search', userController.searchUsers);
 router.get('/:id', userController.getUserById);
 
 //get preferences

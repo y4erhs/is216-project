@@ -595,13 +595,13 @@ exports.notifyRsvpUpdate = async (userId, event, status) => {
   });
 };
 
-exports.notifyFriendRequest = async (receiverId,requesterName,friendshipId, requesterAvatar) => {
+exports.notifyFriendRequest = async (receiverId,requesterName,friendshipId, requesterAvatar, fromUserId) => {
   return createNotification({
     userId: receiverId,
     type: "friend_request",
     title: "Friend Request",
     message: `${requesterName} sent you a friend request.`,
-    metadata: {friendshipId, requesterAvatar}
+    metadata: {friendshipId, requesterAvatar, fromUserId}
   });
 };
 

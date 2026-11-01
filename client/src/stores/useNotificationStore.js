@@ -21,6 +21,7 @@ const TYPE_META = {
   group_recommendation: { label: 'For your group', icon: 'bi-stars' },
   rsvp_update: { label: 'RSVP', icon: 'bi-bookmark-check' },
   friend_request: { label: 'Friend Request', icon: 'bi-person-plus' },
+  friend_accepted: { label: 'Friend Accepted', icon: 'bi-person-check'}
 }
 
 const DEMO_ITEMS = [
@@ -161,12 +162,10 @@ export const useNotificationStore = defineStore('notifications', () => {
       await markRead(item)
       return
     }
-
     if (!friendshipId) {
       console.error('Missing friendshipId', item)
       return
     }
-
     try {
       await axios.put(`/api/friends/${friendshipId}/accept`)
       await markRead(item)

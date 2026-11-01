@@ -6,7 +6,7 @@ exports.sendFriendRequest = async(req,res) =>{
         const {requesterId,receiverId} = req.body;
         const request =await Friends.sendFriendRequest(requesterId,receiverId);
         const requester =await User.findById(requesterId);
-        await notificationController.notifyFriendRequest(receiverId,requester.username,request._id, requester.avatar);
+        await notificationController.notifyFriendRequest(receiverId,requester.username,request._id, requester.avatar, requesterId);
         res.status(201).json(request);
     }catch(err){    
         res.status(500).json({error: err.message});
@@ -17,6 +17,7 @@ exports.acceptFriendRequest = async(req,res) => {
     try{
         const { friendshipId } = req.params;
         const updated = await Friends.acceptFriendRequest(friendshipId);
+        await notificationController.notifyFriendAccepted(updated.requester._id, updated.receiver.username)
         res.json(updated);
     }catch(err){
         res.status(500).json({error: err.message});
@@ -35,7 +36,14 @@ exports.rejectFriendRequest = async(req,res) => {
         });
     }catch(err){
         res.status(500).json({error: err.message});
-    }
+    }}
+exports.getPendingRequests = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    res.json(await Friends.getPendingRequests(userId)); // [] when none
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
 exports.getAcceptedFriends = async(req,res) =>{
@@ -72,4 +80,14 @@ exports.removeFriend = async(req,res) =>{
     }catch(err){
         res.status(500).json({ error: err.message});
     }
+};
+
+exports.removeFriendById = async (req, res) => {
+  try {
+    const removed = await Friends.removeFriendById(req.params.friendshipId);
+    if (!removed) return res.status(404).json({ message: 'Friendship not found' });
+    res.json({ message: 'Removed' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
