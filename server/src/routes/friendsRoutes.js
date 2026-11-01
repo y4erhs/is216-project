@@ -5,6 +5,7 @@ const router = express.Router();
 router.post('/request', friendsController.sendFriendRequest);
 
 router.put('/:friendshipId/accept', friendsController.acceptFriendRequest);
+router.delete('/:friendshipId/reject', friendsController.rejectFriendRequest);
 
 router.get('/:userId/accepted', friendsController.getAcceptedFriends);
 

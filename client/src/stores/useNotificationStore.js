@@ -95,7 +95,7 @@ export const useNotificationStore = defineStore('notifications', () => {
       const response = await axios.get('/api/notifications?limit=15')
       console.log('AXIOS SUCCESS RESPONSE:', response)
       console.log('AXIOS RESPONSE DATA:', response.data)
-      rawItems.value = response.data.items ?? DEMO_ITEMS
+      rawItems.value = response.data.items ?? []
       total.value = response.data.total ?? rawItems.value.length
     } catch (err) {
       console.warn('Backend not connected, using demo notifications:', err.message)
@@ -117,7 +117,7 @@ export const useNotificationStore = defineStore('notifications', () => {
     }
 
     try {
-      await axios.patch(`/api/notifications/${item._id}/read`)
+      await axios.put(`/api/notifications/${item._id}/read`)
       target.isRead = true
     } catch (err) {
       console.error('Failed to mark notification as read', err)
@@ -131,7 +131,7 @@ export const useNotificationStore = defineStore('notifications', () => {
     }
 
     try {
-      await axios.patch('/api/notifications/read-all')
+      await axios.put('/api/notifications/read-all')
       rawItems.value = rawItems.value.map(n => ({ ...n, isRead: true }))
     } catch (err) {
       console.error('Failed to mark all notifications as read', err)
@@ -155,12 +155,8 @@ export const useNotificationStore = defineStore('notifications', () => {
     }
   }
 
-  // --- FRIEND REQUEST ACTIONS ---
   async function acceptFriend(item) {
-    // Safely check metadata or direct property for friendshipId
     const friendshipId = item.metadata?.friendshipId || item.friendshipId
-    
-    // If it's a demo item, just mark it read locally
     if (item._id.toString().startsWith('demo-')) {
       await markRead(item)
       return
@@ -172,7 +168,6 @@ export const useNotificationStore = defineStore('notifications', () => {
     }
 
     try {
-      // Calls: router.put('/:friendshipId/accept', friendsController.acceptFriendRequest)
       await axios.put(`/api/friends/${friendshipId}/accept`)
       await markRead(item)
     } catch (err) {
@@ -181,24 +176,20 @@ export const useNotificationStore = defineStore('notifications', () => {
   }
 
   async function rejectFriend(item) {
-    const { requesterId, receiverId } = item.metadata || {}
-    
-    // If it's a demo item, just delete or mark read locally
+    const friendshipId =item.metadata?.friendshipId ||item.friendshipId
     if (item._id.toString().startsWith('demo-')) {
       await markRead(item)
       return
     }
-
+    if (!friendshipId) {
+      console.error('Missing friendshipId',item)
+      return
+    }
     try {
-      if (requesterId && receiverId) {
-        // Calls: router.delete('/remove', friendsController.removeFriend)
-        await axios.delete('/api/friends/remove', {
-          data: { requesterId, receiverId }
-        })
-      }
+      await axios.delete(`/api/friends/${friendshipId}/reject`)
       await markRead(item)
     } catch (err) {
-      console.error('Error rejecting friend request:', err)
+      console.error('Error rejecting friend request:',err)
     }
   }
 

@@ -76,7 +76,9 @@ function rejectFriend(item) {
           <div class="notif-container">
             <button class="notif-btn" type="button"@click="openItem(item)">
             <span class="type-icon">
-              <i class="bi" :class="n.meta(item.type).icon"></i>
+              <img v-if="item.type === 'friend_request' && item.metadata?.requesterAvatar"
+              :src="item.metadata.requesterAvatar" class="notif-avatar" alt=""/>
+              <i v-else class="bi" :class="n.meta(item.type).icon"></i>
             </span>
             <span class="notif-body">
               <div class="notif-top">
@@ -267,5 +269,11 @@ function rejectFriend(item) {
 .notif-body .msg,
 .notif-body small {
   display: block;
+}
+.notif-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
 }
 </style>
