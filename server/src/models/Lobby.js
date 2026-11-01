@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
 const Event = require('./events');
+const Activity = require('./activity');
+const { addSessionToGoogle } = require('../services/googleCalendarService');
 
 const lobbySchema = new mongoose.Schema({
     name: {
@@ -187,37 +189,63 @@ lobbySchema.statics.signUpLobbyForEvent = async function(lobbyId) {
         .populate('event');
 
     if (!lobby) throw new Error('Lobby not found');
+    if (!lobby.event) throw new Error('Lobby has no linked event');
 
-    if (!lobby.event) {
-        throw new Error('Lobby has no linked event');
-    }
+    const event = lobby.event;
+    const participantIds = lobby.participants.map(p => p._id);
 
-    const participantIds = lobby.participants.map(
-        p => p._id
-    );
+    // The session the lobby page shows = the next one that hasn't ended yet
+    const now = new Date();
+    const session = [...event.sessions]
+        .sort((a, b) => new Date(a.startTime) - new Date(b.startTime))
+        .find(s => new Date(s.endTime) > now);
+    if (!session) throw new Error('This event has no upcoming session');
+
+    // Only count people who weren't already signed up
+    const already = new Set(event.attendees.map(String));
+    const newCount = participantIds.filter(id => !already.has(String(id))).length;
 
     const updatedEvent = await Event.findByIdAndUpdate(
-    lobby.event._id,
-    {
-        $addToSet: {
-            attendees: {
-                $each: participantIds
-            }
+        event._id,
+        {
+            $addToSet: { attendees: { $each: participantIds } },
+            $inc: { signUpCount: newCount }
         },
-        $inc: {
-            signUpCount: participantIds.length
-        }
-    },
-    {
-        new: true
-    }).populate('attendees', 'username');
+        { new: true }
+    ).populate('attendees', 'username');
 
-    await this.findByIdAndUpdate(
-    lobbyId,
-    {
+    // Make it show under "Attending" in Activity Tracking for every member
+    const startMs = new Date(session.startTime).getTime();
+    for (const userId of participantIds) {
+        const filter = { user: userId, event: event._id };
+
+        const existing = await Activity.findOne(filter);
+        const old = existing?.sessions.find(s => new Date(s.startTime).getTime() === startMs);
+        let googleEventId = old?.googleEventId || null;
+
+        // a Google problem shouldn't block registration
+        try {
+            if (!googleEventId) googleEventId = await addSessionToGoogle(userId, event, session);
+        } catch (err) {
+            console.error('Google Calendar sync failed:', err.message);
+        }
+
+        // can't $pull and $push the same field in one update
+        await Activity.updateOne(
+            filter,
+            { $pull: { sessions: { startTime: session.startTime } } },
+            { upsert: true, setDefaultsOnInsert: true }
+        );
+        await Activity.updateOne(
+            filter,
+            { $push: { sessions: { startTime: session.startTime, going: 'attending', googleEventId } } }
+        );
+    }
+
+    await this.findByIdAndUpdate(lobbyId, {
         $push: {
             history: {
-                eventId: lobby.event._id,
+                eventId: event._id,
                 count: participantIds.length,
                 memberIds: participantIds
             }

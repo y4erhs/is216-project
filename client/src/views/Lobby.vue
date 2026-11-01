@@ -54,14 +54,6 @@
         <!-- ===== Invite ===== -->
         <template #invite>
           <div class="pane">
-            <section>
-              <h3 class="section-title">Invite link</h3>
-              <p class="section-sub">Anyone with the link can join the lobby.</p>
-              <div class="link-box">
-                <input class="link-input" readonly :value="inviteLink" aria-label="Invite link" @focus="$event.target.select()" />
-                <button class="btn btn-purple" type="button" @click="copyLink">{{ copied ? 'Copied' : 'Copy' }}</button>
-              </div>
-            </section>
 
             <section>
               <h3 class="section-title">Invite friends</h3>
@@ -91,7 +83,7 @@
                 <h3 class="section-title">Who's in</h3>
                 <span class="live"><i class="live-dot"></i>Updates live</span>
               </div>
-              <p v-if="members.length === 1" class="section-sub">No one invited yet. Add friends or share the link.</p>
+              <p v-if="members.length === 1" class="section-sub">No one invited yet. Add some friends from the Invite tab.</p>
 
               <div class="scroll">
                 <TransitionGroup name="roster" tag="ul" class="people" aria-live="polite">
@@ -108,7 +100,6 @@
                       <span class="avatar" :style="{ background: m.color || '#fdebd0' }">{{ initials(m.name) }}</span>
                       <span class="who">
                         {{ m.name }}
-                        <small v-if="m.via === 'link'" class="via">via link</small>
                       </span>
                       <span v-if="m.id === lobby.hostId" class="badge-pill pill-host">Host</span>
                       <span v-else class="badge-pill" :class="`pill-${m.status}`">{{ statusLabel[m.status] }}</span>
@@ -217,7 +208,7 @@
            @click.self="viewingId = null">
         <LobbyInvite :lobby-name="lobby.name" :description="lobby.description" :host-name="hostName"
                      :event="selectedEvent" :members="inviteeMembers"
-                     :via="viewingMember.via === 'link' ? 'link' : 'invitation'"
+                     :via="viewingMember === 'link' ? 'link' : 'invitation'"
                      :my-status="viewingMember.status" :me-id="viewingMember.id" :locked="registered"
                      @respond="onRespond" @close="viewingId = null" />
       </div>
@@ -305,8 +296,6 @@ function deleteLobby() {
 }
 
 /* ---------- lobby state ---------- */
-const inviteLink = computed(() => `${window.location.origin}/lobby/${props.lobbyId}`)
-const copied = ref(false)
 const flashIds = reactive(new Set())
 const removingId = ref(null) // which roster card is asking "Remove …?"
 
@@ -398,15 +387,6 @@ function invite(friend) {
 function removeMember(id) {
   store.removeMember(props.lobbyId, id)
   emit('remove', id) // -> DELETE /lobbies/:id/members/:memberId
-}
-async function copyLink() {
-  try {
-    await navigator.clipboard.writeText(inviteLink.value)
-  } catch {
-    /* clipboard blocked */
-  }
-  copied.value = true
-  setTimeout(() => (copied.value = false), 1800)
 }
 function registerGroup() {
   if (!canRegister.value) return
@@ -560,8 +540,6 @@ button.badge-pill:disabled { opacity: 0.45; cursor: not-allowed; }
   scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.6) transparent;
 }
 
-.link-box { display: flex; align-items: center; gap: 10px; }
-.link-input { flex: 1; min-width: 0; height: 35px; padding: 3px 16px 0; border: 0; border-radius: 999px; background: var(--card); color: var(--ink); font: inherit; }
 
 /* people cards (friends list + roster) */
 .people { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
@@ -569,7 +547,6 @@ button.badge-pill:disabled { opacity: 0.45; cursor: not-allowed; }
 .person.asking { background: #fff; box-shadow: inset 0 0 0 2px var(--danger); }
 .avatar { display: grid; place-items: center; width: 32px; height: 32px; flex: none; border-radius: 50%; font-weight: 700; font-size: 11px; }
 .who { flex: 1; min-width: 0; font-size: 13px; letter-spacing: 0.04em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.via { margin-left: 6px; opacity: 0.7; font-size: 11px; }
 .remove-x {
   display: grid; place-items: center; flex: none; width: 26px; height: 26px; padding: 2px 0 0;
   border: 0; border-radius: 50%; background: rgba(31, 42, 68, 0.1); color: var(--ink);

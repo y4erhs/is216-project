@@ -191,14 +191,6 @@ export function useLobbies() {
     needsReply: (l) => l.hostId !== meId() && !l.registered && myStatus(l) === 'pending',
     isInactive: (l) => daysAgo(l.lastActiveAt) >= INACTIVE_DAYS,
 
-    // NEW: look at a lobby without adding it to your list (used by the join page)
-    preview: (id) => api(`/api/lobbies/lobby/${id}`),
-    // NEW: join through the shared link
-    async joinLobby(id) {
-      await api(`/api/lobbies/${id}/join`, { method: 'POST', body: { userId: meId() } })
-      await refresh(id)
-    },
-
     async createLobby({ name, description }) {
       const raw = await api('/api/lobbies', {
         method: 'POST',

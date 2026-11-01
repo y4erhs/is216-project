@@ -26,6 +26,4 @@ router.put('/:lobbyId/event', lobbyController.pitchEvent);
 
 router.post('/:lobbyId/plan-next', lobbyController.planNext);
 
-router.post('/:lobbyId/join', lobbyController.joinViaLink);
-
 module.exports = router;
