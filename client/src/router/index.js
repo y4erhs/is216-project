@@ -43,7 +43,8 @@ const routes = [
   {
     path: '/reset-password/:token',
     name: 'ResetPassword',
-    component: ResetPassword
+    component: ResetPassword,
+    meta: { hideLayout: true }
   }
 
 ];

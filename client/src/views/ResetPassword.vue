@@ -1,4 +1,8 @@
 <script setup>
+
+import 'bootstrap/dist/css/bootstrap.min.css'
+import 'bootstrap/dist/js/bootstrap.bundle.min.js'
+
 import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
@@ -33,9 +37,9 @@ const handleResetPassword = async () => {
 
     successMsg.value = response.data.message
     
-    // Redirect back to login after 2 seconds
+    // Redirect back to login after 2 seconds (after typing in password)
     setTimeout(() => {
-      router.push('/')
+      router.push('/login')
     }, 2000)
 
   } catch (error) {
@@ -85,8 +89,8 @@ const handleResetPassword = async () => {
 
 /* Allow the wrapper to take up more space */
 .page-wrapper > * {
-    width: 90%;
-    max-width: 900px; 
+    width: 80%;
+    max-width: 750px; 
 }
 
 /* Force FolderTabs and its internal card lists to respect the new wider size */
@@ -121,7 +125,7 @@ input[type="password"] {
   outline: none;
   padding: 10px 0;
   color: var(--color-white);
-  width: 70%; /* Adjust input line width inside the larger folder */
+  width: 100%; /* Adjust input line width inside the larger folder */
   max-width: 500px;
   font-size: 16px;
   box-sizing: border-box;
@@ -138,7 +142,7 @@ input:focus {
 }
 
 .auth-btn {
-  width: 70%;
+  width: 30%;
   max-width: 500px;
 }
 
@@ -148,10 +152,10 @@ input:focus {
 }
 
 .log-in a {
-  color: var(--color-green);
+  color: var(--color-white);
 }
 .log-in a:hover {
-  color: var(--color-green);
+  color: var(--color-white);
   opacity: 0.75;
 }
 
