@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const PlannerEvent = require('../models/plannerEvent');
+const Activity = require('../models/activity');
 const Plan = require('../models/plan');
 const googleSync = require('./googleSyncService');
 
@@ -26,25 +26,30 @@ exports.getConflicts = async (userId) => {
     const until = new Date(now.getTime() + DAYS_AHEAD * 24 * 60 * 60 * 1000);
     const items = [];
 
-    // 1. Events the user saved or is attending
-    const entries = await PlannerEvent.find({
-        user: userId,
-        status: { $in: ['interested', 'attending'] }
-    }).populate('event');
+    // 1. Events the user is attending (per session) or saved as interested (every session)
+    const activities = await Activity.find({ user: userId }).populate('event');
+    const syncedGoogleIds = new Set();   // Google copies of attending sessions, skipped in step 4
 
-    for (const entry of entries) {
-        if (!entry.event) continue;   // the event was deleted
-        for (const s of entry.event.sessions) {
-            if (s.endTime > now && s.startTime < until) {
-                items.push({
-                    kind: 'event',
-                    id: String(entry.event._id),
-                    title: entry.event.title,
-                    status: entry.status,          // 'interested' or 'attending'
-                    start: s.startTime,
-                    end: s.endTime
-                });
-            }
+    for (const activity of activities) {
+        if (!activity.event) continue;   // the event was deleted
+
+        for (const s of activity.event.sessions) {
+            if (!(s.endTime > now && s.startTime < until)) continue;
+
+            const entry = activity.sessions.find(x => x.startTime.getTime() === s.startTime.getTime());
+            if (entry?.googleEventId) syncedGoogleIds.add(entry.googleEventId);
+
+            const status = entry?.going === 'attending' ? 'attending' : activity.interested ? 'interested' : null;
+            if (!status) continue;
+
+            items.push({
+                kind: 'event',
+                id: String(activity.event._id),
+                title: activity.event.title,
+                status,
+                start: s.startTime,
+                end: s.endTime
+            });
         }
     }
 
@@ -67,15 +72,12 @@ exports.getConflicts = async (userId) => {
         });
     }
 
-    // 3. Sort by start time, then compare each item with the ones right after it
-    items.sort((a, b) => a.start - b.start);
-
     // 3. Personal Google events (only if "Include personal commitments" is on)
     try {
         const personal = await googleSync.getPersonalEvents(userId, now, until);
         for (const g of personal) {
             // Skip Google copies of events already in the list (e.g. attending events synced to Google)
-            const duplicate = items.some(it =>
+            const duplicate = syncedGoogleIds.has(g.id) || items.some(it =>
                 it.title === g.title && new Date(it.start).getTime() === g.start.getTime()
             );
             if (!duplicate) items.push(g);
@@ -83,6 +85,9 @@ exports.getConflicts = async (userId) => {
     } catch (err) {
         console.error('Could not load personal events:', err.message);
     }
+
+    // 4. Sort by start time (after adding everything), then compare each item with the ones right after it
+    items.sort((a, b) => a.start - b.start);
 
     const alerts = [];
     const tightMs = TIGHT_GAP_MINUTES * 60 * 1000;
