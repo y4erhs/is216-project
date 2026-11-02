@@ -9,6 +9,8 @@ const planSchema = new mongoose.Schema({
     location:      { type: String, default: '' },
     description:   { type: String, default: '' },
     invitees:      [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    accepted:      [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],   // invitees who said yes
+    declined:      [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],   // invitees who said no
     googleEventId: { type: String, default: null },   // null if not added to Google
     lobby:         { type: mongoose.Schema.Types.ObjectId, ref: 'Lobby', default: null, index: true },
 }, { timestamps: true });

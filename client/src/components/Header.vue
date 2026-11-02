@@ -38,7 +38,7 @@ function onNotification(item) {
     router.push('/friends')
   } else if (['lobby_deleted', 'lobby_removed','lobby_invite',"lobby_joined_via_link","lobby_member_responded","lobby_event_pitched","lobby_plan_another"].includes(item.type)) {
     router.push('/lobby') 
-  } else if (['plan_invite', 'plan_cancelled'].includes(item.type)) {
+  } else if (['plan_invite', 'plan_cancelled', 'plan_updated', 'plan_response'].includes(item.type)) {
     router.push('/calendar')
   } else if (['upcoming_event', 'event_reminder'].includes(item.type)) {
     router.push(`/activity-tracking`)

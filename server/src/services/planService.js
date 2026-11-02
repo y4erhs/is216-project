@@ -16,6 +16,73 @@ function badRequest(message) {
     return err;
 }
 
+function withStatus(status, message) {
+    const err = new Error(message);
+    err.status = status;
+    return err;
+}
+
+// All-day: start/end are "YYYY-MM-DD". Timed: start/end are ISO date-times.
+function parseTimes(allDay, start, end) {
+    const startTime = allDay ? new Date(`${start}T00:00:00+08:00`) : new Date(start);
+    const endTime   = allDay ? new Date(`${end || start}T23:59:59+08:00`) : new Date(end);
+    if (isNaN(startTime) || isNaN(endTime)) throw badRequest('Invalid start or end time');
+    if (endTime < startTime) throw badRequest('End time must be after start time');
+    return { startTime, endTime };
+}
+
+// Google's format for a plan's start and end
+function googleTimes(plan) {
+    return {
+        start: plan.allDay
+            ? { date: toSgDate(plan.startTime) }
+            : { dateTime: plan.startTime.toISOString(), timeZone: TIME_ZONE },
+        end: plan.allDay
+            ? { date: toSgDate(new Date(plan.endTime.getTime() + ONE_DAY)) }   // Google's all-day end date is the day AFTER
+            : { dateTime: plan.endTime.toISOString(), timeZone: TIME_ZONE }
+    };
+}
+
+// A Google client for this user, or null if they haven't linked Google
+async function getGoogleClient(userId) {
+    const connection = await GoogleConnection.findOne({ user: userId }).select('+refreshToken');
+    if (!connection) return null;
+    const client = createOAuthClient();
+    client.setCredentials({ refresh_token: connection.refreshToken });
+    return client;
+}
+
+// In-app notification to each person in the list
+function notifyUsers(userIds, type, title, message, planId) {
+    if (!userIds.length) return null;
+    return Notification.insertMany(userIds.map(id => ({
+        userId: id,
+        type,
+        title,
+        message,
+        channels: ['in_app'],
+        status: 'sent',
+        sentAt: new Date(),
+        metadata: { planId }
+    })));
+}
+
+async function findPlan(planId) {
+    if (!mongoose.isValidObjectId(planId)) throw badRequest('Invalid plan id');
+    const plan = await Plan.findById(planId);
+    if (!plan) throw withStatus(404, 'Plan not found');
+    return plan;
+}
+
+// Only the person who made a plan can change it
+async function findOwnPlan(planId, userId) {
+    const plan = await findPlan(planId);
+    if (String(plan.creator) !== String(userId)) {
+        throw withStatus(403, 'Only the person who made this plan can change it');
+    }
+    return plan;
+}
+
 // Gives "2026-10-30" for a date, in Singapore time
 function toSgDate(date) {
     return date.toLocaleDateString('en-CA', { timeZone: TIME_ZONE });
@@ -38,20 +105,12 @@ async function getFriendIds(userId) {
 }
 
 async function createGoogleEvent(creatorId, plan, attendeeEmails) {
-    const connection = await GoogleConnection.findOne({ user: creatorId }).select('+refreshToken');
-    if (!connection) {
+    const client = await getGoogleClient(creatorId);
+    if (!client) {
         return { eventId: null, warning: 'Google Calendar not connected, so the plan was only saved in the app' };
     }
 
-    const client = createOAuthClient();
-    client.setCredentials({ refresh_token: connection.refreshToken });
-
-    const start = plan.allDay
-        ? { date: toSgDate(plan.startTime) }
-        : { dateTime: plan.startTime.toISOString(), timeZone: TIME_ZONE };
-    const end = plan.allDay
-        ? { date: toSgDate(new Date(plan.endTime.getTime() + ONE_DAY)) }   // Google's all-day end date is the day AFTER
-        : { dateTime: plan.endTime.toISOString(), timeZone: TIME_ZONE };
+    const { start, end } = googleTimes(plan);
 
     const res = await client.request({
         url: 'https://www.googleapis.com/calendar/v3/calendars/primary/events',
@@ -77,11 +136,7 @@ exports.createPlan = async ({ userId, title, allDay = false, start, end, locatio
     const creator = await User.findById(userId);
     if (!creator) throw badRequest('User not found');
 
-    // All-day: start/end are "YYYY-MM-DD". Timed: start/end are ISO date-times.
-    const startTime = allDay ? new Date(`${start}T00:00:00+08:00`) : new Date(start);
-    const endTime   = allDay ? new Date(`${end || start}T23:59:59+08:00`) : new Date(end);
-    if (isNaN(startTime) || isNaN(endTime)) throw badRequest('Invalid start or end time');
-    if (endTime < startTime) throw badRequest('End time must be after start time');
+    const { startTime, endTime } = parseTimes(allDay, start, end);
 
     // Only accepted friends can be invited
         let uniqueIds;
@@ -161,4 +216,116 @@ exports.createPlan = async ({ userId, title, allDay = false, start, end, locatio
     }
 
     return { plan, warning };
+};
+
+// Upcoming plans this user made or was invited to, soonest first
+exports.listPlans = async (userId) => {
+    if (!mongoose.isValidObjectId(userId)) throw badRequest('Invalid user id');
+
+    return Plan.find({
+        $or: [{ creator: userId }, { invitees: userId }],
+        endTime: { $gt: new Date() }
+    })
+        .populate('creator', 'username displayName')
+        .populate('lobby', 'name')
+        .sort({ startTime: 1 });
+};
+
+exports.updatePlan = async (planId, { userId, title, allDay = false, start, end, location = '', description = '' }) => {
+    const plan = await findOwnPlan(planId, userId);
+    if (!title || !title.trim()) throw badRequest('Title is required');
+
+    const { startTime, endTime } = parseTimes(allDay, start, end);
+    const timeChanged = startTime.getTime() !== plan.startTime.getTime() || endTime.getTime() !== plan.endTime.getTime();
+
+    plan.set({ title: title.trim(), allDay, startTime, endTime, location, description });
+    // A new time might not suit people any more, so they reply again
+    if (timeChanged) plan.set({ accepted: [], declined: [] });
+    await plan.save();
+
+    let warning = null;
+    if (plan.googleEventId) {
+        try {
+            const client = await getGoogleClient(userId);
+            if (client) {
+                await client.request({
+                    url: `https://www.googleapis.com/calendar/v3/calendars/primary/events/${plan.googleEventId}`,
+                    method: 'PATCH',
+                    params: { sendUpdates: 'all' },
+                    data: { summary: plan.title, location, description, ...googleTimes(plan) }
+                });
+            }
+        } catch (err) {
+            console.error('Google event update failed:', err.message);
+            warning = 'Plan saved, but updating it in Google Calendar failed';
+        }
+    }
+
+    await notifyUsers(
+        plan.invitees,
+        'plan_updated',
+        'Plan updated',
+        timeChanged ? `"${plan.title}" has a new time. Please reply again.` : `"${plan.title}" was updated`,
+        plan._id
+    );
+
+    return { plan, warning };
+};
+
+exports.deletePlan = async (planId, userId) => {
+    const plan = await findOwnPlan(planId, userId);
+
+    let warning = null;
+    if (plan.googleEventId) {
+        try {
+            const client = await getGoogleClient(userId);
+            if (client) {
+                await client.request({
+                    url: `https://www.googleapis.com/calendar/v3/calendars/primary/events/${plan.googleEventId}`,
+                    method: 'DELETE',
+                    params: { sendUpdates: 'all' }
+                });
+            }
+        } catch (err) {
+            const status = err.response?.status;
+            if (status !== 404 && status !== 410) {   // otherwise it's already gone from Google
+                console.error('Google event delete failed:', err.message);
+                warning = 'Plan deleted, but removing it from Google Calendar failed, so delete it there too';
+            }
+        }
+    }
+
+    await notifyUsers(plan.invitees, 'plan_cancelled', 'Plan cancelled', `"${plan.title}" has been cancelled`, plan._id);
+    await Plan.deleteOne({ _id: plan._id });
+
+    return { warning };
+};
+
+exports.respondToPlan = async (planId, { userId, response }) => {
+    if (!['accepted', 'declined'].includes(response)) throw badRequest('Response must be accepted or declined');
+
+    const plan = await findPlan(planId);
+    if (!plan.invitees.some(id => String(id) === String(userId))) {
+        throw withStatus(403, 'You are not invited to this plan');
+    }
+
+    const other = response === 'accepted' ? 'declined' : 'accepted';
+    const alreadySame = plan[response].some(id => String(id) === String(userId));
+    plan[other].pull(userId);
+    if (!alreadySame) plan[response].push(userId);
+    await plan.save();
+
+    if (!alreadySame) {
+        const user = await User.findById(userId).select('username displayName');
+        const name = user?.displayName || user?.username || 'Someone';
+        await notifyUsers(
+            [plan.creator],
+            'plan_response',
+            'Plan reply',
+            `${name} ${response} your plan "${plan.title}"`,
+            plan._id
+        );
+    }
+
+    return plan;
 };

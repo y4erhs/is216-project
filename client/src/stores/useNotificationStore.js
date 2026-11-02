@@ -23,6 +23,8 @@ const TYPE_META = {
   rsvp_update: { label: 'RSVP', icon: 'bi-bookmark-check' },
   plan_invite: { label: 'Plan invite', icon: 'bi-calendar-plus' },
   plan_cancelled: { label: 'Plan cancelled', icon: 'bi-calendar-x' },
+  plan_updated: { label: 'Plan updated', icon: 'bi-calendar-event' },
+  plan_response: { label: 'Plan reply', icon: 'bi-calendar-check' },
   friend_request: { label: 'Friend Request', icon: 'bi-person-plus' },
   friend_accepted: { label: 'Friend Accepted', icon: 'bi-person-check'}
 }

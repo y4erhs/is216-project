@@ -6,20 +6,31 @@ const props = defineProps({
   // from a lobby's shared calendar: every lobby member is invited, so no friend picker
   lobbyId: { type: String, default: null },
   // "YYYY-MM-DD" to start the form on
-  date: { type: String, default: '' }
+  date: { type: String, default: '' },
+  // an existing plan to edit; its invitees stay the same
+  plan: { type: Object, default: null }
 })
 const emit = defineEmits(['close', 'created'])
 
 const API_URL = 'http://localhost:8000'
 
 // form fields
-const title = ref('')
-const allDay = ref(false)
+const title = ref(props.plan?.title || '')
+const allDay = ref(props.plan?.allDay || false)
 // timed by default, so a given date starts as a 9-10am slot
-const start = ref(props.date ? `${props.date}T09:00` : '')
-const end = ref(props.date ? `${props.date}T10:00` : '')
-const location = ref('')
-const description = ref('')
+const start = ref(props.plan ? inputValue(props.plan.startTime) : props.date ? `${props.date}T09:00` : '')
+const end = ref(props.plan ? inputValue(props.plan.endTime) : props.date ? `${props.date}T10:00` : '')
+const location = ref(props.plan?.location || '')
+const description = ref(props.plan?.description || '')
+
+// A saved time in the format the date inputs use
+function inputValue(time) {
+  const date = new Date(time)
+  if (props.plan.allDay) return date.toLocaleDateString('en-CA', { timeZone: 'Asia/Singapore' })
+
+  const pad = (n) => String(n).padStart(2, '0')
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
+}
 
 // friends
 const friends = ref([])
@@ -98,15 +109,15 @@ async function submit() {
 
   saving.value = true
   try {
-    const res = await fetch(`${API_URL}/api/plans`, {
-      method: 'POST',
+    const res = await fetch(`${API_URL}/api/plans${props.plan ? `/${props.plan._id}` : ''}`, {
+      method: props.plan ? 'PUT' : 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
     })
     const data = await res.json()
 
     if (!res.ok) {
-      error.value = data.message || 'Could not create plan.'
+      error.value = data.message || 'Could not save the plan.'
       return
     }
 
@@ -121,14 +132,14 @@ async function submit() {
 }
 
 onMounted(() => {
-  if (!props.lobbyId) loadFriends()
+  if (!props.lobbyId && !props.plan) loadFriends()
 })
 </script>
 
 <template>
   <div class="plan-card">
     <div class="plan-header">
-      <h3 class="plan-heading">Make your own plan!</h3>
+      <h3 class="plan-heading">{{ plan ? 'Edit plan' : 'Make your own plan!' }}</h3>
       <button type="button" class="btn-close-plan" @click="emit('close')" aria-label="Close">✕</button>
     </div>
 
@@ -165,7 +176,7 @@ onMounted(() => {
       <textarea v-model="description" rows="3"></textarea>
     </label>
 
-    <div v-if="!lobbyId" class="field">
+    <div v-if="!lobbyId && !plan" class="field">
       <span>Invite friends!</span>
       <p v-if="friends.length === 0" class="hint">No friends to invite yet.</p>
       <div v-else class="friend-row">
@@ -187,7 +198,7 @@ onMounted(() => {
     <p v-if="error" class="error">{{ error }}</p>
 
     <button type="button" class="btn-add" :disabled="saving" @click="submit">
-      {{ saving ? 'Adding...' : 'Add to calendar' }}
+      {{ saving ? 'Saving...' : plan ? 'Save changes' : 'Add to calendar' }}
     </button>
   </div>
 </template>

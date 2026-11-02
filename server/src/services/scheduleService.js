@@ -56,6 +56,7 @@ exports.getConflicts = async (userId) => {
     // 2. Plans they created or were invited to (all-day plans skipped)
     const plans = await Plan.find({
         $or: [{ creator: userId }, { invitees: userId }],
+        declined: { $ne: userId },   // a plan they said no to isn't a clash
         allDay: false,
         endTime: { $gt: now },
         startTime: { $lt: until }
