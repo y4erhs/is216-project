@@ -42,7 +42,7 @@ function rejectFriend(item) {
 const DEFAULT_AVATAR = '/uploads/default.png'
 
 function hasCustomAvatar(item) {
-  const avatar = item.metadata?.requesterAvatar
+  const avatar = item.metadata?.requesterAvatar || item.metada?.receiverAvatar
   return ['friend_request', 'friend_accepted'].includes(item.type)
     && !!avatar
     && avatar !== DEFAULT_AVATAR
