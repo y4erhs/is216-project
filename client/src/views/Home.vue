@@ -21,8 +21,10 @@ const {
 } = useActivities()
 const { userId } = useAuth()
 
+const ONE_DAY_MS = 24 * 60 * 60 * 1000
+
 const recommendations = ref([])
-const allEvents = ref([])   // every event, for the All tab
+const allEvents = ref([])   // this month's and later events, for the All and interest tabs
 const feedType = ref('weekly')
 const loading = ref(false)
 const allLoading = ref(false)
@@ -114,12 +116,14 @@ async function loadRecommendations() {
     }
 }
 
-// Load every event for the All tab
+// Load the events for the All and interest tabs
 async function loadAllEvents() {
     allLoading.value = true
 
     try {
-        const response = await axios.get('http://localhost:8000/api/events')
+        // Upcoming events, plus ones already over from this month
+        const thisMonth = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Singapore' }).slice(0, 7)
+        const response = await axios.get('http://localhost:8000/api/events', { params: { from: `${thisMonth}-01` } })
         allEvents.value = response.data
     } catch (error) {
         console.log('There was an error: ' + error.message)
@@ -216,7 +220,7 @@ function matchesInterestFilter(event) {
 }
 
 // Cards to show, filtered by the dates:
-// All = every event, For you = top recommendations, other tabs = every event with that tag
+// All = this month's and later events, For you = top recommendations, other tabs = those events with that tag
 const filteredCards = computed(() => {
     if (activeInterest.value === 'for-you') {
         return recommendations.value
@@ -232,6 +236,14 @@ const filteredCards = computed(() => {
 
 const cardsLoading = computed(() =>
     activeInterest.value === 'for-you' ? loading.value : allLoading.value)
+
+// Picks are refreshed once a day, so new events can show up
+function picksAreOld() {
+    if (recommendations.value.length === 0) return false
+
+    const newest = Math.max(...recommendations.value.map(rec => new Date(rec.createdAt).getTime()))
+    return Date.now() - newest > ONE_DAY_MS
+}
 
 // Regenerate recommendations
 async function regenerateRecommendations() {
@@ -266,10 +278,11 @@ onMounted(async () => {
 
     await loadRecommendations()
 
-    if (localStorage.getItem('interestsChanged') === 'true') {
-        localStorage.removeItem('interestsChanged')
-        regenerateRecommendations()
-    }
+    const interestsChanged = localStorage.getItem('interestsChanged') === 'true'
+    if (interestsChanged) localStorage.removeItem('interestsChanged')
+
+    // The current picks stay on screen while the new ones load
+    if (interestsChanged || picksAreOld()) regenerateRecommendations()
 })
 
 const selectedEvent = ref(null)

@@ -36,8 +36,11 @@ exports.generateForUser = async (userId, feedType = 'weekly') => {
         return true;
     }).slice(0, 50); // keep the prompt small
 
-    await Recommendation.deleteMany({ user: userId, feedType, hidden: false });
-    if (candidates.length === 0) return [];
+    // Nothing to recommend, so the old picks are out of date too
+    if (candidates.length === 0) {
+        await Recommendation.deleteMany({ user: userId, feedType, hidden: false });
+        return [];
+    }
 
     const student = {
         interests: user.interests,
@@ -79,7 +82,8 @@ exports.generateForUser = async (userId, feedType = 'weekly') => {
     const ranked = JSON.parse(text).recommendations || [];
 
     const candidateMap = new Map(candidates.map(e => [String(e._id), e]))
-    const picks = ranked.filter(r => candidateMap.has(r.id)).slice(0, 10)
+    const uniqueRanked = ranked.filter((r, i) => ranked.findIndex(x => x.id === r.id) === i);   // the AI can repeat an event
+    const picks = uniqueRanked.filter(r => candidateMap.has(r.id)).slice(0, 10)
         .map(r => {
             const event = candidateMap.get(r.id);
             return {
@@ -92,5 +96,10 @@ exports.generateForUser = async (userId, feedType = 'weekly') => {
             };
         });
     
+    // Only replace the old picks once the new ones are ready, so a failed AI call can't empty the list
+    if (picks.length === 0) {
+        return Recommendation.find({ user: userId, feedType, hidden: false });
+    }
+    await Recommendation.deleteMany({ user: userId, feedType, hidden: false });
     return await Recommendation.insertMany(picks);
 }
