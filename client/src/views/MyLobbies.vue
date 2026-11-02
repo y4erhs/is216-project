@@ -5,12 +5,12 @@
   Emits: open(lobbyId), create, open-calendar
 -->
 <template>
-  <div class="app theme-blue">
+  <div class="app">
     <!-- Pinned header: stays visible while the cards scroll underneath -->
     <header class="sticky">
       <div class="heading">
         <h2 class="page-title">My lobbies</h2>
-        <button class="btn btn-lime" type="button" @click="$emit('create')">+ Create lobby</button>
+        <BaseButton class="theme-green" @click="$emit('create')">+ Create lobby</BaseButton>
       </div>
 
       <section class="toolbar" aria-label="Find a lobby">
@@ -20,8 +20,8 @@
         </label>
 
         <div class="chips" role="group" aria-label="Filter lobbies">
-          <button v-for="c in chips" :key="c.id" type="button" class="chip" :class="[`chip-${c.id}`, { on: filter === c.id }]"
-                  :aria-pressed="filter === c.id" @click="filter = c.id">
+          <button v-for="c in chips" :key="c.id" type="button" class="chip"
+            :class="[`chip-${c.id}`, { on: filter === c.id }]" :aria-pressed="filter === c.id" @click="filter = c.id">
             {{ c.label }} <b>{{ c.count }}</b>
           </button>
         </div>
@@ -41,7 +41,8 @@
             <span class="badge-pill" :class="roleClass(l)">{{ roleLabel(l) }}</span>
           </span>
 
-          <span v-if="store.needsReply(l)" class="badge-pill badge-reply">Reply needed. {{ store.hostName(l) }} invited you.</span>
+          <span v-if="store.needsReply(l)" class="badge-pill badge-reply">Reply needed. {{ store.hostName(l) }} invited
+            you.</span>
 
           <span class="events">
             <span v-for="line in eventLines(l)" :key="line" class="event-line">{{ line }}</span>
@@ -51,7 +52,8 @@
 
           <span class="foot">
             <span class="stack" aria-hidden="true">
-              <i v-for="m in l.members.slice(0, 4)" :key="m.id" :style="{ background: m.color || '#fdebd0' }">{{ initials(m.name) }}</i>
+              <i v-for="m in l.members.slice(0, 4)" :key="m.id" :style="{ background: m.color || 'var(--color-white)' }">{{
+                initials(m.name) }}</i>
             </span>
             <span class="meta">{{ metaText(l) }}</span>
             <span v-if="store.isInactive(l) && store.isHost(l)" class="badge-pill badge-warn">Inactive</span>
@@ -64,12 +66,12 @@
     <div v-else-if="!lobbies.length" class="empty">
       <h3>You're not in any lobbies yet</h3>
       <p>Create one to plan events with your friends, or wait for an invite.</p>
-      <button class="btn btn-lime" type="button" @click="$emit('create')">+ Create lobby</button>
+      <BaseButton class="theme-green" @click="$emit('create')">+ Create lobby</BaseButton>
     </div>
     <div v-else class="empty">
       <h3>No lobbies match</h3>
       <p>Try a different search or clear the filters.</p>
-      <button class="btn btn-ghost" type="button" @click="clear">Clear filters</button>
+      <BaseButton variant="outline-main" @click="clear">Clear filters</BaseButton>
     </div>
   </div>
 </template>
@@ -78,6 +80,7 @@
 import { ref, computed } from 'vue'
 import BaseInput from '../components/BaseInput.vue'
 import { useLobbies, timeAgo } from '../composables/useLobbies.js'
+import BaseButton from '../components/BaseButton.vue';
 
 defineEmits(['open', 'create', 'open-calendar'])
 
@@ -161,104 +164,254 @@ function clear() {
 <style scoped>
 /* Design-system rules: outer boxes 25px, inner boxes 15px, 15px padding, title 25px, text 11px. */
 .app {
-  --ink: var(--color-black, #1f2a44);
-  --grey: var(--color-grey, #dde3f1);
-  --white: var(--color-white, #ffffff);
-  --blue: #5d6be4;
-  --dark-blue: var(--color-dark-blue, #3f48cc);
-  --lime: #c9eb6c;
-  --orange: #ee8559;
-  --purple: #c777f0;
-
   position: relative;
   max-height: 100vh;
   max-height: 100dvh;
   overflow-y: auto;
-  padding: 0 15px 15px;          /* no top padding: the pinned header supplies it */
-  border-radius: 25px;
   text-align: left;
-  background: var(--blue);       /* fallback; theme-blue provides this in the design system */
-  color: var(--ink);
   font-family: 'TextFont', sans-serif;
   font-size: 11px;
   box-sizing: border-box;
 }
-.app *, .app *::before, .app *::after { box-sizing: border-box; }
-.app button, .app input { font-family: inherit; }
-.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+
+
+.app *,
+.app *::before,
+.app *::after {
+  box-sizing: border-box;
+}
+
+.app button,
+.app input {
+  font-family: inherit;
+}
+
+.sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-black);
+  outline-offset: 2px;
+}
 
 /* ── Pinned header ── */
 .sticky {
-  position: sticky; top: 0; z-index: 10;
-  display: grid; gap: 15px;
-  padding: 15px 0;
-  background: var(--blue);       /* solid, so cards scroll underneath it */
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: grid;
+  gap: 15px;
+  margin-bottom: 10px;
 }
-.heading { display: flex; align-items: center; justify-content: space-between; gap: 15px; flex-wrap: wrap; }
-.page-title { margin: 0; color: #fff; font: 400 25px/1.1 'HeaderFont', sans-serif; letter-spacing: 0.02em; text-transform: uppercase; }
+
+.heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.page-title {
+  margin: 0;
+  padding-left: 8px;
+  color: #fff;
+  font: 400 25px/1.1 'HeaderFont', sans-serif;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
 
 /* ── Buttons ── */
 .btn {
-  --nudge: 2px;   /* pushes the label down so it sits in the middle; tune to your font */
+  --nudge: 2px;
   padding: calc(14px + var(--nudge)) 28px calc(14px - var(--nudge));
-  border: 0; border-radius: 999px; cursor: pointer;
-  font: 700 11px/1 'TextFont', sans-serif; letter-spacing: 0.14em; text-transform: uppercase;
-  background: var(--dark-blue); color: #fff; transition: transform 0.15s;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  font: 700 11px/1 'TextFont', sans-serif;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  background-color: var(--color-dark-blue);
+  color: #fff;
+  transition: transform 0.15s;
 }
-.btn:hover { transform: translateY(-1px); }
-.btn-lime { background: var(--lime); color: var(--ink); }
-.btn-ghost { background: transparent; color: var(--ink); box-shadow: inset 0 0 0 2px var(--ink); }
+
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+.btn-lime {
+  background-color: var(--color-green);
+  color: var(--color-black);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--color-black);
+  box-shadow: inset 0 0 0 2px var(--color-black);
+}
 
 /* ── Search, filter pills, event dropdown ── */
 .toolbar {
-  display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
-  padding: 15px; border-radius: 25px; background: rgba(255, 255, 255, 0.14);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 15px;
+  border-radius: 25px;
+  background: var(--color-white);
 }
-.search { flex: 1 1 200px; }
-.search input {
-  width: 100%; height: 35px; padding: 3px 16px 0; border: 1px solid transparent; border-radius: 999px;
-  background: var(--grey); color: var(--ink); font-size: 11px;
-}
-.search input::placeholder { color: var(--ink); opacity: 0.6; }
-.search input:focus { background: #fff; border-color: var(--dark-blue); outline: none; }
 
-.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.search {
+  flex: 1 1 200px;
+}
+
+.search input {
+  width: 100%;
+  height: 35px;
+  padding: 3px 16px 0;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background-color: var(--color-grey);
+  color: var(--color-black);
+  font-size: 11px;
+}
+
+.search input::placeholder {
+  color: var(--color-black);
+  opacity: 0.6;
+}
+
+.search input:focus {
+  background: #fff;
+  border-color: var(--color-dark-blue);
+  outline: none;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .chip {
-  display: inline-flex; align-items: center; gap: 8px; height: 35px; padding: 3px 8px 0 16px;
-  border: 0; border-radius: 999px; cursor: pointer;
-  background: var(--grey); color: #566080;
-  font: 700 11px/1 'TextFont', sans-serif; letter-spacing: 0.1em; text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 35px;
+  padding: 5px 8px 0 16px;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  background-color: var(--color-grey);
+  color: #566080;
+  font: 700 11px/1 'TextFont', sans-serif;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
   transition: background 0.15s, color 0.15s;
 }
+
 .chip b {
-  display: grid; place-items: center; width: 20px; height: 20px; padding-top: 2px;
-  border-radius: 50%; background: var(--dark-blue); color: #fff; font-weight: 700;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  padding-top: 3px;
+  margin-bottom: 5px;
+  border-radius: 50%;
+  background-color: var(--color-dark-grey);
+  color: #fff;
+  font-weight: 700;
 }
+
 /* active: each filter has its own colour, matching the card pills */
-.chip.on { color: #fff; }
-.chip.on b { background: rgba(0, 0, 0, 0.28); }
-.chip-all.on { background: var(--purple); }
-.chip-hosting.on { background: var(--dark-blue); }
-.chip-joined.on { background: var(--lime); color: var(--ink); }
-.chip-reply.on { background: var(--orange); }
+.chip.on {
+  color: var(--color-white);
+}
+
+.chip-all.on b {
+  background-color: var(--color-dark-purple);
+  color: var(--color-white);
+}
+
+.chip-hosting.on b {
+  background-color: var(--color-dark-blue);
+  color: var(--color-white);
+}
+
+.chip-joined.on b {
+  background-color: var(--color-dark-green);
+  color: var(--color-white);
+}
+
+.chip-reply.on b {
+  background-color: var(--color-dark-orange);
+  color: var(--color-white);
+}
+
+.chip-all.on {
+  background-color: var(--color-purple);
+  color: var(--color-dark-purple);
+}
+
+.chip-hosting.on {
+  background-color: var(--color-blue);
+}
+
+.chip-joined.on {
+  background-color: var(--color-green);
+  color: var(--color-dark-green);
+}
+
+.chip-reply.on {
+  background-color: var(--color-orange);
+}
 
 /* the BaseInput dropdown, restyled to match the toolbar */
-.event-select { flex: 0 0 190px; }
-.toolbar .event-select :deep(.base-field) { border-radius: 999px; min-height: 35px; padding: 3px 16px 0; font-size: 11px; }
-.toolbar .event-select :deep(.dropdown-trigger) { text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; }
-.toolbar .event-select :deep(.dropdown-options-menu) {
-  position: absolute; top: 100%; left: 0; right: 0; margin-top: 6px;   /* float over the cards instead of pushing them */
-  z-index: 30; text-transform: uppercase; letter-spacing: 0.08em;
+.event-select {
+  flex: 0 0 190px;
 }
-.toolbar .event-select :deep(.dropdown-option-item) { font-size: 11px; }
+
+.toolbar .event-select :deep(.base-field) {
+  border-radius: 999px;
+  min-height: 35px;
+  padding: 3px 16px 0;
+  font-size: 11px;
+}
+
+.toolbar .event-select :deep(.dropdown-trigger) {
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+}
+
+.toolbar .event-select :deep(.dropdown-options-menu) {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 6px;
+  z-index: 30;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.toolbar .event-select :deep(.dropdown-option-item) {
+  font-size: 11px;
+}
 
 /* ── Pills (one style for every badge) ── */
 .badge-pill {
   display: inline-block;
   height: 22px;
   border-radius: 9999px;
-  background-color: var(--grey);
+  background-color: var(--color-grey);
   padding: 5px 12px 8px 12px;
   font-size: 11px;
   font-weight: 700;
@@ -266,44 +419,169 @@ function clear() {
   text-transform: uppercase;
   white-space: nowrap;
 }
-.pill-host { background: var(--dark-blue); color: #fff; }
-.pill-member { background: var(--lime); }
-.pill-pending { background: var(--orange); color: #fff; }
-.badge-reply { height: auto; min-height: 22px; background: var(--purple); color: #fff; white-space: normal; letter-spacing: 0.04em; text-transform: none; }
-.badge-warn { background: red; color: #fff; }
+
+.pill-host {
+  background-color: var(--color-blue);
+  color: #fff;
+}
+
+.pill-member {
+  background-color: var(--color-green);
+  color: var(--color-black);
+}
+
+.pill-pending {
+  background-color: var(--color-orange);
+  color: #fff;
+}
+
+.badge-reply {
+  height: auto;
+  min-height: 22px;
+  background-color: var(--color-purple);
+  color: #fff;
+  white-space: normal;
+  letter-spacing: 0.04em;
+  text-transform: none;
+}
+
+.badge-warn {
+  background-color: var(--color-red);
+  color: #fff;
+}
 
 /* ── Cards ── */
-.grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 15px; }
+.grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 15px;
+}
+
 .lobby {
-  display: flex; flex-direction: column; align-items: flex-start; gap: 10px; width: 100%; height: 100%;
-  padding: 15px; border: 0; border-radius: 25px; background: var(--white); color: var(--ink);
-  text-align: left; cursor: pointer; font-size: 11px; transition: transform 0.15s;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  height: 100%;
+  padding: 15px;
+  border: 0;
+  border-radius: 25px;
+  background-color: var(--color-white);
+  color: var(--color-black);
+  text-align: left;
+  cursor: pointer;
+  font-size: 11px;
+  transition: transform 0.15s;
 }
-.lobby:hover { transform: translateY(-2px); }
-.top { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; }
-.name { font: 400 20px/1.1 'HeaderFont', sans-serif; letter-spacing: 0.03em; text-transform: uppercase; overflow-wrap: anywhere; }
-.events { display: grid; gap: 2px; }
-.event-line { font-size: 13px; letter-spacing: 0.04em; }
+
+.lobby:hover {
+  transform: translateY(-2px);
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+}
+
+.name {
+  font: 400 20px/1.1 'HeaderFont', sans-serif;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+.events {
+  display: grid;
+  gap: 2px;
+}
+
+.event-line {
+  font-size: 13px;
+  letter-spacing: 0.04em;
+}
+
 .desc {
-  flex: none; margin-bottom: 6px;
-  display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
-  line-height: 1.4; min-height: 2.8em; opacity: 0.85;
+  flex: none;
+  margin-bottom: 6px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.4;
+  min-height: 2.8em;
+  opacity: 0.85;
 }
+
 .foot {
-  display: flex; align-items: center; gap: 10px; flex-wrap: wrap; width: 100%;
-  margin-top: auto; padding-top: 12px; border-top: 2px dashed rgba(31, 42, 68, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  width: 100%;
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 2px dashed rgba(31, 42, 68, 0.2);
 }
-.stack { display: flex; }
+
+.stack {
+  display: flex;
+}
+
 .stack i {
-  display: grid; place-items: center; width: 30px; height: 30px; margin-left: -8px;
-  border: 2px solid var(--white); border-radius: 50%; font-style: normal; font-weight: 700; font-size: 11px;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  margin-left: -8px;
+  border: 2px solid var(--color-white);
+  border-radius: 50%;
+  font-style: normal;
+  font-weight: 700;
+  font-size: 11px;
 }
-.stack i:first-child { margin-left: 0; }
-.meta { flex: 1; letter-spacing: 0.04em; }
 
-.empty { display: grid; justify-items: center; gap: 8px; padding: 30px 15px; border-radius: 25px; background: var(--white); text-align: center; }
-.empty h3 { margin: 0; font: 400 16px/1.2 'HeaderFont', sans-serif; }
-.empty p { margin: 0 0 6px; }
+.stack i:first-child {
+  margin-left: 0;
+}
 
-@media (prefers-reduced-motion: reduce) { .btn, .lobby, .chip { transition: none; } }
+.meta {
+  flex: 1;
+  letter-spacing: 0.04em;
+}
+
+.empty {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 30px 15px;
+  border-radius: 25px;
+  background-color: var(--color-white);
+  color: var(--color-dark-grey);
+  text-align: center;
+}
+
+.empty h3 {
+  margin: 0;
+  font: 400 16px/1.2 'HeaderFont', sans-serif;
+}
+
+.empty p {
+  margin: 0 0 6px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn,
+  .lobby,
+  .chip {
+    transition: none;
+  }
+}
 </style>

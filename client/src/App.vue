@@ -73,6 +73,11 @@ function closeMobileNav() {
   display: flex;
   overflow-y: auto;
   flex-direction: column;
+
+  padding: 15px;       
+  border-radius: 25px;
+  background: #5d6be4;
+  box-sizing: border-box;
 }
 
 @media (max-width: 767.98px) {

@@ -50,15 +50,16 @@ defineEmits(['click'])
   cursor: pointer;
   transition: all 0.2s ease-in-out;
   outline: none;
-  background-color: var(--bg);
-  color: var(--text);
+  background-color: var(--button-bg, var(--bg));
+  color: var(--button-text, var(--text));
   box-sizing: border-box;
   letter-spacing: -0.6px;
 }
 
 .btn-custom:not(.btn-circle) {
+  height: 35px;
   gap: 8px;
-  padding: 0px 10px 3px 10px;
+  padding: 0px 15px 3px 15px;
   font-size: 10px;
   border-radius: 25px;
 }
@@ -95,7 +96,7 @@ defineEmits(['click'])
   color: var(--text);
   font-size: 11px !important;
   min-height: 0px !important;
-  height: 22px;
+  height: 22px !important;
   width: 22px !important;
   padding: 0 0 2px 0 !important;
 }

@@ -42,6 +42,9 @@
   --bg: var(--color-white);
   --bg-dark: var(--color-grey);
   --text: var(--color-black);
+
+  --button-bg: var(--color-blue);
+  --button-text: var(--color-white);
 }
 
 .theme-grey {
@@ -102,6 +105,18 @@
   --bg: var(--color-dark-blue);
   --bg-dark: var(--color-dark-blue);
 
+  --text: var(--color-white);
+}
+
+.theme-slate {
+  --bg: var(--color-dark-grey);
+  --bg-dark: #2d3a4f;
+  --text: var(--color-white);
+}
+
+.theme-navy {
+  --bg: var(--color-dark-blue);
+  --bg-dark: #1b2155;
   --text: var(--color-white);
 }
 

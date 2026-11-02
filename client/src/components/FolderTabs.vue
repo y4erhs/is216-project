@@ -156,32 +156,23 @@ watch(() => props.modelValue, (newVal) => {
   position: relative;
   display: inline-flex;
   align-items: center;
-
   border: none;
   outline: none;
-
   font-family: inherit;
   font: inherit;
-
   cursor: pointer;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
-
   background-color: var(--bg, #d1d5db);
   color: var(--text, #1f2937);
-
   height: 40px;
-  padding: 0 18px 0 20px;
-
+  padding: 0 10px 0 16px; 
   border-top-left-radius: 16px;
   border-top-right-radius: 0;
-
   flex: 1 1 auto;
   min-width: 90px;
-  max-width: 160px;
-
+  max-width: 155px; 
   margin-right: 0;
-
   transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
@@ -216,7 +207,7 @@ watch(() => props.modelValue, (newVal) => {
   content: '';
 
   position: absolute;
-  left: 100%;
+  left: 98%;
   bottom: 0;
 
   width: 26px;
@@ -238,17 +229,15 @@ watch(() => props.modelValue, (newVal) => {
 
 .folder-tab-text {
   font-size: 11.5px;
-  letter-spacing: 0.5px;
-
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-
+  overflow: visible; 
+  text-overflow: clip;
   display: block;
   width: 100%;
-
   text-align: center;
-  padding-left: 20px;
+  
+  position: relative;
+  right: -4px;
 }
 
 /* =========================================

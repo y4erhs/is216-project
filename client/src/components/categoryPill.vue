@@ -59,7 +59,7 @@ function getThemeClass(name, type) {
   display: inline-block;
   height: 22px;
   border-radius: 9999px;
-  padding: 7px 12px 0px 12px;
+  padding: 8px 12px 0px 12px;
   font-size: 11px;
   background-color: var(--bg);
   color: var(--text);

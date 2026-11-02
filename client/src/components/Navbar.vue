@@ -71,6 +71,20 @@ watch(isCollapsed, (value) => {
       </RouterLink>
 
       <RouterLink
+        to="/activity-tracking"
+        class="tab-pill theme-grey"
+        :title="isCollapsed ? 'Activity Tracking' : ''"
+      >
+        <div class="pill-icon">
+          <i class="bi bi-clipboard-check fs-5"></i>
+        </div>
+        <span v-if="!isCollapsed" class="pill-neck"></span>
+        <div v-if="!isCollapsed" class="pill-label">
+          <span class="header-style">Activity Tracking</span>
+        </div>
+      </RouterLink>
+
+      <RouterLink
         to="/calendar"
         class="tab-pill theme-grey"
         :title="isCollapsed ? 'My Calendar' : ''"
@@ -98,19 +112,6 @@ watch(isCollapsed, (value) => {
         </div>
       </RouterLink>
 
-      <RouterLink
-        to="/activity-tracking"
-        class="tab-pill theme-grey"
-        :title="isCollapsed ? 'Activity Tracking' : ''"
-      >
-        <div class="pill-icon">
-          <i class="bi bi-clipboard-check fs-5"></i>
-        </div>
-        <span v-if="!isCollapsed" class="pill-neck"></span>
-        <div v-if="!isCollapsed" class="pill-label">
-          <span class="header-style">Activity Tracking</span>
-        </div>
-      </RouterLink>
 
       <RouterLink to="/friends" class="tab-pill theme-grey" :title="isCollapsed ? 'Friends' : ''">
         <div class="pill-icon position-relative">

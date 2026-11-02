@@ -35,41 +35,32 @@ const appliedFromDate = ref('')
 const appliedToDate = ref('')
 
 // Interest folder color mapping
-const categoryThemeMap = {
-    'tech': 'theme-green',
-    'arts': 'theme-orange',
-    'culture': 'theme-yellow',
-    'community-service': 'theme-purple',
-    'sports-outdoors': 'theme-red',
-    'career': 'theme-purple',
-    'overseas': 'theme-orange',
-    'networking': 'theme-green',
-    'workshops': 'theme-purple',
-    'food': 'theme-red',
-    'wellness': 'theme-green',
-    'talks': 'theme-yellow'
-}
+const interestThemeOrder = [
+    'theme-orange',
+    'theme-yellow',
+    'theme-green',
+    'theme-purple'
+]
 
 const myInterests = ref([])
 
-// All, For you, then one tab per interest the user picked
 const interestTabs = computed(() => [
     {
         id: 'all',
         label: 'All',
-        theme: 'theme-grey'
+        theme: 'theme-light'
     },
     {
         id: 'for-you',
         label: 'For you',
-        theme: 'theme-red'
+        theme: 'theme-grey'
     },
     ...INTERESTS
         .filter(interest => myInterests.value.includes(interest.id))
-        .map(interest => ({
+        .map((interest, index) => ({
             id: interest.id,
             label: interest.label,
-            theme: categoryThemeMap[interest.id] || 'theme-grey'
+            theme: interestThemeOrder[index % interestThemeOrder.length]
         }))
 ])
 
@@ -321,7 +312,8 @@ function handleRegister(url) {
                         CLEAR
                     </BaseButton>
 
-                    <BaseButton class="calendar-btn theme-dark-blue" variant="primary" @click="$router.push('/calendar')">
+                    <BaseButton class="calendar-btn theme-purple" variant="primary"
+                        @click="$router.push('/calendar')">
                         VIEW MY CALENDAR
                     </BaseButton>
                 </div>
@@ -362,9 +354,9 @@ function handleRegister(url) {
 
                                     <div class="folder-cards-grid">
 
-                                        <EventCard v-for="card in filteredCards" :key="card.key"
-                                            :event="card.event" :score="card.score" :reason="card.reason"
-                                            show-hide :interested="activityMap[card.event._id]?.interested || false"
+                                        <EventCard v-for="card in filteredCards" :key="card.key" :event="card.event"
+                                            :score="card.score" :reason="card.reason" show-hide
+                                            :interested="activityMap[card.event._id]?.interested || false"
                                             :going-by-session="activityMap[card.event._id]?.sessions || {}"
                                             @set-interested="v => setInterested(card.event._id, v)"
                                             @set-going="p => setGoing(card.event._id, p)"
@@ -406,7 +398,6 @@ function handleRegister(url) {
     height: 100vh;
     max-height: 100vh;
     margin: 0 auto;
-    padding-left: 5px;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
@@ -430,20 +421,19 @@ function handleRegister(url) {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 16px;
-    margin-top: 18px;
+    gap: 15px;
     margin-bottom: 15px;
     flex-shrink: 0;
     min-width: 0;
 }
 
 .discover-title {
-    color: #fff;
-    font-family: 'HeaderFont', sans-serif;
-    font-size: 22px;
-    font-weight: 800;
     margin: 0;
-    white-space: nowrap;
+    padding-left: 8px;
+    color: #fff;
+    font: 400 25px/1.1 'HeaderFont', sans-serif;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
 }
 
 .discover-controls {

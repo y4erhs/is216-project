@@ -567,7 +567,7 @@ const imageSrc = computed(() =>
 .card-top-bar {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: start;
   min-height: 22px;
   margin-bottom: 4px;
 }
@@ -580,7 +580,7 @@ const imageSrc = computed(() =>
 /* MATCH BADGE */
 .match-badge {
   font-family: 'TextFont', sans-serif;
-  font-size: 11px;
+  font-size: 8px;
   font-weight: 700;
   padding: 4px 10px 1px 10px;
   border-radius: 9999px;

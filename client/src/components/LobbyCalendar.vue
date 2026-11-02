@@ -11,8 +11,8 @@
       <h3 class="section-title">{{ monthLabel }}</h3>
       <div class="month-nav">
         <span v-if="loading" class="loading">Loading…</span>
-        <button class="nav-btn" type="button" aria-label="Previous month" @click="changeMonth(-1)">‹</button>
-        <button class="nav-btn" type="button" aria-label="Next month" @click="changeMonth(1)">›</button>
+        <button class="nav-btn" type="button" aria-label="Previous month" @click="changeMonth(-1)"><span class="nav-btn-text">‹</span></button>
+        <button class="nav-btn" type="button" aria-label="Next month" @click="changeMonth(1)"><span class="nav-btn-text">›</span></button>
       </div>
     </div>
 
@@ -21,10 +21,8 @@
     <!-- member circles: click to hide/show -->
     <div class="members" aria-label="Members">
       <button v-for="m in members" :key="m.id" type="button" class="member"
-              :class="{ hidden: hiddenIds.includes(m.id) }"
-              :style="{ background: colourFor(m.id) }"
-              :aria-label="m.username" :aria-pressed="!hiddenIds.includes(m.id)"
-              @click="toggleMember(m.id)">
+        :class="{ hidden: hiddenIds.includes(m.id) }" :style="{ background: colourFor(m.id) }" :aria-label="m.username"
+        :aria-pressed="!hiddenIds.includes(m.id)" @click="toggleMember(m.id)">
         {{ initial(m.id) }}
         <!-- name pill shown on hover/focus -->
         <span class="name-pill" aria-hidden="true">{{ m.username }}</span>
@@ -32,23 +30,23 @@
     </div>
 
     <!-- grid -->
-    <div class="grid">
-      <span v-for="d in WEEKDAYS" :key="d" class="weekday">{{ d }}</span>
+    <div class="grid-scroll-container">
+      <div class="grid">
+        <span v-for="d in WEEKDAYS" :key="d" class="weekday">{{ d }}</span>
 
-      <span v-for="n in blanks" :key="'blank' + n" class="day blank" aria-hidden="true"></span>
+        <span v-for="n in blanks" :key="'blank' + n" class="day blank" aria-hidden="true"></span>
 
-      <button v-for="day in days" :key="day.key" type="button" class="day"
-              :class="{ free: day.free, selected: day.key === selectedDay, today: day.key === todayKey }"
-              @click="selectDay(day.key)">
-        <span class="day-num">{{ day.num }}</span>
+        <button v-for="day in days" :key="day.key" type="button" class="day"
+          :class="{ free: day.free, selected: day.key === selectedDay, today: day.key === todayKey }"
+          @click="selectDay(day.key)">
+          <span class="day-num">{{ day.num }}</span>
 
-        <span v-for="(chip, i) in day.chips.slice(0, 2)" :key="i" class="chip"
-              :class="{ 'chip-lobby': chip.lobby }"
-              :style="chip.colour ? { background: chip.colour } : null"
-              :title="chip.text">{{ chip.text }}</span>
+          <span v-for="(chip, i) in day.chips.slice(0, 2)" :key="i" class="chip" :class="{ 'chip-lobby': chip.lobby }"
+            :style="chip.colour ? { background: chip.colour } : null" :title="chip.text">{{ chip.text }}</span>
 
-        <span v-if="day.chips.length > 2" class="more">+{{ day.chips.length - 2 }} more</span>
-      </button>
+          <span v-if="day.chips.length > 2" class="more">+{{ day.chips.length - 2 }} more</span>
+        </button>
+      </div>
     </div>
   </section>
 </template>
@@ -192,77 +190,255 @@ watch(
 </script>
 
 <style scoped>
-/* Design-system rules: inner boxes 15px radius, default text 11px. Colours/fonts come from theme.css. */
 .cal {
-  --ink: var(--color-black, #1f2a44);
-  --card: var(--color-white, #f0f1f7);
-  --lobby: var(--color-dark-blue, #3f48cc);
-  --free: #e4f5b5;
-  --danger: #b3261e;
+  --ink: var(--color-black);
+  --card: var(--color-grey);
+  --lobby: var(--color-blue);
+  --free: var(--color-white);
+  --danger: var(--color-red);
 
-  display: grid;
+  background-color: var(--color-white);
+  border-radius: 15px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-height: 100%;
+  padding: 10px;
   gap: 12px;
   font-size: 11px;
+  overflow: hidden;
 }
-.cal button { font-family: inherit; }
 
-/* same headings as the other lobby tabs */
-.section-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.section-title { margin: 0; color: #fff; font: 400 20px/1.1 'HeaderFont', sans-serif; letter-spacing: 0.03em; text-transform: uppercase; }
+.cal button {
+  font-family: inherit;
+}
 
-.month-nav { display: flex; align-items: center; gap: 8px; }
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 5px;
+  flex-shrink: 0;
+}
+
+.section-title {
+  margin: 0;
+  color: var(--color-black);
+  font: 400 20px/1.1 'HeaderFont', sans-serif;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.month-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .nav-btn {
-  display: grid; place-items: center; width: 32px; height: 32px; padding: 0 0 3px;
-  border: 0; border-radius: 50%; background: var(--card); color: var(--ink);
-  font-size: 18px; line-height: 1; cursor: pointer; transition: transform 0.15s;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--card);
+  color: var(--color-dark-grey);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  transition: transform 0.15s;
 }
-.nav-btn:hover { transform: translateY(-1px); }
-.loading { color: #fff; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
-.error { margin: 0; padding: 4px 10px; justify-self: start; border-radius: 999px; background: var(--danger); color: #fff; font-weight: 700; }
 
-/* member circles */
-.members { display: flex; flex-wrap: wrap; gap: 8px; }
+.nav-btn-text {
+  padding: 2px 0 0 1px;
+}
+
+.nav-btn:hover {
+  transform: translateY(-1px);
+}
+
+.loading {
+  color: var(--color-white);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.error {
+  margin: 0;
+  padding: 4px 10px;
+  justify-self: start;
+  border-radius: 999px;
+  background: var(--danger);
+  color: var(--color-white);
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.members {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-left: 5px;
+  flex-shrink: 0;
+}
+
 .member {
-  display: grid; place-items: center; width: 32px; height: 32px; padding: 2px 0 0;
-  border: 0; border-radius: 50%; color: var(--ink);
-  font-weight: 700; font-size: 11px; cursor: pointer; transition: opacity 0.15s, transform 0.15s;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 2px 0 0;
+  border: 0;
+  border-radius: 50%;
+  color: var(--ink);
+  font-weight: 700;
+  font-size: 11px;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.15s;
+  position: relative;
 }
-.member { position: relative; }
-.member:hover { transform: translateY(-1px); }
-.member.hidden { opacity: 0.35; text-decoration: line-through; }
 
-/* name pill below the circle on hover/focus; starts at the circle's left edge so the first one isn't cut off */
+.member:hover {
+  transform: translateY(-1px);
+}
+
+.member.hidden {
+  opacity: 0.35;
+  text-decoration: line-through;
+}
+
 .name-pill {
-  position: absolute; top: calc(100% + 6px); left: 0; z-index: 5;
-  padding: 5px 12px 4px; border-radius: 999px; background: var(--ink); color: #fff;
-  font-weight: 700; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap;
-  opacity: 0; pointer-events: none; transform: translateY(-4px); transition: opacity 0.15s, transform 0.15s;
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 5;
+  padding: 5px 12px 4px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--color-white);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-4px);
+  transition: opacity 0.15s, transform 0.15s;
 }
-.member:hover .name-pill, .member:focus-visible .name-pill { opacity: 1; transform: translateY(0); }
 
-/* grid */
-.grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
-.weekday { color: #fff; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; text-align: center; }
+.member:hover .name-pill,
+.member:focus-visible .name-pill {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.grid-scroll-container {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(31, 42, 68, 0.35) transparent;
+  padding-right: 4px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.weekday {
+  color: var(--color-dark-grey);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: center;
+  position: sticky;
+  top: 0;
+  background-color: var(--color-white);
+  z-index: 2;
+  padding-bottom: 4px;
+}
+
 .day {
-  display: flex; flex-direction: column; align-items: stretch; gap: 3px;
-  min-height: 78px; min-width: 0; padding: 6px; border: 0; border-radius: 15px;
-  background: var(--card); color: var(--ink); text-align: left; cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 3px;
+  min-height: 78px;
+  min-width: 0;
+  padding: 6px;
+  border: 2px solid var(--color-grey);
+  border-radius: 15px;
+  background: var(--card);
+  color: var(--color-dark-grey);
+  text-align: left;
+  cursor: pointer;
 }
-.day.blank { background: transparent; cursor: default; }
-.day.free { background: var(--free); }
-.day.selected { box-shadow: inset 0 0 0 3px var(--ink); }
-.day-num { font-weight: 700; font-size: 12px; }
-.day.today .day-num { color: var(--lobby); text-decoration: underline; text-underline-offset: 3px; }
 
-/* chips */
+.day.blank {
+  background: transparent;
+  cursor: default;
+}
+
+.day.free {
+  background: var(--free);
+}
+
+.day.selected {
+  background-color: var(--color-yellow);
+  border: none;
+  color: var(--color-dark-yellow);
+}
+
+.day-num {
+  font-weight: 700;
+  font-size: 12px;
+  padding: 2px 0 0 4px;
+}
+
+.day.today .day-num {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 .chip {
-  padding: 3px 6px 2px; border-radius: 999px; background: var(--card); color: var(--ink);
-  font-size: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  padding: 4px 6px 0px;
+  border-radius: 999px;
+  background-color: var(--color-green);
+  color: var(--color-dark-green);
+  font-size: 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
-.chip-lobby { background: var(--lobby); color: #fff; font-weight: 700; }
-.more { padding-left: 4px; font-size: 10px; opacity: 0.7; }
 
-:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+.chip-lobby {
+  background-color: var(--color-blue);
+  color: var(--color-white);
+  font-weight: 700;
+}
 
-@media (prefers-reduced-motion: reduce) { .nav-btn, .member { transition: none; } }
+.more {
+  padding-left: 4px;
+  font-size: 10px;
+  opacity: 0.7;
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-white);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-btn,
+  .member {
+    transition: none;
+  }
+}
 </style>
