@@ -24,6 +24,12 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    // 'google' accounts sign in with Continue with Google; their password is random and unused
+    authProvider: {
+        type: String,
+        enum: ['local', 'google'],
+        default: 'local'
+    },
     avatar: {
         type: String,
         default: '/uploads/default.png'
@@ -107,6 +113,7 @@ userSchema.statics.createUser = function({
     displayName,
     email,
     password,
+    authProvider,
     dob,
     interests,
     avatar,
@@ -122,6 +129,7 @@ userSchema.statics.createUser = function({
         displayName,
         email,
         password,
+        authProvider,
         dob,
         interests,
         avatar,

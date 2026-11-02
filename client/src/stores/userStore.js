@@ -50,6 +50,13 @@ export const useUserStore = defineStore('user', () => {
     
   }
 
+  // Finishes "Continue with Google" for an existing user
+  async function loginWithGoogle(code) {
+    const response = await axios.post('http://localhost:8000/auth/google/signin/exchange', { code });
+    setUser(response.data.user);
+    return response.data;
+  }
+
   async function register(formData) {
     loading.value = true;
     error.value = null;
@@ -94,6 +101,7 @@ export const useUserStore = defineStore('user', () => {
     error, 
     isLoggedIn, 
     login, 
+    loginWithGoogle,
     register,
     checkUsername,
     logout, 
