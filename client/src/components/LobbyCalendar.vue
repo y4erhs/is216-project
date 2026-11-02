@@ -173,7 +173,7 @@ const days = computed(() => {
       key: dateKey(dayStart),
       num,
       chips: dayItems.map(toChip),
-      free: !dayItems.some((it) => it.type === 'member' || it.type === 'busy'),
+      free: dayItems.length === 0,
     })
   }
   return out

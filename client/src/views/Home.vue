@@ -11,7 +11,7 @@ import SideUpcoming from '../components/SideUpcoming.vue'
 
 import { useActivities } from '../composables/useActivities'
 import { useAuth } from '../composables/useAuth'
-import { INTERESTS } from '../utils/interests'
+import { INTERESTS, interestTheme } from '../utils/interests'
 
 const {
     activityMap,
@@ -38,22 +38,6 @@ const toDate = ref('')
 const appliedFromDate = ref('')
 const appliedToDate = ref('')
 
-// Interest folder color mapping
-const categoryThemeMap = {
-    'tech': 'theme-green',
-    'arts': 'theme-orange',
-    'culture': 'theme-yellow',
-    'community-service': 'theme-purple',
-    'sports-outdoors': 'theme-red',
-    'career': 'theme-purple',
-    'overseas': 'theme-orange',
-    'networking': 'theme-green',
-    'workshops': 'theme-purple',
-    'food': 'theme-red',
-    'wellness': 'theme-green',
-    'talks': 'theme-yellow'
-}
-
 const myInterests = ref([])
 
 // All, For you, then one tab per interest the user picked
@@ -73,7 +57,7 @@ const interestTabs = computed(() => [
         .map(interest => ({
             id: interest.id,
             label: interest.label,
-            theme: categoryThemeMap[interest.id] || 'theme-grey'
+            theme: interestTheme(interest.id)
         }))
 ])
 
