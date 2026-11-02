@@ -302,7 +302,7 @@
             placeholder="Select your Year of Study"
         />
 
-        <p v-if="errorMsg" style="color: #f09286;">{{ errorMsg }}</p>
+        <p v-if="errorMsg" style="color: #ffaf76;">{{ errorMsg }}</p>
 
 
         <div class="file-upload-container">
