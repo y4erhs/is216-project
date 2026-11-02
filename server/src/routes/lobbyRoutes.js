@@ -27,8 +27,6 @@ router.put('/:lobbyId/event', lobbyController.pitchEvent);
 
 router.post('/:lobbyId/plan-next', lobbyController.planNext);
 
-router.post('/:lobbyId/join', lobbyController.joinViaLink);
-
 router.get('/:lobbyId/calendar', lobbyCalendarController.getCalendar);
 
 module.exports = router;
