@@ -8,6 +8,7 @@ import CardInfo from './CardInfo.vue'
 import BaseButton from './BaseButton.vue'
 import { useActivities } from '../composables/useActivities'
 import { useAuth } from '../composables/useAuth'
+import { interestLabel } from '../utils/interests'
 
 const { activityMap, loadActivities, setInterested, setGoing, saveNote } = useActivities()
 const route = useRoute()
@@ -196,7 +197,7 @@ watch(myInterests, () => {
                 <label class="form-label small" for="search-category">Category</label>
                 <select id="search-category" class="form-select" v-model="category" v-on:change="selectCategory">
                     <option value="">All</option>
-                    <option v-for="c in categories" v-bind:key="c" v-bind:value="c">{{ c }}</option>
+                    <option v-for="c in categories" v-bind:key="c" v-bind:value="c">{{ interestLabel(c) }}</option>
                 </select>
             </div>
 

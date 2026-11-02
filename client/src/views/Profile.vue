@@ -1,5 +1,6 @@
 <script setup>
 import { ref, onMounted } from 'vue'
+import axios from 'axios'
 import '../assets/theme.css'
 
 import BaseButton from '../components/BaseButton.vue';
@@ -7,14 +8,17 @@ import BaseInput from '../components/BaseInput.vue';
 import CategoryPill from '@/components/CategoryPill.vue'
 import { useUserStore } from '../stores/userStore'
 import { useRouter } from 'vue-router'
-import { INTERESTS } from '../utils/interests'
+import { useAuth } from '../composables/useAuth'
+import { INTERESTS, MAX_INTERESTS } from '../utils/interests'
 
 
 const userStore = useUserStore()
 const router = useRouter()
+const { userId } = useAuth()
 
 onMounted(() => {
   console.log("CURRENT AUTH USER:", userStore.user, userStore.user?.displayName)
+  loadInterests()
 })
 
 const setting1Push = ref(true)
@@ -49,17 +53,47 @@ const gradOptions = ['2027', '2028', '2029', '2030']
 const clubs = ['SMUKI', 'Odyssey', 'Project Obscura']
 
 // State buat Interests & Floating Dropdown
-const categories = ref(['Tech', 'Arts'])
+const categories = ref([])
+const interestMessage = ref('')
+const savingInterests = ref(false)
 const showInterestDropdown = ref(false)
 
 // List semua opsi interest yang bisa dipilih
 const allAvailableInterests = INTERESTS
 
+async function loadInterests() {
+  try {
+    const response = await axios.get(`http://localhost:8000/api/users/${userId.value}/preferences`)
+    categories.value = response.data
+  } catch (error) {
+    console.log('There was an error: ' + error.message)
+  }
+}
+
 function toggleInterest(cat) {
+  interestMessage.value = ''
   if (categories.value.includes(cat)) {
     categories.value = categories.value.filter(item => item !== cat)
+  } else if (categories.value.length >= MAX_INTERESTS) {
+    interestMessage.value = `You can pick up to ${MAX_INTERESTS} interests.`
   } else {
     categories.value.push(cat)
+  }
+}
+
+async function saveInterests() {
+  savingInterests.value = true
+  interestMessage.value = ''
+  try {
+    await axios.put(`http://localhost:8000/api/users/${userId.value}`, { interests: categories.value })
+    localStorage.setItem('interestsChanged', 'true')   // Discover refreshes its recommendations
+    interestMessage.value = 'Interests saved!'
+    showInterestDropdown.value = false
+  } catch (error) {
+    interestMessage.value = 'Could not save. Please try again.'
+    console.log('There was an error: ' + error.message)
+  } finally {
+    savingInterests.value = false
   }
 }
 </script>
@@ -69,7 +103,9 @@ function toggleInterest(cat) {
 
     <div class="top-bar">
       <h1 class="page-title">PROFILE & ALERTS</h1>
-      <BaseButton class="save-btn">SAVE CHANGES</BaseButton>
+      <BaseButton class="save-btn" :disabled="savingInterests" @click="saveInterests">
+        {{ savingInterests ? 'SAVING...' : 'SAVE CHANGES' }}
+      </BaseButton>
     </div>
 
     <!-- MAIN GRID -->
@@ -134,16 +170,17 @@ function toggleInterest(cat) {
                   <!-- Floating Dropdown Box -->
                   <div v-if="showInterestDropdown" class="floating-dropdown">
                     <p class="dropdown-header">Select Interests</p>
-                    <div v-for="item in allAvailableInterests" :key="item" class="dropdown-item"
-                      @click="toggleInterest(item)">
-                      <input class="checkboxes" type="checkbox" :checked="categories.includes(item)"
-                        @click.stop="toggleInterest(item)" />
-                      <span>{{ item }}</span>
+                    <div v-for="item in allAvailableInterests" :key="item.id" class="dropdown-item"
+                      @click="toggleInterest(item.id)">
+                      <input class="checkboxes" type="checkbox" :checked="categories.includes(item.id)"
+                        @click.stop="toggleInterest(item.id)" />
+                      <span>{{ item.label }}</span>
                     </div>
                   </div>
                 </div>
 
               </div>
+              <p v-if="interestMessage" class="interest-message" role="status">{{ interestMessage }}</p>
             </div>
           </div>
         </div>
@@ -198,6 +235,11 @@ function toggleInterest(cat) {
   color: var(--color-white);
   font-family: 'HeaderFont';
   font-size: 25px;
+}
+
+.interest-message {
+  margin: 8px 0 0;
+  font-size: 11px;
 }
 
 .save-btn {

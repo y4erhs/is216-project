@@ -111,7 +111,7 @@ const displayTime = computed(() => {
 
             <div class="categories-row">
               <CategoryPill
-                v-for="(cat, index) in event.categories"
+                v-for="(cat, index) in event.tags"
                 :key="index"
                 :category="cat"
               />

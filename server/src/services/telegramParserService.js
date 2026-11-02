@@ -7,9 +7,9 @@ const client = new OpenAI({
     baseURL: process.env.OPENAI_BASE_URL || undefined
 });
 
-// The only tags an event can have. Same list as the interests users pick,
-// so the Discover tabs and recommendations line up with them.
-const ALLOWED_TAGS = ['Tech', 'Arts', 'Culture', 'Community Service'];
+// The only tags an event can have. Same ids as the interests users pick
+// (client/src/utils/interests.js), so the Discover tabs and recommendations line up with them.
+const ALLOWED_TAGS = ['tech', 'arts', 'culture', 'community-service', 'sports-outdoors', 'career', 'overseas', 'networking', 'workshops', 'food', 'wellness', 'talks'];
 
 exports.parseMessage = async (msgDoc) => {
     try {
@@ -30,7 +30,7 @@ Otherwise reply with ONLY a JSON object in this exact format:
   "organiser": "<organising CCA or club, or null>",
   "venue": "<venue, or null>",
   "sessions": [{"startTime": "<ISO 8601 with +08:00>", "endTime": "<ISO 8601 with +08:00, or null>"}],
-  "tags": [<1 or 2 tags that fit best, chosen only from: ${ALLOWED_TAGS.join(', ')}>]
+  "tags": [<1 to 3 tags that fit best, chosen only from: ${ALLOWED_TAGS.join(', ')}>]
 }
 All times are Singapore time. Never invent details; use null if something is not stated.`;
 
@@ -70,10 +70,8 @@ All times are Singapore time. Never invent details; use null if something is not
             organiser: data.organiser || msgDoc.chatTitle,
             venue: data.venue || 'TBC',
             sessions,
-            // keep only allowed tags, spelt exactly as in ALLOWED_TAGS (the AI may change the case)
-            tags: [...new Set((data.tags || [])
-                .map(t => ALLOWED_TAGS.find(a => a.toLowerCase() === String(t).trim().toLowerCase()))
-                .filter(Boolean))],
+            // keep only allowed tags (the AI may change the case)
+            tags: [...new Set((data.tags || []).map(t => String(t).trim().toLowerCase()))].filter(t => ALLOWED_TAGS.includes(t)),
             source: 'telegram',
             sourceLink: chatIdStr.startsWith('-100')
                 ? `https://t.me/c/${chatIdStr.slice(4)}/${msgDoc.messageId}`
