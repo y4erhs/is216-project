@@ -393,15 +393,10 @@ async function saveProfile() {
   align-items: start;
 }
 
+/* The sidebar takes up room on tablets, so two columns would be squeezed */
 @media (max-width: 991px) {
   .profile-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-
-@media (max-width: 767px) {
-  .profile-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 

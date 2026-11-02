@@ -3,6 +3,7 @@
   The shared calendar for one lobby. Shown in the Shared calendar tab of Lobby.vue.
   Props: lobbyId, userId
   Emits: select-day({ date: "YYYY-MM-DD", chips }) or select-day(null) when nothing is selected
+         day-tapped when the user picks a day
 -->
 <template>
   <section class="cal">
@@ -48,6 +49,13 @@
               :title="chip.text">{{ chip.text }}</span>
 
         <span v-if="day.chips.length > 2" class="more">+{{ day.chips.length - 2 }} more</span>
+
+        <!-- narrow screens: dots instead of chips; tapping the day shows the details -->
+        <span v-if="day.chips.length" class="dots" aria-hidden="true">
+          <i v-for="(chip, i) in day.chips.slice(0, 3)" :key="i" class="dot"
+             :style="{ background: chip.colour || 'var(--lobby)' }"></i>
+          <span v-if="day.chips.length > 3" class="dots-more">+{{ day.chips.length - 3 }}</span>
+        </span>
       </button>
     </div>
   </section>
@@ -65,7 +73,7 @@ const props = defineProps({
   lobbyId: { type: String, required: true },
   userId: { type: String, default: null },
 })
-const emit = defineEmits(['select-day'])
+const emit = defineEmits(['select-day', 'day-tapped'])
 
 /* ---------- state ---------- */
 const now = new Date()
@@ -181,6 +189,7 @@ function toChip(it) {
 /* ---------- selecting a day ---------- */
 function selectDay(key) {
   selectedDay.value = key
+  emit('day-tapped')
 }
 
 // Tell the lobby page about the selected day, and again when its chips change
@@ -263,6 +272,20 @@ watch(
 .more { padding-left: 4px; font-size: 10px; opacity: 0.7; }
 
 :focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+
+.dots { display: none; }
+
+/* Narrow screens: days are too small for text, so each item is a dot */
+@media (max-width: 900px) {
+  .grid { gap: 4px; }
+  .weekday { font-size: 10px; letter-spacing: 0.02em; }
+  .day { min-height: 58px; padding: 5px 3px; border-radius: 10px; align-items: center; text-align: center; }
+  .chip, .more { display: none; }
+  .dots { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 3px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .dots-more { font-size: 9px; line-height: 1; }
+  .section-title { font-size: 18px; }
+}
 
 @media (prefers-reduced-motion: reduce) { .nav-btn, .member { transition: none; } }
 </style>

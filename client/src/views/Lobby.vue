@@ -170,7 +170,7 @@
         <!-- ===== Shared calendar ===== -->
         <template #calendar>
           <div class="pane">
-            <LobbyCalendar ref="calendarEl" :lobby-id="lobbyId" :user-id="userId" @select-day="selectedDay = $event" />
+            <LobbyCalendar ref="calendarEl" :lobby-id="lobbyId" :user-id="userId" @select-day="selectedDay = $event" @day-tapped="showDayPanel" />
           </div>
         </template>
       </FolderTabs>
@@ -191,7 +191,7 @@
     </main>
 
     <!-- ───── Selected day (only on the Shared calendar tab) ───── -->
-    <aside v-if="tab === 'calendar'" class="panel-wrap" aria-label="Selected day">
+    <aside v-if="tab === 'calendar'" ref="dayPanelEl" class="panel-wrap" aria-label="Selected day">
       <div class="side-panel day-panel">
         <!-- every lobby member is invited, so the form hides its friend picker -->
         <PlanForm v-if="showPlanForm" :user-id="userId" :lobby-id="lobbyId" :date="selectedDay?.date || ''"
@@ -281,7 +281,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch, onMounted, onBeforeUnmount } from 'vue'
+import { ref, reactive, computed, watch, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import FolderTabs from '../components/FolderTabs.vue'
 import LobbyInvite from '../views/LobbyInvite.vue'
 import LobbyCalendar from '../components/LobbyCalendar.vue'
@@ -320,6 +320,14 @@ const selectedDayLabel = computed(() => selectedDay.value &&
   new Date(`${selectedDay.value.date}T00:00`).toLocaleDateString('en-SG', { weekday: 'long', day: 'numeric', month: 'long' }))
 const showPlanForm = ref(false)
 const calendarEl = ref(null)
+const dayPanelEl = ref(null)
+
+// On narrow screens the panel sits under the calendar, so bring it into view
+function showDayPanel() {
+  if (window.matchMedia('(max-width: 900px)').matches) {
+    nextTick(() => dayPanelEl.value?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
+  }
+}
 const folderKey = ref(0)
 function goTo(id) {
   tab.value = id
@@ -715,6 +723,7 @@ button.badge-pill:disabled { opacity: 0.45; cursor: not-allowed; }
   .panel-wrap { min-height: 0; }
   .side-panel { position: static; max-height: 480px; }
   .stage { min-height: 640px; }
+  .app { min-height: 0; max-height: none; overflow-y: visible; }   /* only the page scrolls */
 }
 @media (max-width: 720px) {
   .people { grid-template-columns: 1fr; }

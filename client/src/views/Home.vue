@@ -759,6 +759,11 @@ function handleRegister(url) {
     .folder-cards-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
+
+    .discover-header,
+    .discover-controls {
+        flex-wrap: wrap;
+    }
 }
 
 @media (max-width: 900px) {
@@ -815,8 +820,8 @@ function handleRegister(url) {
     }
 }
 
-/* Phones: the whole page scrolls, with the folder first and Coming up underneath */
-@media (max-width: 700px) {
+/* Tablets and phones: the whole page scrolls, with the folder first and Coming up underneath */
+@media (max-width: 900px) {
     .home-page-container,
     .discover-container {
         height: auto;
@@ -825,8 +830,23 @@ function handleRegister(url) {
     }
 
     .discover-main-layout {
+        grid-template-columns: minmax(0, 1fr);
         grid-template-rows: auto auto;
         overflow: visible;
+    }
+
+    .discover-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .discover-controls {
+        flex-wrap: wrap;
+        justify-content: flex-start;
+    }
+
+    .folder-cards-grid {
+        grid-template-columns: minmax(0, 1fr);
     }
 
     .folder-wrapper {

@@ -305,5 +305,11 @@ function clear() {
 .empty h3 { margin: 0; font: 400 16px/1.2 'HeaderFont', sans-serif; }
 .empty p { margin: 0 0 6px; }
 
+/* Only the page scrolls on narrow screens */
+@media (max-width: 900px) {
+  .app { max-height: none; overflow-y: visible; }
+  .sticky { position: static; }   /* the filters would fill a phone screen if pinned */
+}
+
 @media (prefers-reduced-motion: reduce) { .btn, .lobby, .chip { transition: none; } }
 </style>
