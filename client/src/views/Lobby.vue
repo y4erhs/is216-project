@@ -47,6 +47,7 @@
         <template #invite>
           <div class="pane">
             <section>
+<<<<<<< HEAD
               <h3 class="section-title">Invite link</h3>
               <p class="section-sub">Anyone with the link can join the lobby.</p>
               <div class="link-box">
@@ -57,6 +58,8 @@
             </section>
 
             <section>
+=======
+>>>>>>> 6cb8309a2533c74021678adf99bd55c6ab8a7bb7
               <h3 class="section-title">Invite friends</h3>
               <p v-if="!friends.length" class="section-sub">
                 No friends yet. <RouterLink to="/friends" style="color:#fff">Add some</RouterLink>
@@ -87,7 +90,7 @@
                   <span class="live-text">Live Update</span>
                 </span>
               </div>
-              <p v-if="members.length === 1" class="section-sub">No one invited yet. Add friends or share the link.</p>
+              <p v-if="members.length === 1" class="section-sub">No one invited yet. Add friends from the Invite tab.</p>
 
               <div class="scroll">
                 <TransitionGroup name="roster" tag="ul" class="people" aria-live="polite">
@@ -104,7 +107,6 @@
                       <span class="avatar" :style="{ background: m.color || 'var(--color-white)' }">{{ initials(m.name) }}</span>
                       <span class="who">
                         {{ m.name }}
-                        <small v-if="m.via === 'link'" class="via">via link</small>
                       </span>
                       <span v-if="m.id === lobby.hostId" class="badge-pill pill-host">Host</span>
                       <span v-else class="badge-pill" :class="`pill-${m.status}`">{{ statusLabel[m.status] }}</span>
@@ -274,9 +276,8 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch, onMounted, onBeforeUnmount } from 'vue'
+import { ref, reactive, computed, watch, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import FolderTabs from '../components/FolderTabs.vue'
-import LobbyInvite from '../views/LobbyInvite.vue'
 import LobbyCalendar from '../components/LobbyCalendar.vue'
 import PlanForm from '../components/PlanForm.vue'
 import BaseButton from '../components/BaseButton.vue'
@@ -286,7 +287,7 @@ import { useLobbies, daysAgo, timeAgo, INACTIVE_DAYS } from '../composables/useL
 const props = defineProps({
   lobbyId: { type: String, required: true },
 })
-const emit = defineEmits(['back', 'deleted', 'invite', 'remove', 'register', 'respond'])
+const emit = defineEmits(['back', 'deleted', 'invite', 'remove', 'register'])
 
 const store = useLobbies()
 const { userId } = useAuth()
@@ -311,6 +312,14 @@ const selectedDayLabel = computed(() => selectedDay.value &&
   new Date(`${selectedDay.value.date}T00:00`).toLocaleDateString('en-SG', { weekday: 'long', day: 'numeric', month: 'long' }))
 const showPlanForm = ref(false)
 const calendarEl = ref(null)
+const dayPanelEl = ref(null)
+
+// On narrow screens the panel sits under the calendar, so bring it into view
+function showDayPanel() {
+  if (window.matchMedia('(max-width: 900px)').matches) {
+    nextTick(() => dayPanelEl.value?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
+  }
+}
 const folderKey = ref(0)
 function goTo(id) {
   tab.value = id
@@ -463,7 +472,6 @@ function onEsc(e) {
   if (e.key !== 'Escape') return
   viewingId.value = null
   confirmingDelete.value = false
-  removingId.value = null
 }
 onMounted(() => window.addEventListener('keydown', onEsc))
 onBeforeUnmount(() => window.removeEventListener('keydown', onEsc))

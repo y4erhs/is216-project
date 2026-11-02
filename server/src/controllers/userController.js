@@ -1,5 +1,6 @@
 const { LengthFinishReasonError } = require('openai/error.js');
 const User = require('../models/user');
+const GoogleSignInCode = require('../models/googleSignInCode');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 
@@ -21,8 +22,21 @@ exports.createUser = async (req, res) => {
     try {
         let {
             username, fullName, displayName, email, password,
-            dob, interests, avatar, banner, bio, school, major, year, ccas
+            dob, interests, avatar, banner, bio, school, major, year, ccas, googleCode
         } = req.body;
+
+        // Signing up with Google: the verified email comes from Google, and there's no password to choose
+        let googleSignup = null;
+        if (googleCode) {
+            googleSignup = await GoogleSignInCode.findOne({
+                code: String(googleCode), kind: 'signup', expiresAt: { $gt: new Date() }
+            });
+            if (!googleSignup) {
+                return res.status(400).json({ message: 'That Google sign-up has expired. Please try again.' });
+            }
+            email = googleSignup.email;
+            password = crypto.randomBytes(32).toString('hex') + 'Aa1!';
+        }
 
         if (!username || !email || !password) {
             return res.status(400).json({
@@ -59,8 +73,11 @@ exports.createUser = async (req, res) => {
             username, fullName, displayName,
             email,
             password: hashedPassword,
+            authProvider: googleSignup ? 'google' : 'local',
             dob, interests, avatar, banner, bio, school, major, year, ccas
         });
+
+        if (googleSignup) await GoogleSignInCode.deleteOne({ _id: googleSignup._id });
 
         const result = user.toObject();
         delete result.password;
@@ -124,6 +141,12 @@ exports.login = async(req,res) =>{
             });
         }
 
+        if (user.authProvider === 'google') {
+            return res.status(401).json({
+                message: 'This account uses Continue with Google.'
+            });
+        }
+
         const match = await bcrypt.compare(
             password, user.password
         )
@@ -161,6 +184,9 @@ exports.forgotPassword = async (req, res) => {
         if (!user) {
             return res.status(404).json({ message: 'This email is not registered in our database.' });
         }
+        if (user.authProvider === 'google') {
+            return res.status(400).json({ message: 'This account uses Continue with Google, so it has no password to reset.' });
+        }
 
         // 2. Generate a secure reset token & expiration (valid for 1 hour)
         const resetToken = crypto.randomBytes(32).toString('hex');
@@ -169,7 +195,7 @@ exports.forgotPassword = async (req, res) => {
         await user.save();
 
         // 3. Simulate sending email (Check your backend terminal for this link!)
-        const resetUrl = `http://localhost:5173/reset-password/${resetToken}`;
+        const resetUrl = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
         console.log(`🔗 PASSWORD RESET LINK for ${email}: ${resetUrl}`);
 
         return res.status(200).json({ 

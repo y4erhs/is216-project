@@ -166,7 +166,7 @@ watch(() => props.modelValue, (newVal) => {
   background-color: var(--bg, #d1d5db);
   color: var(--text, #1f2937);
   height: 40px;
-  padding: 0 10px 0 16px; 
+  padding: 0 10px 0 20px; 
   border-top-left-radius: 16px;
   border-top-right-radius: 0;
   flex: 1 1 auto;
@@ -184,9 +184,9 @@ watch(() => props.modelValue, (newVal) => {
   flex: 1 1 50px;
   min-width: 45px;
   max-width: 95px;
-
   margin-right: -16px;
-  padding: 0 4px 0 14px;
+  padding: 0 4px 0 25px;
+  overflow: visible;
 }
 
 .tabs-header.overflow-mode .folder-tab:not(:first-child):hover {
@@ -228,16 +228,15 @@ watch(() => props.modelValue, (newVal) => {
 }
 
 .folder-tab-text {
-  font-size: 11.5px;
+  font-size: 11px;
   white-space: nowrap;
-  overflow: visible; 
-  text-overflow: clip;
+  overflow: hidden;        
+  text-overflow: ellipsis; 
   display: block;
   width: 100%;
   text-align: center;
-  
   position: relative;
-  right: -4px;
+  right: 0;
 }
 
 /* =========================================
@@ -366,5 +365,36 @@ watch(() => props.modelValue, (newVal) => {
   box-sizing: border-box;
 
   isolation: isolate;
+}
+
+/* Phones: every tab stays on screen, sharing the width equally */
+@media (max-width: 767.98px) {
+  .tabs-header,
+  .tabs-header.overflow-mode {
+    gap: 0;
+    padding-right: 18px;
+    box-sizing: border-box;
+  }
+
+  .folder-tab,
+  .tabs-header.overflow-mode .folder-tab,
+  .tabs-header.overflow-mode .folder-tab:not(:first-child):hover,
+  .tabs-header.overflow-mode .folder-tab:first-child:hover {
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: none;
+    margin: 0;
+    padding: 0 0 0 20px;   /* clear of the previous tab's curved edge */
+  }
+
+  .folder-tab:first-child {
+    padding-left: 8px;
+  }
+
+  .folder-tab-text {
+    padding-left: 0;
+    font-size: 10.5px;
+    letter-spacing: 0;
+  }
 }
 </style>

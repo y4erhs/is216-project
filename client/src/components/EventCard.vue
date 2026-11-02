@@ -4,6 +4,7 @@ import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
 import BaseButton from './BaseButton.vue'
 import BaseInput from './BaseInput.vue'
 import { formatSession, sessionKey } from '../utils/formatSession'
+import { API_URL } from '../utils/api'
 
 const props = defineProps({
   event: { type: Object, required: true },
@@ -12,7 +13,8 @@ const props = defineProps({
   fromDate: { type: String, default: '' },
   score: { type: Number, default: null },
   userSchedule: { type: Array, default: () => [] },
-  variant: { type: String, default: 'discover' }
+  variant: { type: String, default: 'discover' },
+  showLessLike: { type: Boolean, default: false }
 })
 
 const emit = defineEmits([
@@ -201,7 +203,8 @@ const matchBadgeClass = computed(() =>
   props.score >= 80 ? 'badge-green' : 'badge-orange'
 )
 
-const API_URL = 'http://localhost:8000'
+
+const imageFailed = ref(false)   // show the placeholder if the image can't load
 
 const imageSrc = computed(() =>
   props.event.image?.startsWith('/')
@@ -216,10 +219,11 @@ const imageSrc = computed(() =>
     <!-- LEFT: A4 POSTER -->
     <div class="poster-container">
       <img
-        v-if="event.image"
+        v-if="event.image && !imageFailed"
         :src="imageSrc"
         :alt="event.title"
         class="poster-img"
+        @error="imageFailed = true"
       />
       <div v-else class="poster-placeholder"></div>
     </div>
@@ -241,7 +245,7 @@ const imageSrc = computed(() =>
         <span v-else-if="variant !== 'discover'"></span>
 
         <button
-          v-if="variant === 'discover'"
+          v-if="showLessLike"
           type="button"
           class="card-action-link"
           @click.stop="emit('less-like-this', event._id || event.id)"

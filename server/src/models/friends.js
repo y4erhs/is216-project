@@ -39,6 +39,11 @@ friendSchema.statics.sendFriendRequest = async function (requesterId, receiverId
   return this.create({ requester: requesterId, receiver: receiverId });
 };
 
+friendSchema.statics.getSentRequests = function (userId) {
+  return this.find({ requester: userId, status: 'pending' })
+    .populate('receiver', 'username');
+};
+
 friendSchema.statics.getPendingRequests = function (userId) {
   return this.find({ receiver: userId, status: 'pending' })
     .populate('requester', 'username');

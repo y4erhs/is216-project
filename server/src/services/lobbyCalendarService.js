@@ -159,8 +159,9 @@ async function getLobbyCalendar(lobbyId, userId, month) {
     });
 
     otherPlans.forEach(p => {
+        const declined = p.declined.map(String);   // saying no to a plan means they're not busy
         const involved = new Set(
-            [p.creator, ...p.invitees].map(String).filter(id => memberMap.has(id))
+            [p.creator, ...p.invitees].map(String).filter(id => memberMap.has(id) && !declined.includes(id))
         );
         involved.forEach(memberId => {
             items.push({

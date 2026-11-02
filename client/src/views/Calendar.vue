@@ -4,8 +4,9 @@ import { useAuth } from '../composables/useAuth'
 import GoogleCalendarCard from '@/components/GoogleCalendarCard.vue'
 import PlanForm from '@/components/PlanForm.vue'
 import ScheduleAlerts from '@/components/ScheduleAlerts.vue'
+import PlansList from '@/components/PlansList.vue'
+import { API_URL } from '../utils/api'
 
-const API_URL = 'http://localhost:8000'
 const { userId } = useAuth()
 
 const connected = ref(false)
@@ -13,6 +14,7 @@ const googleEmail = ref(null)
 const loading = ref(true)
 const message = ref('')
 const showPlanForm = ref(false)
+const editingPlan = ref(null)   // the plan open in the form, if editing
 const calendarKey = ref(0)   // changing this reloads the calendar
 const alertsKey = ref(0)   // changing this reloads the alerts
 
@@ -32,6 +34,11 @@ async function loadStatus() {
     } finally {
         loading.value = false
     }
+}
+
+function openPlanForm(plan = null) {
+  editingPlan.value = plan
+  showPlanForm.value = true
 }
 
 function refreshAll() {
@@ -60,10 +67,11 @@ onMounted(loadStatus)
 
     <aside class="calendar-side">
     <template v-if="!showPlanForm">
-      <button type="button" class="btn-make-plan" @click="showPlanForm = true">
+      <button type="button" class="btn-make-plan" @click="openPlanForm()">
         Make your own plan!
       </button>
       <ScheduleAlerts class="side-alerts" :user-id="userId" :refresh-key="alertsKey" />
+      <PlansList :user-id="userId" :refresh-key="alertsKey" @edit="openPlanForm" @changed="refreshAll" @replied="alertsKey++" />
       <GoogleCalendarCard
         :user-id="userId"
         @synced="refreshAll"
@@ -74,6 +82,7 @@ onMounted(loadStatus)
     <PlanForm
       v-else
       :user-id="userId"
+      :plan="editingPlan"
       @close="showPlanForm = false"
       @created="refreshAll"
     />

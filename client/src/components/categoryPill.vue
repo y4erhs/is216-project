@@ -1,5 +1,5 @@
 <script setup>
-import { interestLabel } from '../utils/interests'
+import { interestLabel, interestTheme } from '../utils/interests'
 
 const props = defineProps({
   category: {
@@ -11,21 +11,6 @@ const props = defineProps({
     default: 'category'
   }
 })
-
-const categoryThemeMap = {
-  'tech': 'theme-blue',
-  'arts': 'theme-orange',
-  'culture': 'theme-yellow',
-  'community-service': 'theme-purple',
-  'sports-outdoors': 'theme-red',
-  'career': 'theme-purple',
-  'overseas': 'theme-orange',
-  'networking': 'theme-blue',
-  'workshops': 'theme-purple',
-  'food': 'theme-red',
-  'wellness': 'theme-green',
-  'talks': 'theme-yellow'
-}
 
 const clubThemes = ['theme-purple', 'theme-orange', 'theme-green', 'theme-blue', 'theme-yellow', 'theme-red']
 
@@ -42,8 +27,7 @@ function getThemeClass(name, type) {
     
     return clubThemes[index]
   } else {
-    const key = name.toLowerCase().replace(/\s+/g, '-')
-    return categoryThemeMap[key] || 'theme-grey'
+    return interestTheme(name.toLowerCase().replace(/\s+/g, '-'))
   }
 }
 </script>

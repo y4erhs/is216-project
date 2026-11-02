@@ -4,6 +4,7 @@
     import BaseButton from '../components/BaseButton.vue';
     import { useAuth } from '../composables/useAuth';
     import { interestLabel } from '../utils/interests';
+    import { API_URL } from '../utils/api';
 
 
     const props = defineProps({
@@ -19,7 +20,7 @@
 
 
     async function loadPreferences () {
-        let url = "http://localhost:8000/api/users/" + userId.value + "/preferences"
+        let url = `${API_URL}/api/users/` + userId.value + "/preferences"
 
         try {
             let response = await axios.get(url, {})

@@ -4,6 +4,7 @@ import { ref, computed, onMounted, inject } from 'vue'
 import FolderTabs from '../components/FolderTabs.vue'
 import EventCard from '../components/EventCard.vue'
 import CardInfo from '../components/CardInfo.vue'
+import SideUpcoming from '../components/SideUpcoming.vue'
 import BaseButton from '../components/BaseButton.vue'
 import { useActivities } from '../composables/useActivities'
 import { useAuth } from '../composables/useAuth'
@@ -227,6 +228,7 @@ onMounted(async () => {
 
       <!-- RIGHT: SIDE BOX -->
       <div class="side-box-container">
+        <SideUpcoming />
       </div>
 
     </div>
@@ -447,9 +449,9 @@ onMounted(async () => {
 .side-box-container {
   height: calc(100% - 38px);
   margin-top: 38px;
-  background-color: var(--color-white, #ffffff);
+  background-color: var(--color-grey);
   border-radius: 25px;
-  padding: 20px;
+  padding: 15px;
   box-sizing: border-box;
   box-shadow: 0 4px 14px rgba(10, 29, 43, 0.08);
   overflow-y: auto;
@@ -466,5 +468,36 @@ onMounted(async () => {
     display: flex;
     flex-direction: column;
     overflow: hidden;
+}
+
+/* Tablets and phones: the whole page scrolls, with the folder first and Coming up underneath */
+@media (max-width: 900px) {
+  .activity-page-container {
+    height: auto;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .activity-main-layout {
+    grid-template-columns: minmax(0, 1fr);
+    overflow: visible;
+  }
+
+  .folder-cards-grid,
+  .folder-cards-grid.navbar-collapsed {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .folder-wrapper {
+    height: 75vh;
+    height: 75dvh;
+    min-height: 420px;
+  }
+
+  .side-box-container {
+    height: auto;
+    margin-top: 0;
+    overflow: visible;
+  }
 }
 </style>

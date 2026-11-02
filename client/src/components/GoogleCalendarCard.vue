@@ -4,12 +4,12 @@ import { useRoute, useRouter } from 'vue-router'
 import '../assets/theme.css'
 import BaseButton from '../components/BaseButton.vue';
 import { computed } from 'vue'
+import { API_URL } from '../utils/api'
 
 const props = defineProps({
     userId: { type: String, required: true }
 })
 
-const API_URL = 'http://localhost:8000'
 const route = useRoute()
 const router = useRouter()
 

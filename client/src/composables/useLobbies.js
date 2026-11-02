@@ -2,8 +2,8 @@
 // Shared lobby state for every lobby page, now backed by the real API.
 import { reactive } from 'vue'
 import { useAuth } from './useAuth'
+import { API_URL } from '../utils/api'
 
-const API_URL = 'http://localhost:8000'
 export const INACTIVE_DAYS = 14
 
 const DAY = 86400000
@@ -190,14 +190,6 @@ export function useLobbies() {
     myStatus,
     needsReply: (l) => l.hostId !== meId() && !l.registered && myStatus(l) === 'pending',
     isInactive: (l) => daysAgo(l.lastActiveAt) >= INACTIVE_DAYS,
-
-    // NEW: look at a lobby without adding it to your list (used by the join page)
-    preview: (id) => api(`/api/lobbies/lobby/${id}`),
-    // NEW: join through the shared link
-    async joinLobby(id) {
-      await api(`/api/lobbies/${id}/join`, { method: 'POST', body: { userId: meId() } })
-      await refresh(id)
-    },
 
     async createLobby({ name, description }) {
       const raw = await api('/api/lobbies', {

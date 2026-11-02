@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import axios from 'axios';
 import { useAuth } from '../composables/useAuth';
+import { API_URL } from '../utils/api';
 
 const STORAGE_KEY = 'user';
 
@@ -29,7 +30,7 @@ export const useUserStore = defineStore('user', () => {
       // Support both passing an object {username, password} or separate arguments
       const userInput = typeof credentials === 'object' ? credentials : { username: credentials.username, password: credentials.password };
       
-      const response = await axios.post('http://localhost:8000/api/users/login', userInput);
+      const response = await axios.post(`${API_URL}/api/users/login`, userInput);
       console.log("2. SERVER REPLIED SUCCESSFULLY");
 
       const data = response.data;
@@ -50,11 +51,18 @@ export const useUserStore = defineStore('user', () => {
     
   }
 
+  // Finishes "Continue with Google" for an existing user
+  async function loginWithGoogle(code) {
+    const response = await axios.post(`${API_URL}/auth/google/signin/exchange`, { code });
+    setUser(response.data.user);
+    return response.data;
+  }
+
   async function register(formData) {
     loading.value = true;
     error.value = null;
     try {
-      const response = await axios.post('http://localhost:8000/api/users/register', formData);
+      const response = await axios.post(`${API_URL}/api/users/register`, formData);
       setUser(response.data);   // a new user is logged in straight away
       return response.data;
     } catch (err) {
@@ -67,7 +75,7 @@ export const useUserStore = defineStore('user', () => {
 
   async function checkUsername(username) {
     try {
-      const response = await axios.get(`http://localhost:8000/api/users/check-username/${username}`);
+      const response = await axios.get(`${API_URL}/api/users/check-username/${username}`);
       
       console.log("SERVER CHECK-USERNAME RESPONSE:", response.data);
       return response.data.exists; 
@@ -94,6 +102,7 @@ export const useUserStore = defineStore('user', () => {
     error, 
     isLoggedIn, 
     login, 
+    loginWithGoogle,
     register,
     checkUsername,
     logout, 

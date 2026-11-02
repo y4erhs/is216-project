@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import axios from 'axios'
 
 import EventCard from '../components/EventCard.vue'
@@ -7,10 +7,12 @@ import BaseButton from '../components/BaseButton.vue'
 import FolderTabs from '../components/FolderTabs.vue'
 import BaseInput from '../components/BaseInput.vue'
 import CardInfo from '../components/CardInfo.vue'
+import SideUpcoming from '../components/SideUpcoming.vue'
 
 import { useActivities } from '../composables/useActivities'
 import { useAuth } from '../composables/useAuth'
-import { INTERESTS } from '../utils/interests'
+import { INTERESTS, interestTheme } from '../utils/interests'
+import { API_URL } from '../utils/api'
 
 const {
     activityMap,
@@ -21,8 +23,11 @@ const {
 } = useActivities()
 const { userId } = useAuth()
 
+const ONE_DAY_MS = 24 * 60 * 60 * 1000
+const REFRESH_DELAY_MS = 1500
+
 const recommendations = ref([])
-const allEvents = ref([])   // every event, for the All tab
+const allEvents = ref([])   // this month's and later events, for the All and interest tabs
 const feedType = ref('weekly')
 const loading = ref(false)
 const allLoading = ref(false)
@@ -66,7 +71,7 @@ const interestTabs = computed(() => [
 
 async function loadMyInterests() {
     try {
-        const response = await axios.get(`http://localhost:8000/api/users/${userId.value}/preferences`)
+        const response = await axios.get(`${API_URL}/api/users/${userId.value}/preferences`)
         myInterests.value = response.data
     } catch (error) {
         console.log('There was an error: ' + error.message)
@@ -79,14 +84,14 @@ const activeInterest = ref('all')
 async function loadRecommendations() {
     loading.value = true
 
-    const url = `http://localhost:8000/api/recommendations/user/${userId.value}?feedType=${feedType.value}`
+    const url = `${API_URL}/api/recommendations/user/${userId.value}?feedType=${feedType.value}`
 
     try {
         let response = await axios.get(url)
 
         if (response.data.length === 0) {
             await axios.post(
-                'http://localhost:8000/api/recommendations/generate',
+                `${API_URL}/api/recommendations/generate`,
                 {
                     userId: userId.value,
                     feedType: feedType.value
@@ -105,26 +110,20 @@ async function loadRecommendations() {
     }
 }
 
-// Load every event for the All tab
+// Load the events for the All and interest tabs
 async function loadAllEvents() {
     allLoading.value = true
 
     try {
-        const response = await axios.get('http://localhost:8000/api/events')
+        // Upcoming events, plus ones already over from this month
+        const thisMonth = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Singapore' }).slice(0, 7)
+        const response = await axios.get(`${API_URL}/api/events`, { params: { from: `${thisMonth}-01` } })
         allEvents.value = response.data
     } catch (error) {
         console.log('There was an error: ' + error.message)
     } finally {
         allLoading.value = false
     }
-}
-
-// Switch between daily and weekly feeds
-function switchFeed(type) {
-    if (feedType.value === type) return
-
-    feedType.value = type
-    loadRecommendations()
 }
 
 // Apply date filters
@@ -207,7 +206,7 @@ function matchesInterestFilter(event) {
 }
 
 // Cards to show, filtered by the dates:
-// All = every event, For you = top recommendations, other tabs = every event with that tag
+// All = this month's and later events, For you = top recommendations, other tabs = those events with that tag
 const filteredCards = computed(() => {
     if (activeInterest.value === 'for-you') {
         return recommendations.value
@@ -224,20 +223,28 @@ const filteredCards = computed(() => {
 const cardsLoading = computed(() =>
     activeInterest.value === 'for-you' ? loading.value : allLoading.value)
 
+// Picks are refreshed once a day, so new events can show up
+function picksAreOld() {
+    if (recommendations.value.length === 0) return false
+
+    const newest = Math.max(...recommendations.value.map(rec => new Date(rec.createdAt).getTime()))
+    return Date.now() - newest > ONE_DAY_MS
+}
+
 // Regenerate recommendations
 async function regenerateRecommendations() {
     updating.value = true
 
     try {
         await axios.post(
-            'http://localhost:8000/api/recommendations/generate',
+            `${API_URL}/api/recommendations/generate`,
             {
                 userId: userId.value,
                 feedType: feedType.value
             }
         )
 
-        const url = `http://localhost:8000/api/recommendations/user/${userId.value}?feedType=${feedType.value}`
+        const url = `${API_URL}/api/recommendations/user/${userId.value}?feedType=${feedType.value}`
 
         const response = await axios.get(url)
         recommendations.value = response.data
@@ -246,10 +253,44 @@ async function regenerateRecommendations() {
         console.log('There was an error: ' + error.message)
     } finally {
         updating.value = false
+
+        // Something was hidden during this refresh, so the picks need to take it into account
+        if (refreshAgain) {
+            refreshAgain = false
+            regenerateRecommendations()
+        }
     }
 }
 
+// "Less like this": the card goes straight away, and the AI avoids similar events from now on
+let refreshTimer = null
+let refreshAgain = false
+
+async function lessLikeThis(eventId) {
+    const rec = recommendations.value.find(item => item.event?._id === eventId)
+    if (!rec) return
+
+    recommendations.value = recommendations.value.filter(item => item._id !== rec._id)
+
+    try {
+        await axios.put(`${API_URL}/api/recommendations/${rec._id}/less-like`, { userId: userId.value })
+    } catch (error) {
+        console.log('There was an error: ' + error.message)
+        recommendations.value = [...recommendations.value, rec].sort((a, b) => b.score - a.score)   // put it back
+        return
+    }
+
+    // Wait a moment, so hiding a few events in a row only asks the AI once
+    clearTimeout(refreshTimer)
+    refreshTimer = setTimeout(() => {
+        if (updating.value) refreshAgain = true
+        else regenerateRecommendations()
+    }, REFRESH_DELAY_MS)
+}
+
 // Initial loading
+onBeforeUnmount(() => clearTimeout(refreshTimer))
+
 onMounted(async () => {
     loadActivities()
     loadAllEvents()
@@ -257,10 +298,11 @@ onMounted(async () => {
 
     await loadRecommendations()
 
-    if (localStorage.getItem('interestsChanged') === 'true') {
-        localStorage.removeItem('interestsChanged')
-        regenerateRecommendations()
-    }
+    const interestsChanged = localStorage.getItem('interestsChanged') === 'true'
+    if (interestsChanged) localStorage.removeItem('interestsChanged')
+
+    // The current picks stay on screen while the new ones load
+    if (interestsChanged || picksAreOld()) regenerateRecommendations()
 })
 
 const selectedEvent = ref(null)
@@ -360,6 +402,7 @@ function handleRegister(url) {
                                             :going-by-session="activityMap[card.event._id]?.sessions || {}"
                                             @set-interested="v => setInterested(card.event._id, v)"
                                             @set-going="p => setGoing(card.event._id, p)"
+                                            @less-like-this="lessLikeThis"
                                             @card-click="handleCardClick" />
 
                                     </div>
@@ -374,6 +417,7 @@ function handleRegister(url) {
 
                 <!-- WHITE SIDE BOX -->
                 <div class="side-box-container">
+                    <SideUpcoming />
                 </div>
 
             </div>
@@ -670,9 +714,9 @@ function handleRegister(url) {
     width: 100%;
     height: calc(100% - 38px);
     margin-top: 38px;
-    background-color: var(--color-white, #fff);
+    background-color: var(--color-grey);
     border-radius: 25px;
-    padding: 20px;
+    padding: 15px;
     box-sizing: border-box;
     box-shadow: 0 4px 14px rgba(10, 29, 43, .08);
     overflow-y: auto;
@@ -696,6 +740,11 @@ function handleRegister(url) {
 @media (max-width: 1200px) {
     .folder-cards-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .discover-header,
+    .discover-controls {
+        flex-wrap: wrap;
     }
 }
 
@@ -750,6 +799,48 @@ function handleRegister(url) {
 
     .folder-feed-header {
         flex-wrap: wrap;
+    }
+}
+
+/* Tablets and phones: the whole page scrolls, with the folder first and Coming up underneath */
+@media (max-width: 900px) {
+    .home-page-container,
+    .discover-container {
+        height: auto;
+        max-height: none;
+        overflow: visible;
+    }
+
+    .discover-main-layout {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: auto auto;
+        overflow: visible;
+    }
+
+    .discover-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .discover-controls {
+        flex-wrap: wrap;
+        justify-content: flex-start;
+    }
+
+    .folder-cards-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .folder-wrapper {
+        height: 75vh;
+        height: 75dvh;
+        min-height: 420px;
+    }
+
+    .side-box-container {
+        height: auto;
+        margin-top: 0;
+        overflow: visible;
     }
 }
 </style>

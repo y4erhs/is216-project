@@ -5,7 +5,7 @@ import Login from "@/views/Login.vue";
 import Signup from "@/views/Signup.vue";
 import Profile from "@/views/Profile.vue";
 import Calendar from "@/views/Calendar.vue";
-import LobbyHub from "@/views/LobbyHub.vue";
+import LobbyHub from "@/views/Lobbyhub.vue";
 import tracking from "@/views/ActivityTracking.vue";
 import ResetPassword from "@/views/ResetPassword.vue"
 import { useAuth } from "@/composables/useAuth";
@@ -36,12 +36,6 @@ const routes = [
   { path: '/search', name: 'Search', component: () => import('../components/EventSearch.vue') },
 
   { path: "/activity-tracking", name: "Activty Tracking", component: tracking },
-
-  {
-    path: "/sandbox",
-    name: "testing",
-    component: () => import("../views/sandbox.vue"),
-  },
 
   {
     path: '/reset-password/:token',

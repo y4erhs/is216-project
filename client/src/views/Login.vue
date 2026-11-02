@@ -10,6 +10,7 @@ import axios from 'axios'
 import BaseButton from '../components/BaseButton.vue'
 import FolderTabs from '../components/FolderTabs.vue'
 import '../assets/theme.css'
+import { API_URL } from '../utils/api'
 
 const route = useRoute()
 const router = useRouter()
@@ -20,6 +21,7 @@ onMounted(() => {
   document.documentElement.style.overflow = 'hidden'
   document.body.style.overflow = 'hidden'
   document.body.style.height = '100%'
+  finishGoogleLogin()
 })
 
 onUnmounted(() => {
@@ -39,6 +41,38 @@ const categories = [
 const username = ref('')
 const password = ref('')
 const errorMsg = ref('')
+
+const GOOGLE_ERRORS = {
+  not_smu: 'Please use your SMU Google account (@smu.edu.sg).',
+  cancelled: 'Google sign-in was cancelled.',
+  failed: 'Google sign-in failed. Please try again.'
+}
+
+function continueWithGoogle() {
+  // Remember where they were going, since the trip to Google leaves this page
+  if (route.query.redirect) sessionStorage.setItem('loginRedirect', route.query.redirect)
+  window.location.href = `${API_URL}/auth/google/signin`
+}
+
+// Back from Google: log in with the one-time code, or show what went wrong
+async function finishGoogleLogin() {
+  if (route.query.googleError) {
+    errorMsg.value = GOOGLE_ERRORS[route.query.googleError] || GOOGLE_ERRORS.failed
+    router.replace('/login')
+    return
+  }
+  if (!route.query.googleCode) return
+
+  try {
+    await userStore.loginWithGoogle(route.query.googleCode)
+    const redirect = sessionStorage.getItem('loginRedirect')
+    sessionStorage.removeItem('loginRedirect')
+    router.replace(redirect || '/')
+  } catch (error) {
+    errorMsg.value = error.response?.data?.message || GOOGLE_ERRORS.failed
+    router.replace('/login')
+  }
+}
 
 const handleLogin = async () => {
   try {
@@ -65,7 +99,7 @@ const handleSendReset = async () => {
     resetError.value = ''
     resetMessage.value = ''
 
-    const response = await axios.post('http://localhost:8000/api/users/forgot-password', {
+    const response = await axios.post(`${API_URL}/api/users/forgot-password`, {
       email: resetEmail.value
     })
 
@@ -119,7 +153,7 @@ const handleSendReset = async () => {
                 LOG IN
               </BaseButton>
               <span class="or-text">Or</span>
-              <BaseButton type="button" class="w-100 login-btn"> <img src="/google-icon.png" style="width: 16px; height: 16px;">  CONTINUE WITH GOOGLE</BaseButton>
+              <BaseButton type="button" class="w-100 login-btn" @click="continueWithGoogle"> <img src="/google-icon.png" style="width: 16px; height: 16px;">  CONTINUE WITH GOOGLE</BaseButton>
               <div class="sign-up">
                 <p>Don't have an account? <router-link to="/signup"> Sign up</router-link></p>
               </div>

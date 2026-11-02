@@ -1,7 +1,9 @@
 <script setup>
 import { onMounted } from 'vue'
 import { useFriendRequests } from '../composables/useFriendRequests'
-import { ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
+import { useAuth } from "../composables/useAuth";
+import { userAvatarUrl, userInitials, userName, userSubtitle } from "../utils/userDisplay";
 import "../assets/theme.css";
 
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -15,6 +17,11 @@ defineProps({
     default: false,
   },
 });
+
+const { user } = useAuth();
+const avatarUrl = computed(() => userAvatarUrl(user.value));
+const avatarFailed = ref(false);   // show the initials if the picture can't load
+watch(avatarUrl, () => { avatarFailed.value = false; });
 
 const reqs = useFriendRequests();
 onMounted(() => reqs.load());
@@ -140,10 +147,13 @@ watch(isCollapsed, (value) => {
     </div>
 
     <div class="user-profile mt-auto pt-3 border-top">
-      <div class="avatar-badge">PH</div>
+      <div class="avatar-badge">
+        <img v-if="avatarUrl && !avatarFailed" :src="avatarUrl" alt="" @error="avatarFailed = true" />
+        <template v-else>{{ userInitials(user) }}</template>
+      </div>
       <div v-if="!isCollapsed" class="user-info">
-        <span class="user-name">Profile Here</span>
-        <span class="user-desc">Software Engineering · Y2</span>
+        <span class="user-name" :title="userName(user)">{{ userName(user) }}</span>
+        <span v-if="userSubtitle(user)" class="user-desc" :title="userSubtitle(user)">{{ userSubtitle(user) }}</span>
       </div>
     </div>
   </aside>
@@ -355,6 +365,8 @@ aside {
 }
 
 .avatar-badge {
+  position: relative;
+  overflow: hidden;
   width: 36px;
   height: 36px;
   border-radius: 50%;
@@ -369,20 +381,35 @@ aside {
   padding-top: 6px;
 }
 
+.avatar-badge img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .user-info {
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 
 .user-name {
   font-size: 13px;
   font-weight: 600;
   color: #0f172a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .user-desc {
   font-size: 11px;
   color: #64748b;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 aside.collapsed {

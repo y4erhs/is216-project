@@ -3,6 +3,7 @@
   The shared calendar for one lobby. Shown in the Shared calendar tab of Lobby.vue.
   Props: lobbyId, userId
   Emits: select-day({ date: "YYYY-MM-DD", chips }) or select-day(null) when nothing is selected
+         day-tapped when the user picks a day
 -->
 <template>
   <section class="cal">
@@ -53,8 +54,8 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
+import { API_URL } from '../utils/api'
 
-const API_URL = 'http://localhost:8000'
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 // same palette as the lobby avatars, handed out in member order
 const COLOURS = ['#C9EB6C', '#D98BF5', '#F2B16B', '#9fd3ff', '#ffb3a7', '#fdebd0']
@@ -63,7 +64,7 @@ const props = defineProps({
   lobbyId: { type: String, required: true },
   userId: { type: String, default: null },
 })
-const emit = defineEmits(['select-day'])
+const emit = defineEmits(['select-day', 'day-tapped'])
 
 /* ---------- state ---------- */
 const now = new Date()
@@ -163,7 +164,7 @@ const days = computed(() => {
       key: dateKey(dayStart),
       num,
       chips: dayItems.map(toChip),
-      free: !dayItems.some((it) => it.type === 'member' || it.type === 'busy'),
+      free: dayItems.length === 0,
     })
   }
   return out
@@ -179,6 +180,7 @@ function toChip(it) {
 /* ---------- selecting a day ---------- */
 function selectDay(key) {
   selectedDay.value = key
+  emit('day-tapped')
 }
 
 // Tell the lobby page about the selected day, and again when its chips change

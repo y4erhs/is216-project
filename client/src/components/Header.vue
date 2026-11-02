@@ -2,6 +2,8 @@
 import { ref, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import NotificationBell from '../components/NotificationBell.vue'
+import { useAuth } from '../composables/useAuth'
+import { userAvatarUrl, userInitials, userName } from '../utils/userDisplay'
 
 const router = useRouter();
 const route = useRoute();
@@ -10,6 +12,12 @@ const emit = defineEmits(['toggle-menu'])
 
 // --- State ---
 const searchQuery = ref('')
+
+// --- Current user ---
+const { user } = useAuth()
+const avatarUrl = computed(() => userAvatarUrl(user.value))
+const avatarFailed = ref(false)   // show the initials if the picture can't load
+watch(avatarUrl, () => { avatarFailed.value = false })
 
 // Open the search page with what was typed
 function runSearch() {
@@ -28,9 +36,11 @@ function onNotification(item) {
     router.push({ path: '/friends', query: { tab: 'requests' } })
   } else if (item.type === 'friend_accepted') {
     router.push('/friends')
-  } else if (['lobby_deleted', 'lobby_removed','lobby_invite',"lobby_joined_via_link","lobby_member_responded","lobby_event_pitched"].includes(item.type)) {
+  } else if (['lobby_deleted', 'lobby_removed','lobby_invite',"lobby_joined_via_link","lobby_member_responded","lobby_event_pitched","lobby_plan_another"].includes(item.type)) {
     router.push('/lobby') 
-  } else if (item.type === 'upcoming_event') {
+  } else if (['plan_invite', 'plan_cancelled', 'plan_updated', 'plan_response'].includes(item.type)) {
+    router.push('/calendar')
+  } else if (['upcoming_event', 'event_reminder'].includes(item.type)) {
     router.push(`/activity-tracking`)
   } else if(item.type === 'group_register'){
     router.push('/activity-tracking')
@@ -106,8 +116,9 @@ const mobileDate = computed(() => {
             <NotificationBell @open-item="onNotification" />
 
             <!-- Avatar Pill -->
-            <div class="pill-badge avatar-pill">
-                <span>PH</span>
+            <div class="pill-badge avatar-pill" :title="userName(user)">
+                <img v-if="avatarUrl && !avatarFailed" :src="avatarUrl" alt="" @error="avatarFailed = true" />
+                <span v-else>{{ userInitials(user) }}</span>
             </div>
 
         </div>
@@ -244,7 +255,17 @@ const mobileDate = computed(() => {
 }
 
 /* --- Avatar Pill --- */
+.avatar-pill img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
 .avatar-pill {
+    position: relative;
+    overflow: hidden;
     width: 40px;
     height: 40px;
     background-color: #e0e7ff;

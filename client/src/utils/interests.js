@@ -16,8 +16,28 @@ export const INTERESTS = [
     { id: 'talks', label: 'Guest Lectures' }
 ]
 
+// The colour of an interest's Discover tab and pill
+const INTEREST_THEMES = {
+    'tech': 'theme-green',
+    'arts': 'theme-orange',
+    'culture': 'theme-yellow',
+    'community-service': 'theme-purple',
+    'sports-outdoors': 'theme-red',
+    'career': 'theme-purple',
+    'overseas': 'theme-orange',
+    'networking': 'theme-green',
+    'workshops': 'theme-purple',
+    'food': 'theme-red',
+    'wellness': 'theme-green',
+    'talks': 'theme-yellow'
+}
+
 // Each interest gets a Discover tab, and only this many fit
 export const MAX_INTERESTS = 5
+
+export function interestTheme(id) {
+    return INTEREST_THEMES[id] || 'theme-grey'
+}
 
 export function interestLabel(id) {
     return INTERESTS.find(i => i.id === id)?.label || id

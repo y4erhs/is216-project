@@ -2,8 +2,9 @@
     import 'bootstrap/dist/css/bootstrap.min.css'
     import 'bootstrap/dist/js/bootstrap.bundle.min.js'
 
-    import { ref, computed } from 'vue'
-    import { useRouter } from 'vue-router'
+    import { ref, computed, onMounted } from 'vue'
+    import { useRoute, useRouter } from 'vue-router'
+    import axios from 'axios'
     import { useUserStore } from '@/stores/userStore';
 
     import BaseButton from '../components/BaseButton.vue'
@@ -11,6 +12,8 @@
     import BaseInput from '../components/BaseInput.vue'
     import '../assets/theme.css'
     import { INTERESTS, MAX_INTERESTS } from '../utils/interests'
+    import { COURSES } from '../utils/courses'
+    import { API_URL } from '../utils/api'
 
     // CREATE ACCOUNT DATA
     const fullName = ref('');
@@ -19,14 +22,15 @@
     const confirmPassword = ref('');
 
 
-    const categories = [
+    // Signing up with Google: the email is verified and there's no password, so no Account step
+    const googleCode = ref('')
+
+    const allCategories = [
   { id: 'create-acc', label: 'ACCOUNT', theme: 'theme-green' },
   { id: 'edit-profile', label: 'PROFILE', theme: 'theme-orange' },
   { id: 'interests', label: 'INTERESTS', theme: 'theme-purple' }
   ]
-    const courses = ['School of Business', 'School of Accountancy', 'School of Economics', 
-    'School of Information Systems and Computer Science',
-    'School of Law', 'College of Integrative Studies', 'School of Social Sciences']
+    const courses = COURSES
   
     const years = ['Year 1', 'Year 2', 'Year 3', 'Year 4', 'Year 5']
   
@@ -88,8 +92,35 @@
     //   }
     // }
 
+    const categories = computed(() =>
+      googleCode.value ? allCategories.filter(tab => tab.id !== 'create-acc') : allCategories
+    )
+
     const userStore = useUserStore();
+    const route = useRoute();
     const router = useRouter();
+
+    function continueWithGoogle() {
+      window.location.href = `${API_URL}/auth/google/signin`
+    }
+
+    // Back from Google with a new account: start on the Profile step with their details
+    onMounted(async () => {
+      const code = route.query.googleCode
+      if (!code) return
+
+      try {
+        const { data } = await axios.get(`${API_URL}/auth/google/signin/signup-info`, { params: { code } })
+        email.value = data.email
+        fullName.value = data.name
+        displayName.value = data.name
+        activeTab.value = 'edit-profile'
+        googleCode.value = code
+      } catch (error) {
+        errorMsg.value = error.response?.data?.message || 'Google sign-up failed. Please try again.'
+      }
+      router.replace('/signup')
+    })
     const errorMsg = ref('')
   
     // Validation for Create Account
@@ -162,10 +193,14 @@
       const formData = new FormData();
       formData.append('fullName', fullName.value);
       formData.append('email', email.value.trim());
-      formData.append('password', password.value);
+      if (googleCode.value) {
+        formData.append('googleCode', googleCode.value);
+      } else {
+        formData.append('password', password.value);
+      }
       formData.append('displayName', displayName.value);
       formData.append('username', username.value);
-      formData.append('school', selectedCourse.value);   // this list is SMU's schools
+      formData.append('major', selectedCourse.value);
       formData.append('year', selectedYear.value);
       formData.append('interests', JSON.stringify(selectedInterests.value));
 
@@ -205,7 +240,7 @@
 
                 <BaseButton type="submit" class="auth-btn">REGISTER</BaseButton>
                 <span>Or</span>
-                <BaseButton type="button" class="auth-btn"> <img src="/google-green-icon.png" style="width: 16px; height: 16px;">  CONTINUE WITH GOOGLE</BaseButton>
+                <BaseButton type="button" class="auth-btn" @click="continueWithGoogle"> <img src="/google-green-icon.png" style="width: 16px; height: 16px;">  CONTINUE WITH GOOGLE</BaseButton>
                 <div class="log-in">
                   <p>Have an account? <router-link to="/login"> Log in</router-link></p>
                 </div>
@@ -250,7 +285,7 @@
         <!-- Meta Data -->
         <div class="meta-row">
           <div>
-            <span class="meta-title">Faculty</span>
+            <span class="meta-title">Course</span>
             <span class="meta-val">{{ selectedCourse || 'Course' }}</span>
           </div>
           <div>
@@ -288,7 +323,7 @@
         <input type="text" v-model="username" placeholder="Username">
 
         <BaseInput
-            class="select-school"
+            class="select-course"
             type="select"  
             v-model="selectedCourse" 
             :options="courses" 

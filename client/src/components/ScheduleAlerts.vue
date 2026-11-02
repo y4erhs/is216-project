@@ -1,12 +1,12 @@
 <script setup>
 import { ref, watch, onMounted } from 'vue'
+import { API_URL } from '../utils/api'
 
 const props = defineProps({
   userId: { type: String, required: true },
   refreshKey: { type: Number, default: 0 }   // changes when a plan is created
 })
 
-const API_URL = 'http://localhost:8000'
 const TIME_ZONE = 'Asia/Singapore'
 
 const alerts = ref([])
