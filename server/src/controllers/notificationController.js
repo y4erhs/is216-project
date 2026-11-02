@@ -144,7 +144,6 @@ exports.markAsRead = async (req, res) => {
 
 exports.markAllAsRead = async (req, res) => {
   try {
-    console.log("MARKALLASREAD HIT")
     const result = await Notification.updateMany(
       { userId: '6acd9e65046b9013f579fc7d', status: "sent", isRead: false },
       { isRead: true, readAt: new Date() }
@@ -611,7 +610,7 @@ exports.notifyFriendRequest = async (receiverId,requesterName,friendshipId, requ
   });
 };
 
-exports.notifyFriendAccepted = async (userId,acceptedByName,receiverAvatar) => {
+exports.notifyFriendAccepted = async (userId,acceptedByName, receiverAvatar) => {
   return createNotification({
     userId,
     type: "friend_accepted",

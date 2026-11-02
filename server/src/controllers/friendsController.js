@@ -18,6 +18,9 @@ exports.acceptFriendRequest = async(req,res) => {
     try{
         const { friendshipId } = req.params;
         const updated = await Friends.acceptFriendRequest(friendshipId);
+        console.log(updated)
+        console.log("UPDATED RECEIVER:", updated.receiver);
+        console.log("AVATAR:", updated.receiver.avatar);
         await notificationController.notifyFriendAccepted(updated.requester._id, updated.receiver.username, updated.receiver.avatar)
         res.json(updated);
     }catch(err){
@@ -26,7 +29,6 @@ exports.acceptFriendRequest = async(req,res) => {
 };
 
 exports.rejectFriendRequest = async(req,res) => {
-    console.log("REJECT CONTROLLER HIT")
     try{
         const { friendshipId } = req.params;
         const removed =await Friends.findByIdAndDelete(friendshipId);
@@ -49,7 +51,6 @@ exports.getPendingRequests = async (req, res) => {
 };
 
 exports.getAcceptedFriends = async(req,res) =>{
-    console.log("GETACCEPTEDFRIENDSHIT")
     try{
         const {userId} = req.params;
         console.log(userId)
