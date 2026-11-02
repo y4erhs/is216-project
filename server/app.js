@@ -96,6 +96,14 @@ connectDB().then(() => {
       console.error('dispatchUpcomingEvents failed', err);
     }
   });
+  // Every minute, so reminders go off on time
+  cron.schedule('* * * * *', async () => {
+    try {
+      await notificationController.dispatchDueReminders();
+    } catch (err) {
+      console.error('dispatchDueReminders failed', err);
+    }
+  });
   // No TELEGRAM_BOT_TOKEN in config.env means no bot, but the rest of the server still runs
   if (bot) {
     bot.start();

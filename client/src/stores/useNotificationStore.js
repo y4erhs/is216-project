@@ -38,7 +38,7 @@ export const useNotificationStore = defineStore('notifications', () => {
   const items = computed(() => {
     const now = Date.now()
     return rawItems.value.filter(item => {
-      const itemTime = new Date(item.createdAt || item.updatedAt || Date.now()).getTime()
+      const itemTime = new Date(item.sentAt || item.createdAt || item.updatedAt || Date.now()).getTime()
       return now - itemTime <= ONE_WEEK_MS
     })
   })

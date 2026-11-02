@@ -1,13 +1,14 @@
 const Notification = require("../models/notification");
 const User = require("../models/user");
 const Event = require("../models/events");
+const Activity = require("../models/activity");
 
 function getUserId(req) {
   return req.user?.id || req.user?._id || req.query.userId;
 }
 
 function defaultPrefs() {
-  return { push: true, email: true, reminndMinutesBefore: 15 };
+  return { push: true, email: true, remindMinutesBefore: 15 };
 }
 
 async function getPrefs(userId) {
@@ -26,8 +27,25 @@ function channelsFromPrefs(prefs) {
   return channels;
 }
 
+// When the event next happens: the earliest session that hasn't started yet
 function eventStart(event) {
-  return event?.startTime || event?.startDate || event?.date;
+  const now = Date.now();
+  const upcoming = (event?.sessions || [])
+    .map((session) => new Date(session.startTime))
+    .filter((start) => start.getTime() > now)
+    .sort((a, b) => a - b);
+  return upcoming[0] || null;
+}
+
+function formatStart(start) {
+  return start.toLocaleString("en-SG", {
+    timeZone: "Asia/Singapore",
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    hour: "numeric",
+    minute: "2-digit",
+  });
 }
 
 function eventLabel(event) {
@@ -87,7 +105,7 @@ exports.getMyNotifications = async (req, res) => {
 
     const [items, total, unreadCount] = await Promise.all([
       Notification.find(filter)
-        .sort({ createdAt: -1 })
+        .sort({ sentAt: -1, createdAt: -1 })   // a reminder counts from when it went off, not when it was set
         .skip(skip)
         .limit(pageSize)
         .populate("eventId", "title startTime startDate date venue location")
@@ -181,7 +199,7 @@ exports.getPreferences = async (req, res) => {
 
 exports.updatePreferences = async (req, res) => {
   try {
-    const { push, email, reminndMinutesBefore } = req.body;
+    const { push, email, remindMinutesBefore } = req.body;
     const update = {};
 
     if (typeof push === "boolean") {
@@ -190,14 +208,14 @@ exports.updatePreferences = async (req, res) => {
     if (typeof email === "boolean") {
       update["notificationPreferences.email"] = email;
     }
-    if (reminndMinutesBefore != null) {
-      const minutes = Number(reminndMinutesBefore);
+    if (remindMinutesBefore != null) {
+      const minutes = Number(remindMinutesBefore);
       if (Number.isNaN(minutes) || minutes < 0) {
         return res.status(400).json({
-          message: "reminndMinutesBefore must be a non-negative number",
+          message: "remindMinutesBefore must be a non-negative number",
         });
       }
-      update["notificationPreferences.reminndMinutesBefore"] = minutes;
+      update["notificationPreferences.remindMinutesBefore"] = minutes;
     }
 
     if (Object.keys(update).length === 0) {
@@ -226,7 +244,7 @@ exports.getMyReminders = async (req, res) => {
       type: "event_reminder",
       status: { $in: ["pending", "sent"] },
     })
-      .populate("eventId", "title startTime startDate date venue location")
+      .populate("eventId", "title sessions venue")
       .sort({ scheduledFor: 1 });
 
     return res.json(reminders);
@@ -238,6 +256,8 @@ exports.getMyReminders = async (req, res) => {
 exports.createReminder = async (req, res) => {
   try {
     const userId = getUserId(req);
+    if (!userId) return res.status(400).json({ message: "userId is required" });
+
     const { eventId, offsetMinutes } = req.body;
 
     if (!eventId) {
@@ -246,23 +266,21 @@ exports.createReminder = async (req, res) => {
 
     const prefs = await getPrefs(userId);
     const minutes =
-      offsetMinutes != null ? Number(offsetMinutes) : prefs.reminndMinutesBefore;
+      offsetMinutes != null ? Number(offsetMinutes) : prefs.remindMinutesBefore;
 
     if (Number.isNaN(minutes) || minutes < 0) {
       return res.status(400).json({ message: "offsetMinutes must be a non-negative number" });
     }
 
-    const event = await Event.findById(eventId).select(
-      "title startTime startDate date venue location"
-    );
+    const event = await Event.findById(eventId).select("title sessions venue");
     if (!event) return res.status(404).json({ message: "Event not found" });
 
     const start = eventStart(event);
     if (!start) {
-      return res.status(400).json({ message: "Event has no start time" });
+      return res.status(400).json({ message: "This event has no upcoming sessions" });
     }
 
-    const notifyAt = new Date(new Date(start).getTime() - minutes * 60 * 1000);
+    const notifyAt = new Date(start.getTime() - minutes * 60 * 1000);
     if (notifyAt.getTime() <= Date.now()) {
       return res.status(400).json({ message: "Reminder time is already in the past" });
     }
@@ -271,7 +289,7 @@ exports.createReminder = async (req, res) => {
       userId,
       type: "event_reminder",
       title: `Reminder: ${event.title}`,
-      message: `${event.title} starts at ${new Date(start).toISOString()}`,
+      message: `${event.title} starts on ${formatStart(start)}.`,
       eventId,
       offsetMinutes: minutes,
       scheduledFor: notifyAt,
@@ -312,14 +330,15 @@ exports.updateReminder = async (req, res) => {
         return res.status(400).json({ message: "offsetMinutes must be a non-negative number" });
       }
 
-      const event = await Event.findById(reminder.eventId).select(
-        "title startTime startDate date"
-      );
+      const event = await Event.findById(reminder.eventId).select("title sessions");
       const start = eventStart(event);
+      if (!start) {
+        return res.status(400).json({ message: "This event has no upcoming sessions" });
+      }
       reminder.offsetMinutes = minutes;
-      reminder.scheduledFor = new Date(new Date(start).getTime() - minutes * 60 * 1000);
+      reminder.scheduledFor = new Date(start.getTime() - minutes * 60 * 1000);
       reminder.title = `Reminder: ${event.title}`;
-      reminder.message = `${event.title} starts at ${new Date(start).toISOString()}`;
+      reminder.message = `${event.title} starts on ${formatStart(start)}.`;
       if (reminder.status !== "cancelled") {
         reminder.status = reminder.scheduledFor.getTime() > Date.now() ? "pending" : "sent";
         reminder.sentAt = reminder.status === "sent" ? new Date() : null;
@@ -526,22 +545,48 @@ exports.dispatchUpcomingEvents = async (req, res) => {
         }
       }
     }).populate('attendees', '_id');
-    let count = 0;
+
+    // People who ticked attending for a session in the next 24 hours
+    const activities = await Activity.find({
+      sessions: {
+        $elemMatch: {
+          going: 'attending',
+          startTime: {
+            $gte: now,
+            $lte: next24Hours
+          }
+        }
+      }
+    }).populate('event');
+
+    // one alert per person per event, even if they're on both lists
+    const going = new Map();
     for (const event of events) {
       for (const attendee of event.attendees) {
-        const existing =
-          await Notification.findOne({
-            userId: attendee._id,
-            eventId: event._id,
-            type: 'upcoming_event'
-          });
-        if (!existing) {
-          await exports.notifyUpcomingEvent(
-            attendee._id,
-            event
-          );
-          count++;
-        }
+        going.set(`${attendee._id}:${event._id}`, { userId: attendee._id, event });
+      }
+    }
+    for (const activity of activities) {
+      if (!activity.event) continue;   // the event was deleted
+      going.set(`${activity.user}:${activity.event._id}`, { userId: activity.user, event: activity.event });
+    }
+
+    const last24Hours = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    let count = 0;
+    for (const { userId, event } of going.values()) {
+      const existing =
+        await Notification.findOne({
+          userId,
+          eventId: event._id,
+          type: 'upcoming_event',
+          createdAt: { $gte: last24Hours }   // a later session of the same event can alert again
+        });
+      if (!existing) {
+        await exports.notifyUpcomingEvent(
+          userId,
+          event
+        );
+        count++;
       }
     }
     const payload = {

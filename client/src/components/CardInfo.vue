@@ -1,7 +1,9 @@
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
+import axios from 'axios'
 import CategoryPill from '@/components/categoryPill.vue'
+import { useAuth } from '../composables/useAuth'
 
 const props = defineProps({
   event: { type: Object, required: true },
@@ -25,6 +27,65 @@ function handleRegister() {
 }
 
 const API_URL = 'http://localhost:8000'
+const { userId } = useAuth()
+
+// Reminder for this event, which appears in the notification bell when it's due
+const REMINDER_OPTIONS = [
+  { value: 15, label: '15 minutes before' },
+  { value: 60, label: '1 hour before' },
+  { value: 1440, label: '1 day before' }
+]
+const reminder = ref(null)
+const reminderMinutes = ref(15)
+const reminderError = ref('')
+const savingReminder = ref(false)
+
+const hasUpcomingSession = computed(() =>
+  (props.event.sessions || []).some(session => new Date(session.startTime) > new Date())
+)
+const reminderLabel = computed(() =>
+  REMINDER_OPTIONS.find(option => option.value === reminder.value?.offsetMinutes)?.label
+    || `${reminder.value?.offsetMinutes} minutes before`
+)
+
+async function loadReminder() {
+  try {
+    const { data } = await axios.get(`${API_URL}/api/notifications/reminders?userId=${userId.value}`)
+    reminder.value = data.find(item =>
+      item.status === 'pending' && (item.eventId?._id || item.eventId) === props.event._id
+    ) || null
+  } catch (error) {
+    console.log('There was an error: ' + error.message)
+  }
+}
+
+async function setReminder() {
+  savingReminder.value = true
+  reminderError.value = ''
+  try {
+    const { data } = await axios.post(`${API_URL}/api/notifications/reminders?userId=${userId.value}`, {
+      eventId: props.event._id,
+      offsetMinutes: reminderMinutes.value
+    })
+    reminder.value = data
+  } catch (error) {
+    reminderError.value = error.response?.data?.message || 'Could not set the reminder.'
+  } finally {
+    savingReminder.value = false
+  }
+}
+
+async function removeReminder() {
+  reminderError.value = ''
+  try {
+    await axios.delete(`${API_URL}/api/notifications/reminders/${reminder.value._id}?userId=${userId.value}`)
+    reminder.value = null
+  } catch (error) {
+    reminderError.value = 'Could not remove the reminder.'
+  }
+}
+
+onMounted(loadReminder)
 
 const imageSrc = computed(() =>
   props.event.image?.startsWith('/')
@@ -149,6 +210,45 @@ const displayTime = computed(() => {
           </button>
         </div>
 
+        <!-- REMINDER -->
+        <template v-if="hasUpcomingSession">
+          <div class="bottom-notes-section">
+            <BaseInput
+              v-if="!reminder"
+              type="select"
+              label="Remind Me"
+              v-model="reminderMinutes"
+              :options="REMINDER_OPTIONS"
+            />
+            <template v-else>
+              <p class="reminder-label">Remind Me</p>
+              <p class="reminder-text">Reminder set: {{ reminderLabel }}</p>
+            </template>
+          </div>
+
+          <div class="left-actions">
+            <BaseButton
+              v-if="!reminder"
+              class="action-pill-btn theme-dark-grey"
+              :disabled="savingReminder"
+              @click="setReminder"
+            >
+              SET REMINDER
+            </BaseButton>
+
+            <button
+              v-else
+              type="button"
+              class="clear-link"
+              @click="removeReminder"
+            >
+              remove reminder
+            </button>
+          </div>
+
+          <p v-if="reminderError" class="reminder-error" role="alert">{{ reminderError }}</p>
+        </template>
+
       </div>
 
       <!-- RIGHT SECTION: POSTER + REGISTRATION -->
@@ -240,7 +340,8 @@ const displayTime = computed(() => {
 
   min-height: 0;
   min-width: 0;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;   /* short screens: the reminder dropdown still fits */
 }
 
 .top-info-block {
@@ -321,6 +422,25 @@ const displayTime = computed(() => {
   gap: 8px;
   flex-shrink: 0;
   margin-top: 0;
+}
+
+.reminder-label {
+  margin: 0 0 4px;
+  color: #1e293b;
+  font-size: 11px;
+}
+
+.reminder-text {
+  margin: 0;
+  color: #1e293b;
+  font-size: 12px;
+}
+
+.reminder-error {
+  width: 100%;
+  margin: 0;
+  color: var(--color-dark-red);
+  font-size: 11px;
 }
 
 .clear-link {

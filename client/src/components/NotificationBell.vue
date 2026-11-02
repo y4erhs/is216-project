@@ -94,7 +94,7 @@ function hasCustomAvatar(item) {
                 <div>
                   <strong>{{ item.title }}</strong>
                   <span class="msg">{{ item.message }}</span>
-                  <small>{{ n.meta(item.type).label }} ·{{ n.timeAgo(item.createdAt) }}</small>
+                  <small>{{ n.meta(item.type).label }} ·{{ n.timeAgo(item.sentAt || item.createdAt) }}</small>
                 </div>
                 <div v-if="item.type === 'friend_request' && !item.isRead"class="notif-actions">
                   <button class="accept-btn" @click.stop="acceptFriend(item)">✓</button>
