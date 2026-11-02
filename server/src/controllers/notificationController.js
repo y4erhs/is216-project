@@ -406,13 +406,14 @@ exports.notifyJoinedViaLink = async (hostId, lobby, member) => {
 
 exports.notifyMemberResponded = async (hostId, lobby, member, status) => {
   const verb = status === "accepted" ? "accepted" : "declined";
+  const displayName = member.username || member.name || 'Someone';
   return createNotification({
     userId: hostId,
     type: "lobby_member_responded",
     title: "Lobby reply",
-    message: `${member.name} ${verb} the invitation to ${lobby.name}.`,
+    message: `${displayName} ${verb} the invitation to ${lobby.name}.`,
     lobbyId: lobby._id,
-    eventId: lobby.pitchedEventId || null,
+    eventId: lobby.event?._id || lobby.event || null,
     metadata: { memberId: member.id || member._id, status },
   });
 };
@@ -501,7 +502,7 @@ exports.notifyUpcomingEvent = async (userId, event) => {
     userId,
     type: "upcoming_event",
     title: "Upcoming event",
-    message: `${event.title} is coming up.`,
+    message: `${event.title} starts within 24 hours.`,
     eventId: event._id,
   });
 };

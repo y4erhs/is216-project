@@ -1,5 +1,7 @@
 const Friends = require('../models/friends');
 const Lobby = require('../models/Lobby')
+const Event = require('../models/events')
+const User = require('../models/user')
 const notificationController = require('./notificationController')
 const mongoose = require('mongoose')
 
@@ -221,10 +223,22 @@ exports.pitchEvent = async (req, res) => {
         if (alreadyRegistered) {
             return res.status(400).json({ message: 'Group already registered. Plan another event first.' });
         }
-
+        let event = null;
+        if (eventId) {
+            event = await Event.findById(eventId);
+            if (!event) return res.status(404).json({ message: 'Event not found' });
+        }
         lobby.event = eventId || null;
         lobby.lastActiveAt = Date.now();
         await lobby.save();
+        if (event) {
+            const hostId = String(lobby.host);
+            const memberIds = [...lobby.participants, ...lobby.invited].filter(id => String(id) !== hostId);
+            const host = await User.findById(lobby.host).select('username');
+            await notificationController.notifyEventPitched(
+                memberIds, lobby, host?.username || 'The host', event
+            );
+        }
         res.json(lobby);
     } catch (err) {
         res.status(500).json({ error: err.message });

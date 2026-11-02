@@ -24,35 +24,6 @@ const TYPE_META = {
   friend_accepted: { label: 'Friend Accepted', icon: 'bi-person-check'}
 }
 
-const DEMO_ITEMS = [
-  {
-    _id: 'demo-1',
-    title: 'Lobby invitation',
-    message: 'Harshitha invited you to Study Buddies. Accept or decline to confirm.',
-    type: 'lobby_invite',
-    isRead: false,
-    createdAt: new Date().toISOString(),
-    lobbyId: { _id: 'study-buddies-123', name: 'Study Buddies' }
-  },
-  {
-    _id: 'demo-2',
-    title: 'Reminder: Quarterly sync',
-    message: 'Quarterly sync starts soon.',
-    type: 'event_reminder',
-    isRead: true,
-    createdAt: new Date(Date.now() - 3600000).toISOString(),
-    eventId: { _id: 'quarterly-sync-456', title: 'Quarterly sync' }
-  },
-  {
-    _id: 'demo-3',
-    title: 'Friend Request',
-    message: 'Batman sent you a friend request.',
-    type: 'friend_request',
-    isRead: false,
-    createdAt: new Date().toISOString(),
-    metadata: { friendshipId: 'friendship-123' }
-  },
-]
 
 export const useNotificationStore = defineStore('notifications', () => {
   const rawItems = ref([])
@@ -90,7 +61,6 @@ export const useNotificationStore = defineStore('notifications', () => {
   }
 
   async function load() {
-    console.log('LOAD FUNCTION WAS CALLED')
     loading.value = true
     try {
       const response = await axios.get('http://localhost:8000/api/notifications?limit=15&userId=6ae5dc7fc2ea36c372993fab')
