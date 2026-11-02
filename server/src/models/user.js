@@ -63,6 +63,14 @@ const userSchema = new mongoose.Schema({
         type: String,
         default: ''
     },
+    major: {
+        type: String,
+        default: ''
+    },
+    graduationYear: {
+        type: String,
+        default: ''
+    },
     ccas: {
         type: [String],
         default: []

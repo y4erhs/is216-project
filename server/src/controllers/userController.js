@@ -220,6 +220,7 @@ exports.updateUser = async (req, res) => {
             'avatar',
             'bio',
             'major',
+            'graduationYear',
             'year',
             'ccas',
             'notificationPreferences'

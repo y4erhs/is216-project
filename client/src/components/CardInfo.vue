@@ -1,7 +1,7 @@
 
 <script setup>
 import { computed, ref } from 'vue'
-import CategoryPill from '@/components/CategoryPill.vue'
+import CategoryPill from '@/components/categoryPill.vue'
 
 const props = defineProps({
   event: { type: Object, required: true },
