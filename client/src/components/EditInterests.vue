@@ -3,12 +3,12 @@ import { ref, onMounted } from 'vue'
 import axios from 'axios'
 import BaseButton from './BaseButton.vue'
 import { useAuth } from '../composables/useAuth'
-import { INTERESTS } from '../utils/interests'
+import { INTERESTS, interestLabel } from '../utils/interests'
 
 
 const { userId } = useAuth()
 
-const allInterests = INTERESTS     // the only interests users can pick
+const allInterests = INTERESTS.map(i => i.id)     // the only interests users can pick
 const selectedInterests = ref([])  // the ticked boxes
 const saving = ref(false)
 const message = ref('')
@@ -17,7 +17,7 @@ async function loadData() {
     try {
         const prefs = await axios.get(`http://localhost:8000/api/users/${userId.value}/preferences`)
         // drop old interests that aren't on the list any more
-        selectedInterests.value = prefs.data.filter(i => INTERESTS.includes(i))
+        selectedInterests.value = prefs.data.filter(i => allInterests.includes(i))
     } catch (error) {
         console.log('There was an error: ' + error.message)
     }
@@ -52,7 +52,7 @@ onMounted(loadData)
                     v-bind:id="'interest-' + interest"
                     v-bind:value="interest"
                     v-model="selectedInterests">
-                <label class="form-check-label text-dark" v-bind:for="'interest-' + interest">{{ interest }}</label>
+                <label class="form-check-label text-dark" v-bind:for="'interest-' + interest">{{ interestLabel(interest) }}</label>
             </div>
         </div>
 

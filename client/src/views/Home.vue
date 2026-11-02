@@ -50,9 +50,10 @@ const categoryThemeMap = {
     'talks': 'theme-yellow'
 }
 
-const interestCategories = INTERESTS
+const myInterests = ref([])
 
-const interestTabs = ref([
+// All, For you, then one tab per interest the user picked
+const interestTabs = computed(() => [
     {
         id: 'all',
         label: 'All',
@@ -63,16 +64,23 @@ const interestTabs = ref([
         label: 'For you',
         theme: 'theme-red'
     },
-    ...interestCategories.map(category => {
-        const id = category.toLowerCase().replace(/\s+/g, '-')
-
-        return {
-            id,
-            label: category,
-            theme: categoryThemeMap[id] || 'theme-grey'
-        }
-    })
+    ...INTERESTS
+        .filter(interest => myInterests.value.includes(interest.id))
+        .map(interest => ({
+            id: interest.id,
+            label: interest.label,
+            theme: categoryThemeMap[interest.id] || 'theme-grey'
+        }))
 ])
+
+async function loadMyInterests() {
+    try {
+        const response = await axios.get(`http://localhost:8000/api/users/${userId.value}/preferences`)
+        myInterests.value = response.data
+    } catch (error) {
+        console.log('There was an error: ' + error.message)
+    }
+}
 
 const activeInterest = ref('all')
 
@@ -202,16 +210,9 @@ function matchesDateFilter(event) {
 }
 
 // Check whether event matches selected interest tab
-// Event tags are one of INTERESTS, so the tab's label must be one of them
+// Event tags are interest ids, the same as the tab ids
 function matchesInterestFilter(event) {
-    const selectedTab = interestTabs.value.find(
-        tab => tab.id === activeInterest.value
-    )
-
-    if (!selectedTab) return true
-
-    const selectedLabel = selectedTab.label.toLowerCase()
-    return (event?.tags || []).some(tag => String(tag).toLowerCase() === selectedLabel)
+    return (event?.tags || []).includes(activeInterest.value)
 }
 
 // Cards to show, filtered by the dates:
@@ -261,6 +262,7 @@ async function regenerateRecommendations() {
 onMounted(async () => {
     loadActivities()
     loadAllEvents()
+    loadMyInterests()
 
     await loadRecommendations()
 
@@ -319,7 +321,7 @@ function handleRegister(url) {
                         CLEAR
                     </BaseButton>
 
-                    <BaseButton class="calendar-btn theme-dark-blue" variant="primary">
+                    <BaseButton class="calendar-btn theme-dark-blue" variant="primary" @click="$router.push('/calendar')">
                         VIEW MY CALENDAR
                     </BaseButton>
                 </div>

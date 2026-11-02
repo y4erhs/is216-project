@@ -10,7 +10,7 @@
     import FolderTabs from '../components/FolderTabs.vue'
     import BaseInput from '../components/BaseInput.vue'
     import '../assets/theme.css'
-    import { INTERESTS } from '../utils/interests'
+    import { INTERESTS, MAX_INTERESTS } from '../utils/interests'
 
     // CREATE ACCOUNT DATA
     const fullName = ref('');
@@ -76,8 +76,7 @@
       }
     }
 
-    // id is saved as the user's interest, so it must match the event tags exactly
-    const availableInterests = INTERESTS.map(name => ({ id: name, label: name }))
+    const availableInterests = INTERESTS
 
     const selectedInterests = ref([])
 
@@ -261,7 +260,7 @@
     <template #interests>
       <div class="cards-list">
         <!-- interest event cards -->
-        <h1 class="interest-title"> CHOOSE YOUR INTERESTS </h1>
+        <h1 class="interest-title"> CHOOSE UP TO {{ MAX_INTERESTS }} INTERESTS </h1>
         <div class="folder-scroll-container">
           <div class="interest-grid">
             <div 
@@ -273,7 +272,8 @@
             <div class="card-body p-2">
               <p class="card-text mb-0">
                 <label class="w-100 d-flex align-items-center gap-2 mb-0">
-                  <input type="checkbox" :value="interest.id" v-model="selectedInterests">
+                  <input type="checkbox" :value="interest.id" v-model="selectedInterests"
+                    :disabled="selectedInterests.length >= MAX_INTERESTS && !selectedInterests.includes(interest.id)">
                   <span> {{interest.label}} </span>
                 </label>
               </p>

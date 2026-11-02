@@ -3,6 +3,7 @@
     import axios from 'axios'
     import BaseButton from '../components/BaseButton.vue';
     import { useAuth } from '../composables/useAuth';
+    import { interestLabel } from '../utils/interests';
 
 
     const props = defineProps({
@@ -54,7 +55,7 @@
     </BaseButton>
 
     <BaseButton v-for="interest in interests" v-bind:key="interest" v-bind:class="selected == interest ? 'btn-custom' : 'btn-outline-main'" v-on:click="selectChip(interest)">
-    {{ interest }}
+    {{ interestLabel(interest) }}
     </BaseButton>
 
     <router-link to="/profile" class="small" style="color: white;">+ Edit interests</router-link>
