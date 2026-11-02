@@ -86,7 +86,7 @@ function hasCustomAvatar(item) {
             <button class="notif-btn" type="button"@click="openItem(item)">
             <span class="type-icon">
               <img v-if="hasCustomAvatar(item)"
-              :src="`http://localhost:8000${item.metadata.requesterAvatar}`" class="notif-avatar" alt=""/>
+              :src="`http://localhost:8000${item.metadata.requesterAvatar || item.metadata.receiverAvatar}`" class="notif-avatar" alt=""/>
               <i v-else class="bi" :class="n.meta(item.type).icon"></i>
             </span>
             <span class="notif-body">
