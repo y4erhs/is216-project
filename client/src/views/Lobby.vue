@@ -69,7 +69,7 @@
               <p v-if="!friends.length" class="section-sub">
               No friends yet. <RouterLink to="/friends" style="color:#fff">Add some</RouterLink>
               </p>
-              <div class="scroll">
+              <div v-else class="scroll">
                 <ul class="people">
                   <li v-for="f in friends" :key="f.id" class="person">
                     <span class="avatar" :style="{ background: f.color }">{{ initials(f.name) }}</span>
@@ -127,7 +127,7 @@
 
         <!-- ===== Register ===== -->
         <template #register>
-          <div class="pane">
+          <div class="pane" :class="{ 'pane-fill': !registered }">
             <!-- this round is done: the lobby stays, ready for the next event -->
             <template v-if="registered">
               <section>
@@ -144,10 +144,11 @@
               </section>
             </template>
 
-            <section v-else>
+            <section v-else class="fill">
               <h3 class="section-title">Pitch an event</h3>
               <p class="section-sub">Friends can still accept or decline while you choose.</p>
-              <div class="scroll">
+              <p v-if="!events.some((x) => x.upcoming)" class="section-sub">No upcoming events to pitch right now.</p>
+              <div v-else class="scroll">
                 <div class="events" role="radiogroup" aria-label="Events">
                   <label v-for="e in events.filter((x) => x.upcoming)" :key="e.id" class="event" :class="{ used: usedEventIds.has(e.id) }">
                     <input class="sr" type="radio" name="event" :value="e.id" v-model="selectedEventId"
@@ -587,7 +588,9 @@ button.badge-pill:disabled { opacity: 0.45; cursor: not-allowed; }
 .edit-actions { display: flex; gap: 8px; }
 
 /* ── Folder content ── */
-.stage { grid-area: stage; min-width: 0; }
+.stage { grid-area: stage; min-width: 0; display: flex; flex-direction: column; }
+.stage > :deep(.folder-container) { flex: 1 1 0; height: auto; min-height: 420px; }
+.register-bar { flex: none; }
 .pane { display: grid; gap: 20px; }
 .section-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .section-title { margin: 0 0 4px; color: #fff; font: 400 20px/1.1 'HeaderFont', sans-serif; letter-spacing: 0.03em; text-transform: uppercase; }
@@ -627,12 +630,24 @@ button.badge-pill:disabled { opacity: 0.45; cursor: not-allowed; }
 
 /* register tab */
 .events { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; }
-.event { display: block; cursor: pointer; }
-.event.used { opacity: 0.6; cursor: not-allowed; }
-.event-body { display: grid; justify-items: start; gap: 3px; height: 100%; padding: 15px; border-radius: 15px; background: var(--card); color: var(--ink); border: 3px solid transparent; }
+.event { position: relative; display: block; cursor: pointer; }
+.event.used { cursor: not-allowed; }
+.event.used .event-body { background: rgba(240, 241, 247, 0.6); }
+.event.used .event-body > :not(.badge-pill) { opacity: 0.6; }
+
+.event-body {
+  display: grid; justify-items: start; gap: 3px; height: 100%;
+  padding: 15px; border-radius: 15px; border: 3px solid transparent;
+  background: var(--card); color: var(--ink);
+}
+.event-body > * { min-width: 0; }
 .event-body strong { font: 400 14px/1.2 'HeaderFont', sans-serif; letter-spacing: 0.03em; text-transform: uppercase; }
 .event-meta { opacity: 0.8; }
-.event-body .badge-pill { margin-top: 4px; }
+.event-body .badge-pill {
+  margin-top: 4px; max-width: 100%;
+  height: auto; min-height: 22px;
+  white-space: normal; letter-spacing: 0.05em; line-height: 1.2;
+}
 .event input:checked + .event-body { border-color: var(--lime); background: #fff; }
 .event input:focus-visible + .event-body { outline: 3px solid #fff; outline-offset: 2px; }
 .names { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
@@ -671,6 +686,10 @@ button.badge-pill:disabled { opacity: 0.45; cursor: not-allowed; }
 .stat-declined b, .stat-accepted b { background: rgba(0, 0, 0, 0.3); }
 .ev-empty { display: grid; justify-items: start; gap: 10px; padding: 15px; border-radius: 15px; background: var(--card); }
 .ev-empty p { margin: 0; }
+/* Register tab: the event list fills the folder instead of stopping at 300px */
+.pane-fill { flex: 1 1 auto; min-height: 0; grid-template-rows: minmax(0, 1fr); }
+.fill { display: flex; flex-direction: column; min-height: 0; }
+.fill .scroll { flex: 1 1 auto; min-height: 170px; max-height: none; }
 
 /* Selected day panel: Add plan sits at the bottom; chips match LobbyCalendar.vue */
 .day-panel { display: flex; flex-direction: column; gap: 12px; }
@@ -695,6 +714,7 @@ button.badge-pill:disabled { opacity: 0.45; cursor: not-allowed; }
   .app { grid-template-columns: minmax(0, 1fr); grid-template-areas: 'head' 'stage' 'panel'; grid-template-rows: auto; }
   .panel-wrap { min-height: 0; }
   .side-panel { position: static; max-height: 480px; }
+  .stage { min-height: 640px; }
 }
 @media (max-width: 720px) {
   .people { grid-template-columns: 1fr; }

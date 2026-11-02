@@ -40,7 +40,7 @@ exports.generateForUser = async (userId, feedType = 'weekly') => {
     if (candidates.length === 0) return [];
 
     const student = {
-        interests: user.preferences,
+        interests: user.interests,
         ccas: user.ccas,
         notInterestedIn: user.mutedTags || [],
         tagsFromEventsAttended: [...new Set(attendedTags)]

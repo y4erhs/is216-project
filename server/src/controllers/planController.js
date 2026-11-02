@@ -17,8 +17,10 @@ exports.syncPlans = async (req, res) => {
         if (!mongoose.isValidObjectId(userId)) {
             return res.status(400).json({ message: 'Invalid user id' });
         }
+        // plans: copy changes from Google. Attending sessions: make sure they're all in Google.
         const result = await googleSync.syncPlans(userId);
-        return res.status(200).json(result);
+        const { added } = await googleSync.syncAttending(userId);
+        return res.status(200).json({ ...result, added });
     } catch (err) {
         return res.status(500).json({ message: err.message });
     }

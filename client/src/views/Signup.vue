@@ -10,6 +10,7 @@
     import FolderTabs from '../components/FolderTabs.vue'
     import BaseInput from '../components/BaseInput.vue'
     import '../assets/theme.css'
+    import { INTERESTS } from '../utils/interests'
 
     // CREATE ACCOUNT DATA
     const fullName = ref('');
@@ -75,20 +76,8 @@
       }
     }
 
-    const availableInterests = [
-      { id: 'tech', label: 'Tech' },
-      { id: 'arts', label: 'Arts' },
-      { id: 'culture', label: 'Cultural Clubs' },
-      { id: 'community-service', label: 'Community Service' },
-      { id: 'sports-outdoors', label: 'Sports and Outdoors' },
-      { id: 'career', label: 'Career' },
-      { id: 'overseas', label: 'Overseas Activities' },
-      { id: 'networking', label: 'Networking Event' },
-      { id: 'workshops', label: 'Skills Upgrading Workshop' },
-      { id: 'food', label: 'Food' },
-      { id: 'wellness', label: 'Wellness' },
-      { id: 'talks', label: 'Guest Lectures' }
-    ]
+    // id is saved as the user's interest, so it must match the event tags exactly
+    const availableInterests = INTERESTS.map(name => ({ id: name, label: name }))
 
     const selectedInterests = ref([])
 

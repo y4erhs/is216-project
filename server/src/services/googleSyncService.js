@@ -1,7 +1,9 @@
 const GoogleConnection = require('../models/googleConnection');
 const Plan = require('../models/plan');
 const Notification = require('../models/notification');
+const Activity = require('../models/activity');
 const { createOAuthClient } = require('../utils/googleClient');
+const { addSessionToGoogle } = require('./googleCalendarService');
 
 const CAL_URL = 'https://www.googleapis.com/calendar/v3/calendars/primary/events';
 
@@ -109,6 +111,74 @@ exports.syncPlans = async (userId) => {
             Object.assign(plan, updates);
             await plan.save();
             result.updated++;
+        }
+    }
+
+    return result;
+};
+
+// Puts every upcoming session the user is attending into their Google Calendar.
+// Re-adds ones that were never added, or whose Google event is gone
+// (deleted, or added to a Google account that's no longer linked).
+exports.syncAttending = async (userId) => {
+    const result = { added: 0 };
+
+    const client = await getClientForUser(userId);
+    if (!client) return result;   // Google not linked
+
+    const activities = await Activity.find({ user: userId, 'sessions.going': 'attending' }).populate('event');
+    const now = new Date();
+
+    for (const activity of activities) {
+        if (!activity.event) continue;   // event was deleted
+
+        for (const entry of activity.sessions) {
+            if (entry.going !== 'attending') continue;
+
+            const session = activity.event.sessions.find(
+                s => new Date(s.startTime).getTime() === new Date(entry.startTime).getTime()
+            );
+            if (!session || new Date(session.endTime) < now) continue;   // gone or already over
+
+            // already in Google? then leave it
+            if (entry.googleEventId) {
+                try {
+                    const res = await client.request({ url: `${CAL_URL}/${entry.googleEventId}` });
+                    if (res.data.status !== 'cancelled') continue;
+                } catch (err) {
+                    const status = err.response?.status;
+                    if (status !== 404 && status !== 410) {   // network hiccup etc, try next time
+                        console.error(`Attending sync failed for activity ${activity._id}:`, err.message);
+                        continue;
+                    }
+                }
+            }
+
+            // If the calendar already has this exact event (same title and start), reuse it instead of adding a copy
+            const start = new Date(session.startTime);
+            let googleEventId = null;
+            try {
+                const res = await client.request({
+                    url: CAL_URL,
+                    params: { timeMin: start.toISOString(), timeMax: new Date(start.getTime() + 1000).toISOString(), singleEvents: true }
+                });
+                const match = (res.data.items || []).find(e =>
+                    e.summary === activity.event.title &&
+                    new Date(e.start?.dateTime).getTime() === start.getTime()
+                );
+                googleEventId = match?.id || null;
+            } catch (err) {
+                console.error(`Could not look for an existing Google event for activity ${activity._id}:`, err.message);
+            }
+
+            if (!googleEventId) googleEventId = await addSessionToGoogle(userId, activity.event, session);
+            if (!googleEventId) continue;
+
+            await Activity.updateOne(
+                { _id: activity._id, 'sessions.startTime': entry.startTime },
+                { $set: { 'sessions.$.googleEventId': googleEventId } }
+            );
+            result.added++;
         }
     }
 

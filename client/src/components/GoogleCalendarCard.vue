@@ -96,7 +96,7 @@ async function savePersonal() {
   }
 }
 
-// Make plans match Google Calendar
+// Make plans match Google Calendar, and add any attending sessions that are missing from it
 async function syncNow() {
   syncing.value = true
   message.value = ''
@@ -109,8 +109,8 @@ async function syncNow() {
     const data = await res.json()
     if (!res.ok) throw new Error(data.message)
 
-    message.value = data.updated || data.deleted
-      ? `Synced: ${data.updated} updated, ${data.deleted} removed.`
+    message.value = data.updated || data.deleted || data.added
+      ? `Synced: ${data.added} added, ${data.updated} updated, ${data.deleted} removed.`
       : 'Everything is up to date.'
     emit('synced')
   } catch (err) {

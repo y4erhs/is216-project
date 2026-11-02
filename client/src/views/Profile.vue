@@ -1,19 +1,34 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import '../assets/theme.css'
 
 import BaseButton from '../components/BaseButton.vue';
 import BaseInput from '../components/BaseInput.vue';
 import CategoryPill from '@/components/CategoryPill.vue'
+import { useUserStore } from '../stores/userStore'
+import { useRouter } from 'vue-router'
+import { INTERESTS } from '../utils/interests'
 
+
+const userStore = useUserStore()
+const router = useRouter()
+
+onMounted(() => {
+  console.log("CURRENT AUTH USER:", userStore.user, userStore.user?.displayName)
+})
 
 const setting1Push = ref(true)
 const setting1Email = ref(true)
 const includePersonal = ref(true)
 
+const handleLogout = () => {
+  userStore.logout()
+  router.push('/login') // Redirect to login after logging out
+}
+
 // profile form state
-const selectedCourse = ref('Software Engineering (BSc)')
-const selectedYear = ref('Year 2')
+const selectedCourse = ref(userStore.user?.school)
+const selectedYear = ref(userStore.user?.year)
 const selectedGrad = ref('2029')
 
 // options dropdown
@@ -34,15 +49,11 @@ const gradOptions = ['2027', '2028', '2029', '2030']
 const clubs = ['SMUKI', 'Odyssey', 'Project Obscura']
 
 // State buat Interests & Floating Dropdown
-const categories = ref(['Tech', 'Career', 'Arts'])
+const categories = ref(['Tech', 'Arts'])
 const showInterestDropdown = ref(false)
 
 // List semua opsi interest yang bisa dipilih
-const allAvailableInterests = [
-  'Tech', 'Arts', 'Cultural Clubs', 'Community Service',
-  'Sports and Outdoors', 'Career', 'Overseas Activities',
-  'Networking Event', 'Skills Upgrading Workshop', 'Food', 'Wellness', 'Guest Lectures'
-]
+const allAvailableInterests = INTERESTS
 
 function toggleInterest(cat) {
   if (categories.value.includes(cat)) {
@@ -69,15 +80,17 @@ function toggleInterest(cat) {
 
         <div class="profile-card">
           <div class="profile-header-visual">
-            <div class="profile-banner"></div>
+            <div class="profile-banner">
+              {{ userStore.user?.banner }}
+            </div>
             <div class="avatar">
               <p class="header-style">MA</p>
             </div>
           </div>
 
           <div class="user-info mt-3">
-            <p class="full-name header-style">Makayla Aileen</p>
-            <p class="username">@AIIEEN</p>
+            <p class="full-name header-style">{{ userStore.user?.displayName }}</p>
+            <p class="username"> {{ userStore.user?.username }}</p>
             <div class="stats-row">
               <div class="stats-item">
                 <div class="stat-number header-style">13</div>
