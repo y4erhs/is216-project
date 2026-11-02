@@ -38,6 +38,15 @@ function rejectFriend(item) {
   n.rejectFriend(item)
   emit('reject-friend', item)
 }
+
+const DEFAULT_AVATAR = '/uploads/default.png'
+
+function hasCustomAvatar(item) {
+  const avatar = item.metadata?.requesterAvatar
+  return ['friend_request', 'friend_accepted'].includes(item.type)
+    && !!avatar
+    && avatar !== DEFAULT_AVATAR
+}
 </script>
 
 <template>
@@ -76,7 +85,7 @@ function rejectFriend(item) {
           <div class="notif-container">
             <button class="notif-btn" type="button"@click="openItem(item)">
             <span class="type-icon">
-              <img v-if="item.type === 'friend_request' && item.metadata?.requesterAvatar"
+              <img v-if="hasCustomAvatar(item)"
               :src="`http://localhost:8000${item.metadata.requesterAvatar}`" class="notif-avatar" alt=""/>
               <i v-else class="bi" :class="n.meta(item.type).icon"></i>
             </span>
@@ -87,7 +96,7 @@ function rejectFriend(item) {
                   <span class="msg">{{ item.message }}</span>
                   <small>{{ n.meta(item.type).label }} ·{{ n.timeAgo(item.createdAt) }}</small>
                 </div>
-                <div v-if="item.type === 'friend_request'"class="notif-actions">
+                <div v-if="item.type === 'friend_request' && !item.isRead"class="notif-actions">
                   <button class="accept-btn" @click.stop="acceptFriend(item)">✓</button>
                   <button class="reject-btn" @click.stop="rejectFriend(item)">✕</button>
                 </div>

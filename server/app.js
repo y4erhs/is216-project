@@ -1,8 +1,7 @@
 const express = require('express');
 const dotenv = require('dotenv');
-
-
-
+const cron = require('node-cron');
+const notificationController = require('./src/controllers/notificationController');
 
 dotenv.config({ path: './config.env' });
 const bot = process.env.TELEGRAM_BOT_TOKEN ? require('./telegramBot') : null;
@@ -90,6 +89,13 @@ function startServer() {
 
 connectDB().then(() => {
   startServer();
+  cron.schedule('*/10 * * * *', async () => {
+    try {
+      await notificationController.dispatchUpcomingEvents();
+    } catch (err) {
+      console.error('dispatchUpcomingEvents failed', err);
+    }
+  });
   // No TELEGRAM_BOT_TOKEN in config.env means no bot, but the rest of the server still runs
   if (bot) {
     bot.start();
