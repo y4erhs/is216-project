@@ -2,6 +2,7 @@
 // "Your plans": upcoming plans you made (edit, delete) or were invited to (accept, decline)
 import { ref, watch, onMounted } from 'vue'
 import axios from 'axios'
+import { API_URL } from '../utils/api'
 
 const props = defineProps({
   userId: { type: String, required: true },
@@ -9,7 +10,6 @@ const props = defineProps({
 })
 const emit = defineEmits(['edit', 'changed', 'replied'])
 
-const API_URL = 'http://localhost:8000'
 const TIME_ZONE = 'Asia/Singapore'
 
 const plans = ref([])

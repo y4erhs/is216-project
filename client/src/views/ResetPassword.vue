@@ -11,6 +11,7 @@ import BaseButton from '../components/BaseButton.vue'
 import FolderTabs from '../components/FolderTabs.vue'
 import BaseInput from '../components/BaseInput.vue'
  import '../assets/theme.css'
+ import { API_URL } from '../utils/api'
 
 const route = useRoute()
 const router = useRouter()
@@ -49,7 +50,7 @@ const handleResetPassword = async () => {
     // Grab the token from the URL parameters (/reset-password/:token)
     const token = route.params.token
 
-    const response = await axios.post(`http://localhost:8000/api/users/reset-password/${token}`, {
+    const response = await axios.post(`${API_URL}/api/users/reset-password/${token}`, {
       password: password.value
 
       

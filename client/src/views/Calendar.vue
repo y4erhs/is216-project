@@ -5,8 +5,8 @@ import GoogleCalendarCard from '@/components/GoogleCalendarCard.vue'
 import PlanForm from '@/components/PlanForm.vue'
 import ScheduleAlerts from '@/components/ScheduleAlerts.vue'
 import PlansList from '@/components/PlansList.vue'
+import { API_URL } from '../utils/api'
 
-const API_URL = 'http://localhost:8000'
 const { userId } = useAuth()
 
 const connected = ref(false)

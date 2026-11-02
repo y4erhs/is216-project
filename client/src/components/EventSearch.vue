@@ -9,6 +9,7 @@ import BaseButton from './BaseButton.vue'
 import { useActivities } from '../composables/useActivities'
 import { useAuth } from '../composables/useAuth'
 import { interestLabel } from '../utils/interests'
+import { API_URL } from '../utils/api'
 
 const { activityMap, loadActivities, setInterested, setGoing, saveNote } = useActivities()
 const route = useRoute()
@@ -38,7 +39,7 @@ const scores = ref({})                    // { eventId: score }
 // Get the AI scores from the student's saved recommendations
 async function loadScores() {
     try {
-        const response = await axios.get(`http://localhost:8000/api/recommendations/user/${userId.value}`)
+        const response = await axios.get(`${API_URL}/api/recommendations/user/${userId.value}`)
         const map = {}
         for (const rec of response.data) {
             map[rec.event._id] = rec.score
@@ -57,7 +58,7 @@ const sortedResults = computed(() =>
 // Build the category dropdown from all event tags
 async function loadCategories() {
     try {
-        const response = await axios.get('http://localhost:8000/api/events')
+        const response = await axios.get(`${API_URL}/api/events`)
         // "Tech" and "tech" are the same category, so keep one of them (prefer the capitalised one)
         const byLower = {}
         for (const tag of response.data.flatMap(e => e.tags)) {
@@ -107,7 +108,7 @@ async function searchEvents() {
 
     searching.value = true
     try {
-        const response = await axios.get('http://localhost:8000/api/events', { params })
+        const response = await axios.get(`${API_URL}/api/events`, { params })
         if (searchId !== latestSearch) return
         results.value = response.data
     } catch (error) {

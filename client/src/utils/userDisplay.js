@@ -1,5 +1,5 @@
+import { API_URL } from './api'
 // How the logged-in user appears in the sidebar and top bar
-const API_URL = 'http://localhost:8000'
 
 export function userName(user) {
     return user?.displayName || user?.fullName || user?.username || ''

@@ -11,7 +11,8 @@ import SideUpcoming from '../components/SideUpcoming.vue'
 
 import { useActivities } from '../composables/useActivities'
 import { useAuth } from '../composables/useAuth'
-import { INTERESTS } from '../utils/interests'
+import { INTERESTS, interestTheme } from '../utils/interests'
+import { API_URL } from '../utils/api'
 
 const {
     activityMap,
@@ -38,22 +39,6 @@ const toDate = ref('')
 const appliedFromDate = ref('')
 const appliedToDate = ref('')
 
-// Interest folder color mapping
-const categoryThemeMap = {
-    'tech': 'theme-green',
-    'arts': 'theme-orange',
-    'culture': 'theme-yellow',
-    'community-service': 'theme-purple',
-    'sports-outdoors': 'theme-red',
-    'career': 'theme-purple',
-    'overseas': 'theme-orange',
-    'networking': 'theme-green',
-    'workshops': 'theme-purple',
-    'food': 'theme-red',
-    'wellness': 'theme-green',
-    'talks': 'theme-yellow'
-}
-
 const myInterests = ref([])
 
 // All, For you, then one tab per interest the user picked
@@ -73,13 +58,13 @@ const interestTabs = computed(() => [
         .map(interest => ({
             id: interest.id,
             label: interest.label,
-            theme: categoryThemeMap[interest.id] || 'theme-grey'
+            theme: interestTheme(interest.id)
         }))
 ])
 
 async function loadMyInterests() {
     try {
-        const response = await axios.get(`http://localhost:8000/api/users/${userId.value}/preferences`)
+        const response = await axios.get(`${API_URL}/api/users/${userId.value}/preferences`)
         myInterests.value = response.data
     } catch (error) {
         console.log('There was an error: ' + error.message)
@@ -92,14 +77,14 @@ const activeInterest = ref('all')
 async function loadRecommendations() {
     loading.value = true
 
-    const url = `http://localhost:8000/api/recommendations/user/${userId.value}?feedType=${feedType.value}`
+    const url = `${API_URL}/api/recommendations/user/${userId.value}?feedType=${feedType.value}`
 
     try {
         let response = await axios.get(url)
 
         if (response.data.length === 0) {
             await axios.post(
-                'http://localhost:8000/api/recommendations/generate',
+                `${API_URL}/api/recommendations/generate`,
                 {
                     userId: userId.value,
                     feedType: feedType.value
@@ -125,21 +110,13 @@ async function loadAllEvents() {
     try {
         // Upcoming events, plus ones already over from this month
         const thisMonth = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Singapore' }).slice(0, 7)
-        const response = await axios.get('http://localhost:8000/api/events', { params: { from: `${thisMonth}-01` } })
+        const response = await axios.get(`${API_URL}/api/events`, { params: { from: `${thisMonth}-01` } })
         allEvents.value = response.data
     } catch (error) {
         console.log('There was an error: ' + error.message)
     } finally {
         allLoading.value = false
     }
-}
-
-// Switch between daily and weekly feeds
-function switchFeed(type) {
-    if (feedType.value === type) return
-
-    feedType.value = type
-    loadRecommendations()
 }
 
 // Apply date filters
@@ -253,14 +230,14 @@ async function regenerateRecommendations() {
 
     try {
         await axios.post(
-            'http://localhost:8000/api/recommendations/generate',
+            `${API_URL}/api/recommendations/generate`,
             {
                 userId: userId.value,
                 feedType: feedType.value
             }
         )
 
-        const url = `http://localhost:8000/api/recommendations/user/${userId.value}?feedType=${feedType.value}`
+        const url = `${API_URL}/api/recommendations/user/${userId.value}?feedType=${feedType.value}`
 
         const response = await axios.get(url)
         recommendations.value = response.data
@@ -289,7 +266,7 @@ async function lessLikeThis(eventId) {
     recommendations.value = recommendations.value.filter(item => item._id !== rec._id)
 
     try {
-        await axios.put(`http://localhost:8000/api/recommendations/${rec._id}/less-like`, { userId: userId.value })
+        await axios.put(`${API_URL}/api/recommendations/${rec._id}/less-like`, { userId: userId.value })
     } catch (error) {
         console.log('There was an error: ' + error.message)
         recommendations.value = [...recommendations.value, rec].sort((a, b) => b.score - a.score)   // put it back

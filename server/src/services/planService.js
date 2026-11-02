@@ -52,10 +52,11 @@ async function getGoogleClient(userId) {
     return client;
 }
 
-// In-app notification to each person in the list
-function notifyUsers(userIds, type, title, message, planId) {
-    if (!userIds.length) return null;
-    return Notification.insertMany(userIds.map(id => ({
+// In-app notification to each person in the list who has plan alerts on
+async function notifyUsers(userIds, type, title, message, planId) {
+    const wanted = await User.idsWantingAlert(userIds, 'plans');
+    if (!wanted.length) return null;
+    return Notification.insertMany(wanted.map(id => ({
         userId: id,
         type,
         title,
@@ -203,16 +204,13 @@ exports.createPlan = async ({ userId, title, allDay = false, start, end, locatio
     // In-app invite for each friend
     if (invitees.length) {
         const creatorName = creator.displayName || creator.fullName || creator.username;
-        await Notification.insertMany(invitees.map(u => ({
-            userId: u._id,
-            type: 'plan_invite',
-            title: 'New plan invite',
-            message: lobby ? `${creatorName} added "${plan.title}" to ${lobby.name}` : `${creatorName} invited you to "${plan.title}"`,
-            channels: ['in_app'],
-            status: 'sent',
-            sentAt: new Date(),
-            metadata: { planId: plan._id }
-        })));
+        await notifyUsers(
+            invitees.map(u => u._id),
+            'plan_invite',
+            'New plan invite',
+            lobby ? `${creatorName} added "${plan.title}" to ${lobby.name}` : `${creatorName} invited you to "${plan.title}"`,
+            plan._id
+        );
     }
 
     return { plan, warning };

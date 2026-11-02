@@ -17,7 +17,7 @@ const recommendationSchema = new mongoose.Schema({
     },
     reasons: {
         type: [String],
-        deafult: []
+        default: []
     },
     feedType: {
         type: String,
