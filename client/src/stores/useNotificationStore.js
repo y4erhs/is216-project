@@ -63,9 +63,7 @@ export const useNotificationStore = defineStore('notifications', () => {
   async function load() {
     loading.value = true
     try {
-      const response = await axios.get('http://localhost:8000/api/notifications?limit=15&userId=6ae5dc7fc2ea36c372993fab')
-      console.log('AXIOS SUCCESS RESPONSE:', response)
-      console.log('AXIOS RESPONSE DATA:', JSON.stringify(response.data, null, 2))
+      const response = await axios.get('http://localhost:8000/api/notifications?limit=15&userId=6acd9e65046b9013f579fc7d')
       rawItems.value = response.data.items ?? []
       total.value = response.data.total ?? rawItems.value.length
     } catch (err) {
@@ -171,7 +169,7 @@ export const useNotificationStore = defineStore('notifications', () => {
   function startPolling() {
     load()
     if (!pollInterval) {
-      pollInterval = setInterval(load, 30000)
+      pollInterval = setInterval(load, 5000)
     }
   }
 
