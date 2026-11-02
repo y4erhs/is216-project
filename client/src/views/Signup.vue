@@ -24,14 +24,14 @@
   { id: 'edit-profile', label: 'PROFILE', theme: 'theme-orange' },
   { id: 'interests', label: 'INTERESTS', theme: 'theme-purple' }
   ]
-    const schools = ['School of Business', 'School of Accountancy', 'School of Economics', 
+    const courses = ['School of Business', 'School of Accountancy', 'School of Economics', 
     'School of Information Systems and Computer Science',
     'School of Law', 'College of Integrative Studies', 'School of Social Sciences']
   
     const years = ['Year 1', 'Year 2', 'Year 3', 'Year 4', 'Year 5']
   
     const activeTab = ref('create-acc')
-    const selectedSchool = ref('')
+    const selectedCourse = ref('')
     const selectedYear = ref('')
     const displayName = ref('')
     const username = ref('')
@@ -80,17 +80,80 @@
 
     const selectedInterests = ref([])
 
-    const toggleInterest = (id) => {
-      if (selectedInterests.value.includes(id)) {
-        selectedInterests.value = selectedInterests.value.filter(item => item !== id)
-      } else {
-        selectedInterests.value.push(id)
-      }
-    }
+    // const toggleInterest = (id) => {
+    //   if (selectedInterests.value.includes(id)) {
+    //     selectedInterests.value = selectedInterests.value.filter(item => item !== id)
+    //   } else {
+    //     selectedInterests.value.push(id)
+    //   }
+    // }
 
     const userStore = useUserStore();
     const router = useRouter();
+    const errorMsg = ref('')
   
+    // Validation for Create Account
+    const handleCreateAccount = () => {
+      errorMsg.value = ''
+
+      if (!fullName.value || !email.value || !password.value || !confirmPassword.value) {
+        errorMsg.value = 'Please fill in all required fields.'
+        return
+      }
+
+      // check if email is an smu email
+      if (!(email.value.includes('@smu.edu.sg'))) {
+        errorMsg.value = 'Email must end with @smu.edu.sg'
+        return
+      }
+
+      // check if password is 8 characters and includes at least 1 number, 1 special char and capital letter
+      if (password.value.length < 8) {
+        errorMsg.value = 'Password must be at least 8 characters'
+      }
+
+      const hasCapital = /[A-Z]/.test(password.value)
+      const hasNumber = /\d/.test(password.value)
+      const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password.value)
+
+      if (!hasCapital || !hasNumber || !hasSpecial) {
+        errorMsg.value = 'Password must include at least 1 capital letter, 1 number, and 1 special character.'
+        return
+      }
+
+      if (password.value !== confirmPassword.value) {
+        errorMsg.value = 'Passwords do not match!'
+        return
+      }
+
+      activeTab.value = 'edit-profile'
+    }
+
+    const handleCreateProfile = async () => {
+      errorMsg.value = ''
+      if (!displayName.value || !username.value || !selectedCourse.value || !selectedYear.value) {
+        errorMsg.value = 'Please fill in all required fields.'
+        return
+      }
+
+      //username is already taken
+
+      try {
+        const isTaken = await userStore.checkUsername(username.value)
+
+        if (isTaken) {
+          errorMsg.value = "This username is already taken. Please choose another username."
+          return
+        }
+
+        activeTab.value = 'interests'
+      } catch (error) {
+        console.error('Full error details:', error)
+        errorMsg.value = error.response?.data?.message || 'Failed to verify username. Please try again.'
+      }
+      
+    }
+
     const handleSubmit = async () => {
     console.log("SUBMIT BUTTON CLICKED!");
     try {
@@ -101,7 +164,7 @@
       formData.append('password', password.value);
       formData.append('displayName', displayName.value);
       formData.append('username', username.value);
-      formData.append('school', selectedSchool.value);
+      formData.append('course', selectedCourse.value);
       formData.append('year', selectedYear.value);
       formData.append('interests', JSON.stringify(selectedInterests.value));
 
@@ -117,6 +180,8 @@
        
       } catch (error) {
         console.error('Failed to connect:', error.message || error);
+        errorMsg.value = error.response?.data?.message || error.message || 'Registration failed';
+
       }
 }
 </script>
@@ -129,13 +194,15 @@
         <!-- create account event cards -->
          <div>
             <h1> CREATE AN ACCOUNT </h1>
-            <form action="">
+            <form @submit.prevent="handleCreateAccount">
                 <input type="text" v-model='fullName' placeholder="Full Name">
                 <input type="email" v-model='email' placeholder="Email">
                 <input type="password" v-model='password' placeholder="Password">
                 <input type="password" v-model='confirmPassword' placeholder="Confirm Password"><br>
-                
-                <BaseButton type="submit" class="auth-btn" @click.prevent="activeTab = 'edit-profile'" >REGISTER</BaseButton>
+
+                <p v-if="errorMsg" style="color: #e63c25;">{{ errorMsg }}</p>
+
+                <BaseButton type="submit" class="auth-btn">REGISTER</BaseButton>
                 <span>Or</span>
                 <BaseButton type="button" class="auth-btn"> <img src="/google-green-icon.png" style="width: 16px; height: 16px;">  CONTINUE WITH GOOGLE</BaseButton>
                 <div class="log-in">
@@ -183,7 +250,7 @@
         <div class="meta-row">
           <div>
             <span class="meta-title">Faculty</span>
-            <span class="meta-val">{{ selectedSchool || 'Your Faculty' }}</span>
+            <span class="meta-val">{{ selectedCourse || 'Course' }}</span>
           </div>
           <div>
             <span class="meta-title">Year of Study</span>
@@ -215,16 +282,16 @@
     <!-- RIGHT COLUMN (Form Controls) -->
     <div class="right-section">
       <h1>CREATE PROFILE</h1>
-      <form action="">
+      <form @submit.prevent="handleCreateProfile">
         <input type="text" v-model="displayName" placeholder="Display Name">
         <input type="text" v-model="username" placeholder="Username">
 
         <BaseInput
             class="select-school"
             type="select"  
-            v-model="selectedSchool" 
-            :options="schools" 
-            placeholder="Select your school"
+            v-model="selectedCourse" 
+            :options="courses" 
+            placeholder="Select your course"
         />
 
         <BaseInput
@@ -234,6 +301,9 @@
             :options="years" 
             placeholder="Select your Year of Study"
         />
+
+        <p v-if="errorMsg" style="color: #f09286;">{{ errorMsg }}</p>
+
 
         <div class="file-upload-container">
           <label class="upload-label">Upload Profile Picture</label>
@@ -251,7 +321,7 @@
           </label>
         </div>
 
-        <BaseButton type="submit" class="auth-btn" @click.prevent="activeTab = 'interests'">NEXT</BaseButton>
+        <BaseButton type="submit" class="auth-btn">NEXT</BaseButton>
       </form>
     </div>
   </div>
@@ -359,6 +429,14 @@ input:focus {
 .auth-btn {
   width: 70%;
   max-width: 500px;
+}
+
+.next-btn {
+  position: absolute;
+  bottom: 40px;
+  right: 50px;
+  width: 80px;
+  height: 38px;
 }
 
 .log-in {
@@ -577,8 +655,8 @@ input:focus {
   width: 100%;
 }
 
-/* school selection styles */
-.select-school {
+/* course selection styles */
+.select-course {
   width: 100%;
 }
 

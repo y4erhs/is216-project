@@ -21,6 +21,10 @@ router.post('/register', upload.fields([
 //LOGIN
 router.post('/login', userController.login);
 
+// check if username is available 
+router.get('/check-username/:username', userController.checkUsername);
+
+
 // READ
 router.get('/', userController.getUsers);
 router.get('/search', userController.searchUsers);
@@ -39,5 +43,6 @@ router.delete('/:id', userController.deleteUser);
 router.post('/forgot-password', userController.forgotPassword);
 
 router.post('/reset-password/:token', userController.resetPassword);
+
 
 module.exports = router

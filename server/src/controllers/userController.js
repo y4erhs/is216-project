@@ -317,3 +317,19 @@ exports.searchUsers = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+exports.checkUsername = async (req, res) => {
+  try {
+    const { username } = req.params;
+    
+    // Check if the username already exists (case-insensitive)
+    const existingUser = await User.findOne({ 
+      username: { $regex: new RegExp(`^${username}$`, 'i') } 
+    });
+
+    return res.status(200).json({ exists: !!existingUser });
+  } catch (error) {
+    console.error('Error checking username:', error);
+    return res.status(500).json({ message: 'Server error while checking username' });
+  }
+};

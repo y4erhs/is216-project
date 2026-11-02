@@ -53,6 +53,8 @@ export const useUserStore = defineStore('user', () => {
     } finally {
       loading.value = false;
     }
+
+    
   }
 
   async function register(formData) {
@@ -68,6 +70,18 @@ export const useUserStore = defineStore('user', () => {
       throw err.response?.data || err.message;
     } finally {
       loading.value = false;
+    }
+  }
+
+  async function checkUsername(username) {
+    try {
+      const response = await axios.get(`http://localhost:8000/api/users/check-username/${username}`);
+      
+      console.log("SERVER CHECK-USERNAME RESPONSE:", response.data);
+      return response.data.exists; 
+    } catch (err) {
+      console.error('Failed to check username:', err);
+      throw err.response?.data || err.message;
     }
   }
 
@@ -88,7 +102,10 @@ export const useUserStore = defineStore('user', () => {
     isLoggedIn, 
     login, 
     register,
+    checkUsername,
     logout, 
     clearError 
   };
+
+  
 });
