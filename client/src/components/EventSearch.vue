@@ -1,14 +1,20 @@
 <script setup>
 import { ref, onMounted, watch, computed } from 'vue'
 import axios from 'axios'
+import { useRoute, useRouter } from 'vue-router'
 import InterestChips from './InterestChips.vue'
 import EventCard from './EventCard.vue'
+import CardInfo from './CardInfo.vue'
+import BaseButton from './BaseButton.vue'
 import { useActivities } from '../composables/useActivities'
 import { useAuth } from '../composables/useAuth'
 
-const { activityMap, loadActivities, setInterested, setGoing } = useActivities()
+const { activityMap, loadActivities, setInterested, setGoing, saveNote } = useActivities()
+const route = useRoute()
+const router = useRouter()
 
-const keyword = ref('')
+// The top search bar sends its text as ?q=
+const keyword = ref(route.query.q || '')
 const category = ref('')
 const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Singapore' })
 const fromDate = ref(today)
@@ -21,6 +27,7 @@ const hasSearched = ref(false)
 
 const selectedChip = ref('for-you') // the page opens on the "For you" picks
 const myInterests = ref([])
+const selectedEvent = ref(null)   // the card opened for details
 
 const emit = defineEmits(['search-active'])
 
@@ -70,6 +77,12 @@ const noInterests = ref(false)
 async function searchEvents() {
     const searchId = ++latestSearch
     hasSearched.value = true
+    selectedEvent.value = null
+
+    // Keep the address (and the top search bar) matching the keyword
+    const q = keyword.value.trim()
+    if ((route.query.q || '') !== q) router.replace({ path: '/search', query: q ? { q } : {} })
+
     emit('search-active', true)
     noInterests.value = false
     const params = {}
@@ -119,6 +132,8 @@ function selectCategory() {
 function clearFilters() {
     latestSearch++
     keyword.value = ''
+    selectedEvent.value = null
+    router.replace({ path: '/search' })
     category.value = ''
     selectedChip.value = 'for-you'
     fromDate.value = today
@@ -129,11 +144,29 @@ function clearFilters() {
     emit('search-active', false)
 }
 
+// A new search from the top bar looks through everything, not just the chip that was selected
+function searchFromTopBar() {
+    selectedChip.value = 'all'
+    category.value = ''
+    searchEvents()
+}
+
 onMounted(() => {
     loadCategories()
     loadScores()
     loadActivities()
+    if (route.query.q) searchFromTopBar()
 })
+
+watch(() => route.query.q, (q) => {
+    if ((q || '') === keyword.value.trim()) return   // this page's own search changed the address
+    keyword.value = q || ''
+    searchFromTopBar()
+})
+
+function handleRegister(url) {
+    if (url) window.open(url, '_blank', 'noopener,noreferrer')
+}
 
 // Interests loading or changing only re-runs a search that's already showing
 watch(myInterests, () => {
@@ -142,14 +175,15 @@ watch(myInterests, () => {
 </script>
 
 <template>
-    <div class="container py-3">
-        <h4 class="mb-3 text-dark">Find events</h4>
+    <div class="search-page">
+        <h1 class="page-title">Find events</h1>
 
         <!-- Filters -->
-        <div class="row g-2 align-items-end mb-3">
+        <div class="filter-card row g-2 align-items-end mx-0">
             <div class="col-12 col-md-4">
-                <label class="form-label small text-muted">Keyword</label>
+                <label class="form-label small" for="search-keyword">Keyword</label>
                 <input
+                    id="search-keyword"
                     type="text"
                     class="form-control"
                     placeholder="e.g. python, hackathon, SMU BIA"
@@ -159,30 +193,30 @@ watch(myInterests, () => {
             </div>
 
             <div class="col-6 col-md-2">
-                <label class="form-label small text-muted">Category</label>
-                <select class="form-select" v-model="category" v-on:change="selectCategory">
+                <label class="form-label small" for="search-category">Category</label>
+                <select id="search-category" class="form-select" v-model="category" v-on:change="selectCategory">
                     <option value="">All</option>
                     <option v-for="c in categories" v-bind:key="c" v-bind:value="c">{{ c }}</option>
                 </select>
             </div>
 
             <div class="col-6 col-md-2">
-                <label class="form-label small text-muted">From</label>
-                <input type="date" class="form-control" v-model="fromDate" v-on:change="searchEvents">
+                <label class="form-label small" for="search-from">From</label>
+                <input id="search-from" type="date" class="form-control" v-model="fromDate" v-on:change="searchEvents">
             </div>
 
             <div class="col-6 col-md-2">
-                <label class="form-label small text-muted">To</label>
-                <input type="date" class="form-control" v-model="toDate" v-on:change="searchEvents">
+                <label class="form-label small" for="search-to">To</label>
+                <input id="search-to" type="date" class="form-control" v-model="toDate" v-on:change="searchEvents">
             </div>
 
             <div class="col-6 col-md-2 d-flex gap-2">
-                <button class="btn btn-primary w-100" v-on:click="searchEvents">Search</button>
-                <button class="btn btn-outline-secondary" v-on:click="clearFilters">Clear</button>
+                <BaseButton class="theme-green" variant="primary" v-on:click="searchEvents">Search</BaseButton>
+                <BaseButton variant="outline-main" v-on:click="clearFilters">Clear</BaseButton>
             </div>
         </div>
 
-        <div class="mb-3">
+        <div class="chips">
             <InterestChips
                 show-all
                 v-bind:selected="selectedChip"
@@ -191,20 +225,29 @@ watch(myInterests, () => {
             />
         </div>
 
-        <!-- Results (only after a search) -->
-        <div v-if="hasSearched">
-            <p v-if="searching" class="text-muted">Searching...</p>
+        <!-- One event's details -->
+        <CardInfo
+            v-if="selectedEvent"
+            :event="selectedEvent"
+            @close="selectedEvent = null"
+            @save-note="text => saveNote(selectedEvent._id, text)"
+            @register="handleRegister"
+        />
 
-            <p v-else-if="noInterests" class="text-muted">
+        <!-- Results (only after a search) -->
+        <div v-else-if="hasSearched">
+            <p v-if="searching" class="status-text">Searching...</p>
+
+            <p v-else-if="noInterests" class="status-text">
                 You haven't picked any interests yet. <router-link to="/profile">Add some</router-link> to see events for you.
             </p>
 
-            <p v-else-if="results.length === 0" class="text-muted">
+            <p v-else-if="results.length === 0" class="status-text">
                 No events match your search.
             </p>
 
             <div v-else>
-                <p class="small text-muted">{{ results.length }} event(s) found</p>
+                <p class="status-text">{{ results.length }} event(s) found</p>
                 <div class="row g-3">
                     <div class="col-md-6" v-for="event in sortedResults" v-bind:key="event._id">
                         <EventCard
@@ -214,6 +257,7 @@ watch(myInterests, () => {
                             :going-by-session="activityMap[event._id]?.sessions || {}"
                             @set-interested="(v) => setInterested(event._id, v)"
                             @set-going="(p) => setGoing(event._id, p)"
+                            @card-click="selectedEvent = $event"
                             :score="scores[event._id] ?? null"
                         />
                     </div>
@@ -222,3 +266,40 @@ watch(myInterests, () => {
         </div>
     </div>
 </template>
+
+<style scoped>
+.search-page {
+    display: grid;
+    gap: 15px;
+    padding: 0 15px 15px;
+    color: var(--color-white);
+}
+
+.page-title {
+    margin: 0;
+    color: var(--color-white);
+    font-family: 'HeaderFont';
+    font-size: 25px;
+    text-transform: uppercase;
+}
+
+.filter-card {
+    padding: 15px;
+    border-radius: 25px;
+    background-color: var(--color-white);
+    color: var(--color-black);
+}
+
+.chips :deep(.text-muted) {
+    color: var(--color-white) !important;
+}
+
+.status-text {
+    margin: 0 0 12px;
+    color: var(--color-white);
+}
+
+.status-text a {
+    color: var(--color-white);
+}
+</style>

@@ -311,7 +311,7 @@ function handleRegister(url) {
                         CLEAR
                     </BaseButton>
 
-                    <BaseButton class="calendar-btn theme-dark-blue" variant="primary">
+                    <BaseButton class="calendar-btn theme-dark-blue" variant="primary" @click="$router.push('/calendar')">
                         VIEW MY CALENDAR
                     </BaseButton>
                 </div>
