@@ -132,6 +132,7 @@ userSchema.statics.createUser = function({
     banner,
     bio,
     school,
+    major,
     year,
     ccas
 }) {
@@ -148,6 +149,7 @@ userSchema.statics.createUser = function({
         banner,
         bio,
         school,
+        major,
         year,
         ccas
     });

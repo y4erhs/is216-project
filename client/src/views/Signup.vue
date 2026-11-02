@@ -12,6 +12,7 @@
     import BaseInput from '../components/BaseInput.vue'
     import '../assets/theme.css'
     import { INTERESTS, MAX_INTERESTS } from '../utils/interests'
+    import { COURSES } from '../utils/courses'
 
     // CREATE ACCOUNT DATA
     const fullName = ref('');
@@ -28,9 +29,7 @@
   { id: 'edit-profile', label: 'PROFILE', theme: 'theme-orange' },
   { id: 'interests', label: 'INTERESTS', theme: 'theme-purple' }
   ]
-    const courses = ['School of Business', 'School of Accountancy', 'School of Economics', 
-    'School of Information Systems and Computer Science',
-    'School of Law', 'College of Integrative Studies', 'School of Social Sciences']
+    const courses = COURSES
   
     const years = ['Year 1', 'Year 2', 'Year 3', 'Year 4', 'Year 5']
   
@@ -200,7 +199,7 @@
       }
       formData.append('displayName', displayName.value);
       formData.append('username', username.value);
-      formData.append('school', selectedCourse.value);   // this list is SMU's schools
+      formData.append('major', selectedCourse.value);
       formData.append('year', selectedYear.value);
       formData.append('interests', JSON.stringify(selectedInterests.value));
 
@@ -285,7 +284,7 @@
         <!-- Meta Data -->
         <div class="meta-row">
           <div>
-            <span class="meta-title">Faculty</span>
+            <span class="meta-title">Course</span>
             <span class="meta-val">{{ selectedCourse || 'Course' }}</span>
           </div>
           <div>
@@ -323,7 +322,7 @@
         <input type="text" v-model="username" placeholder="Username">
 
         <BaseInput
-            class="select-school"
+            class="select-course"
             type="select"  
             v-model="selectedCourse" 
             :options="courses" 

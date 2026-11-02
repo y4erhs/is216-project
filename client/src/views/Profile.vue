@@ -12,6 +12,7 @@ import { useAuth } from '../composables/useAuth'
 import { INTERESTS, MAX_INTERESTS } from '../utils/interests'
 import { userImageUrl } from '../utils/userDisplay'
 import { REMINDER_OPTIONS } from '../utils/reminders'
+import { COURSES } from '../utils/courses'
 
 
 const userStore = useUserStore()
@@ -125,18 +126,7 @@ const selectedYear = ref('')
 const selectedGrad = ref('')
 
 // options dropdown
-const courses = [
-  'Accountancy (BAcc)',
-  'Business Management (BBM)',
-  'Computer Science (BSc)',
-  'Computing & Law (BSc)',
-  'Economics (BSc)',
-  'Information Systems (BSc)',
-  'Integrative Studies (BIS)',
-  'Laws (LLB)',
-  'Social Science (BSocSc)',
-  'Software Engineering (BSc)'
-]
+const courses = COURSES
 const yearOptions = ['Year 1', 'Year 2', 'Year 3', 'Year 4', 'Year 5']
 const gradOptions = ['2027', '2028', '2029', '2030']
 const clubs = ref([])

@@ -212,7 +212,7 @@ exports.signInCallback = async (req, res) => {
             return res.redirect(`${clientUrl}/login?googleCode=${loginCode}`)
         }
 
-        // New person: they still need to pick a username, school, year and interests
+        // New person: they still need to pick a username, course, year and interests
         const { code: signupCode } = await newCode({ kind: 'signup', email: cleanEmail, name: name || '' }, THIRTY_MINUTES)
         return res.redirect(`${clientUrl}/signup?googleCode=${signupCode}`)
     } catch (err) {
