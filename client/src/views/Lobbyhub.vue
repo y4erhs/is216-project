@@ -24,7 +24,11 @@
     </div>
   </div>
 
-  <JoinPrompt v-else-if="needsJoin" :lobby-id="currentId" @back="toList" />
+  <!-- you opened /lobby/<id> but you aren't in that lobby -->
+  <div v-else-if="needsJoin" class="member-page theme-blue">
+    <button class="btn btn-light" type="button" @click="toList">← My lobbies</button>
+    <p class="notfound">This lobby doesn't exist, or you haven't been invited to it.</p>
+  </div>
 
   <p v-else class="member-page theme-blue">Loading…</p>
 </template>
@@ -36,7 +40,6 @@ import MyLobbies from '../views/MyLobbies.vue'
 import CreateLobby from '../views/CreateLobby.vue'
 import Lobby from '../views/Lobby.vue'
 import LobbyInvite from '../views/LobbyInvite.vue'
-import JoinPrompt from '../views/JoinPrompt.vue'
 import { useLobbies } from '../composables/useLobbies'
 
 defineEmits(['open-calendar'])
@@ -70,4 +73,5 @@ onBeforeUnmount(() => clearInterval(timer))
 }
 .member-wrap { width: 100%; display: grid; justify-items: center; }
 .btn { border: 0; border-radius: 999px; padding: 10px 20px; cursor: pointer; font: 700 11px/1 'TextFont', sans-serif; letter-spacing: 0.14em; text-transform: uppercase; background: transparent; color: #fff; box-shadow: inset 0 0 0 2px #fff; }
+.notfound { margin: 0; color: #fff; font-size: 13px; }
 </style>

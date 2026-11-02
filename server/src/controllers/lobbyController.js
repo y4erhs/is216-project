@@ -268,27 +268,3 @@ exports.planNext = async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 };
-
-exports.joinViaLink = async (req, res) => {
-  try {
-    const { lobbyId } = req.params;
-    const { userId } = req.body; // from auth later
-    if (!mongoose.isValidObjectId(lobbyId)) {
-      return res.status(400).json({ message: 'Invalid lobby id' });
-    }
-    const lobby = await Lobby.findById(lobbyId);
-    if (!lobby) return res.status(404).json({ message: 'Lobby not found' });
-
-    const alreadyIn = [lobby.host, ...lobby.participants].some(id => String(id) === String(userId));
-    const updated = await Lobby.acceptInvite(lobbyId, userId);
-
-    // Opening the link again shouldn't tell the host someone new joined
-    if (!alreadyIn) {
-      const member = await User.findById(userId).select('username');
-      await notificationController.notifyJoinedViaLink(lobby.host, lobby, member || {});
-    }
-    res.json(updated);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};

@@ -56,15 +56,6 @@
         <template #invite>
           <div class="pane">
             <section>
-              <h3 class="section-title">Invite link</h3>
-              <p class="section-sub">Anyone with the link can join the lobby.</p>
-              <div class="link-box">
-                <input class="link-input" readonly :value="inviteLink" aria-label="Invite link" @focus="$event.target.select()" />
-                <button class="btn btn-purple" type="button" @click="copyLink">{{ copied ? 'Copied' : 'Copy' }}</button>
-              </div>
-            </section>
-
-            <section>
               <h3 class="section-title">Invite friends</h3>
               <p v-if="!friends.length" class="section-sub">
               No friends yet. <RouterLink to="/friends" style="color:#fff">Add some</RouterLink>
@@ -92,7 +83,7 @@
                 <h3 class="section-title">Who's in</h3>
                 <span class="live"><i class="live-dot"></i>Updates live</span>
               </div>
-              <p v-if="members.length === 1" class="section-sub">No one invited yet. Add friends or share the link.</p>
+              <p v-if="members.length === 1" class="section-sub">No one invited yet. Add friends from the Invite tab.</p>
 
               <div class="scroll">
                 <TransitionGroup name="roster" tag="ul" class="people" aria-live="polite">
@@ -358,8 +349,6 @@ function deleteLobby() {
 }
 
 /* ---------- lobby state ---------- */
-const inviteLink = computed(() => `${window.location.origin}/lobby/${props.lobbyId}`)
-const copied = ref(false)
 const flashIds = reactive(new Set())
 const removingId = ref(null) // which roster card is asking "Remove …?"
 
@@ -451,15 +440,6 @@ function invite(friend) {
 function removeMember(id) {
   store.removeMember(props.lobbyId, id)
   emit('remove', id) // -> DELETE /lobbies/:id/members/:memberId
-}
-async function copyLink() {
-  try {
-    await navigator.clipboard.writeText(inviteLink.value)
-  } catch {
-    /* clipboard blocked */
-  }
-  copied.value = true
-  setTimeout(() => (copied.value = false), 1800)
 }
 function registerGroup() {
   if (!canRegister.value) return
@@ -612,9 +592,6 @@ button.badge-pill:disabled { opacity: 0.45; cursor: not-allowed; }
   max-height: clamp(170px, 34vh, 300px); overflow-y: auto; margin: -3px; padding: 3px 11px 3px 3px;
   scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.6) transparent;
 }
-
-.link-box { display: flex; align-items: center; gap: 10px; }
-.link-input { flex: 1; min-width: 0; height: 35px; padding: 3px 16px 0; border: 0; border-radius: 999px; background: var(--card); color: var(--ink); font: inherit; }
 
 /* people cards (friends list + roster) */
 .people { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
