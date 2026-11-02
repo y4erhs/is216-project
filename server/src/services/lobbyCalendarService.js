@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const Lobby = require('../models/Lobby');
 const Event = require('../models/events');
 const Plan = require('../models/plan');
-const PlannerEvent = require('../models/plannerEvent');
+const Activity = require('../models/activity');
 
 // Makes an error that also carries an HTTP status code
 function makeError(status, message) {
@@ -97,23 +97,23 @@ async function getLobbyCalendar(lobbyId, userId, month) {
         });
     });
 
-    // 5. Members' own events (from Event.attendees AND PlannerEvent)
-    const seen = new Set(); // "memberId:eventId" so nothing shows twice
+    // 5. Members' own events (from Event.attendees AND the sessions they ticked in Activity)
+    const seen = new Set(); // "memberId:eventId:sessionStart" so nothing shows twice
 
-    function addMemberEvent(memberId, event) {
-        const key = memberId + ':' + event._id.toString();
+    function addMemberSession(memberId, event, s) {
+        if (!sessionInMonth(s)) return;
+
+        const key = memberId + ':' + event._id.toString() + ':' + new Date(s.startTime).getTime();
         if (seen.has(key)) return;
         seen.add(key);
 
-        event.sessions.filter(sessionInMonth).forEach(s => {
-            items.push({
-                type: 'member',
-                memberId,
-                title: event.title,
-                start: s.startTime,
-                end: s.endTime,
-                eventId: event._id
-            });
+        items.push({
+            type: 'member',
+            memberId,
+            title: event.title,
+            start: s.startTime,
+            end: s.endTime,
+            eventId: event._id
         });
     }
 
@@ -126,19 +126,25 @@ async function getLobbyCalendar(lobbyId, userId, month) {
     attendedEvents.forEach(event => {
         event.attendees.forEach(a => {
             const id = a.toString();
-            if (memberMap.has(id)) addMemberEvent(id, event);
+            if (memberMap.has(id)) event.sessions.forEach(s => addMemberSession(id, event, s));
         });
     });
 
-    const plannerEntries = await PlannerEvent.find({
+    const activities = await Activity.find({
         user: { $in: memberIds },
-        status: 'attending'
+        'sessions.0': { $exists: true }
     }).populate('event');
 
-    plannerEntries.forEach(pe => {
-        if (!pe.event) return; // event was deleted
-        if (lobbyEventIdSet.has(pe.event._id.toString())) return;
-        addMemberEvent(pe.user.toString(), pe.event);
+    activities.forEach(activity => {
+        if (!activity.event) return; // event was deleted
+        if (lobbyEventIdSet.has(activity.event._id.toString())) return;
+
+        activity.sessions.forEach(entry => {
+            const session = activity.event.sessions.find(
+                s => new Date(s.startTime).getTime() === new Date(entry.startTime).getTime()
+            );
+            if (session) addMemberSession(activity.user.toString(), activity.event, session);
+        });
     });
 
     // 6. Members' other plans, shown only as "Busy"

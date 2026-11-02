@@ -31,9 +31,14 @@ export const useUserStore = defineStore('user', () => {
       // Extract user info safely
       currentUser.value = { 
         username: data.username || data.user?.username || userInput.username,
+        fullName: data.fullName || data.user?.fullName,
         displayName: data.displayName || data.user?.displayName,
+        email: data.email || data.user?.email,
+        avatar: data.avatar || data.user?.avatar,
+        banner: data.banner || data.user?.banner,
         school: data.school || data.user?.school,
-        banner: data.banner || data.user?.banner
+        year: data.year || data.user?.year,
+        interests: data.interests || data.user?.interests
       };
 
       // Save to local storage

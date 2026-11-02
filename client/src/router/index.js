@@ -32,6 +32,7 @@ const routes = [
 
   { path: '/lobby/:lobbyId?', component: () => import('../views/Lobbyhub.vue') },
   { path: '/friends', component: () => import('../views/Friends.vue') },
+  { path: '/search', name: 'Search', component: () => import('../components/EventSearch.vue') },
 
   { path: "/activity-tracking", name: "Activty Tracking", component: tracking },
 

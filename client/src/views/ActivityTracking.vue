@@ -120,7 +120,7 @@ onMounted(async () => {
     <div class="header-row">
       <h1 class="header-style page-title">MY ACTIVITY</h1>
 
-      <BaseButton class="action-pill-btn calendar-btn">
+      <BaseButton class="action-pill-btn calendar-btn" @click="$router.push('/calendar')">
         VIEW MY CALENDAR
       </BaseButton>
     </div>
