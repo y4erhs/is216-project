@@ -42,7 +42,7 @@ function rejectFriend(item) {
 const DEFAULT_AVATAR = '/uploads/default.png'
 
 function hasCustomAvatar(item) {
-  const avatar = item.metadata?.requesterAvatar
+  const avatar = item.metadata?.requesterAvatar || item.metadata?.receiverAvatar
   return ['friend_request', 'friend_accepted'].includes(item.type)
     && !!avatar
     && avatar !== DEFAULT_AVATAR
@@ -86,7 +86,7 @@ function hasCustomAvatar(item) {
             <button class="notif-btn" type="button"@click="openItem(item)">
             <span class="type-icon">
               <img v-if="hasCustomAvatar(item)"
-              :src="`http://localhost:8000${item.metadata.requesterAvatar}`" class="notif-avatar" alt=""/>
+              :src="`http://localhost:8000${item.metadata.requesterAvatar || item.metadata.receiverAvatar}`" class="notif-avatar" alt=""/>
               <i v-else class="bi" :class="n.meta(item.type).icon"></i>
             </span>
             <span class="notif-body">

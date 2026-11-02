@@ -3,11 +3,12 @@ import { ref, onMounted } from 'vue'
 import axios from 'axios'
 import BaseButton from './BaseButton.vue'
 import { useAuth } from '../composables/useAuth'
+import { INTERESTS, interestLabel } from '../utils/interests'
 
 
 const { userId } = useAuth()
 
-const allInterests = ref([])       // every tag that events use
+const allInterests = INTERESTS.map(i => i.id)     // the only interests users can pick
 const selectedInterests = ref([])  // the ticked boxes
 const saving = ref(false)
 const message = ref('')
@@ -15,12 +16,8 @@ const message = ref('')
 async function loadData() {
     try {
         const prefs = await axios.get(`http://localhost:8000/api/users/${userId.value}/preferences`)
-        selectedInterests.value = [...prefs.data]
-
-        const events = await axios.get('http://localhost:8000/api/events')
-        const tags = events.data.flatMap(e => e.tags)
-        // include current interests too, so they can still be unticked
-        allInterests.value = [...new Set([...tags, ...prefs.data])].sort()
+        // drop old interests that aren't on the list any more
+        selectedInterests.value = prefs.data.filter(i => allInterests.includes(i))
     } catch (error) {
         console.log('There was an error: ' + error.message)
     }
@@ -31,7 +28,7 @@ async function saveInterests() {
     message.value = ''
     try {
         await axios.put(`http://localhost:8000/api/users/${userId.value}`, {
-            preferences: selectedInterests.value
+            interests: selectedInterests.value
         })
         message.value = 'Interests saved!'
         localStorage.setItem('interestsChanged', 'true')
@@ -55,7 +52,7 @@ onMounted(loadData)
                     v-bind:id="'interest-' + interest"
                     v-bind:value="interest"
                     v-model="selectedInterests">
-                <label class="form-check-label text-dark" v-bind:for="'interest-' + interest">{{ interest }}</label>
+                <label class="form-check-label text-dark" v-bind:for="'interest-' + interest">{{ interestLabel(interest) }}</label>
             </div>
         </div>
 

@@ -60,8 +60,16 @@ const userSchema = new mongoose.Schema({
         default: ''
     },
     year: {
-        type: Number,
-        default: null
+        type: String,
+        default: ''
+    },
+    major: {
+        type: String,
+        default: ''
+    },
+    graduationYear: {
+        type: String,
+        default: ''
     },
     ccas: {
         type: [String],
@@ -160,7 +168,7 @@ userSchema.statics.deleteUser = async function(userId) {
 };
 
 userSchema.statics.getPreferences = function(userId) {
-    return this.findById(userId).select('preferences');
+    return this.findById(userId).select('interests');
 };
 
 const User = mongoose.model('User', userSchema, 'users');

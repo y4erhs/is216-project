@@ -7,9 +7,9 @@ const client = new OpenAI({
     baseURL: process.env.OPENAI_BASE_URL || undefined
 });
 
-// Replace with the same tag names as your interests dropdown,
-// so recommendations can match them to users
-const ALLOWED_TAGS = ['tech', 'sports', 'arts', 'music', 'career', 'volunteering', 'culture', 'wellness'];
+// The only tags an event can have. Same ids as the interests users pick
+// (client/src/utils/interests.js), so the Discover tabs and recommendations line up with them.
+const ALLOWED_TAGS = ['tech', 'arts', 'culture', 'community-service', 'sports-outdoors', 'career', 'overseas', 'networking', 'workshops', 'food', 'wellness', 'talks'];
 
 exports.parseMessage = async (msgDoc) => {
     try {
@@ -30,7 +30,7 @@ Otherwise reply with ONLY a JSON object in this exact format:
   "organiser": "<organising CCA or club, or null>",
   "venue": "<venue, or null>",
   "sessions": [{"startTime": "<ISO 8601 with +08:00>", "endTime": "<ISO 8601 with +08:00, or null>"}],
-  "tags": [<1 to 3 tags chosen only from: ${ALLOWED_TAGS.join(', ')}>]
+  "tags": [<1 to 3 tags that fit best, chosen only from: ${ALLOWED_TAGS.join(', ')}>]
 }
 All times are Singapore time. Never invent details; use null if something is not stated.`;
 
@@ -70,12 +70,13 @@ All times are Singapore time. Never invent details; use null if something is not
             organiser: data.organiser || msgDoc.chatTitle,
             venue: data.venue || 'TBC',
             sessions,
-            tags: (data.tags || []).filter(t => ALLOWED_TAGS.includes(t)),
+            // keep only allowed tags (the AI may change the case)
+            tags: [...new Set((data.tags || []).map(t => String(t).trim().toLowerCase()))].filter(t => ALLOWED_TAGS.includes(t)),
             source: 'telegram',
             sourceLink: chatIdStr.startsWith('-100')
                 ? `https://t.me/c/${chatIdStr.slice(4)}/${msgDoc.messageId}`
                 : '',
-            status: 'pending',
+            status: 'published',
             image: msgDoc.image || ''
         };
 

@@ -15,6 +15,8 @@ const NOTIFICATION_TYPES = [
   "group_recommendation",
   "friend_request",
   "friend_accepted",
+  "plan_invite",
+  "plan_cancelled",
 ];
 
 const notificationSchema = new mongoose.Schema(

@@ -1,8 +1,9 @@
 <!--
   Lobby.vue  (Vue 3, <script setup>)
-  The host's view of one lobby: heading, folder (Invite / Roster / Register) and a
-  "Registered events" side panel. Reads/writes through the shared store (useLobbies.js).
-  Needs: FolderTabs + theme.css (design system), LobbyInvite.vue.
+  The host's view of one lobby: heading, folder (Invite / Roster / Register / Shared calendar) and a
+  side panel ("Registered events", or "Selected day" on the calendar tab).
+  Reads/writes through the shared store (useLobbies.js).
+  Needs: FolderTabs + theme.css (design system), LobbyInvite.vue, LobbyCalendar.vue.
 -->
 <template>
   <div v-if="lobby" class="app theme-blue">
@@ -68,7 +69,7 @@
               <p v-if="!friends.length" class="section-sub">
               No friends yet. <RouterLink to="/friends" style="color:#fff">Add some</RouterLink>
               </p>
-              <div class="scroll">
+              <div v-else class="scroll">
                 <ul class="people">
                   <li v-for="f in friends" :key="f.id" class="person">
                     <span class="avatar" :style="{ background: f.color }">{{ initials(f.name) }}</span>
@@ -126,7 +127,7 @@
 
         <!-- ===== Register ===== -->
         <template #register>
-          <div class="pane">
+          <div class="pane" :class="{ 'pane-fill': !registered }">
             <!-- this round is done: the lobby stays, ready for the next event -->
             <template v-if="registered">
               <section>
@@ -143,10 +144,11 @@
               </section>
             </template>
 
-            <section v-else>
+            <section v-else class="fill">
               <h3 class="section-title">Pitch an event</h3>
               <p class="section-sub">Friends can still accept or decline while you choose.</p>
-              <div class="scroll">
+              <p v-if="!events.some((x) => x.upcoming)" class="section-sub">No upcoming events to pitch right now.</p>
+              <div v-else class="scroll">
                 <div class="events" role="radiogroup" aria-label="Events">
                   <label v-for="e in events.filter((x) => x.upcoming)" :key="e.id" class="event" :class="{ used: usedEventIds.has(e.id) }">
                     <input class="sr" type="radio" name="event" :value="e.id" v-model="selectedEventId"
@@ -162,6 +164,13 @@
                 </div>
               </div>
             </section>
+          </div>
+        </template>
+
+        <!-- ===== Shared calendar ===== -->
+        <template #calendar>
+          <div class="pane">
+            <LobbyCalendar ref="calendarEl" :lobby-id="lobbyId" :user-id="userId" @select-day="selectedDay = $event" />
           </div>
         </template>
       </FolderTabs>
@@ -181,8 +190,35 @@
       </div>
     </main>
 
+    <!-- ───── Selected day (only on the Shared calendar tab) ───── -->
+    <aside v-if="tab === 'calendar'" class="panel-wrap" aria-label="Selected day">
+      <div class="side-panel day-panel">
+        <!-- every lobby member is invited, so the form hides its friend picker -->
+        <PlanForm v-if="showPlanForm" :user-id="userId" :lobby-id="lobbyId" :date="selectedDay?.date || ''"
+                  @close="showPlanForm = false" @created="calendarEl?.reload()" />
+
+        <template v-else>
+        <h3 class="panel-title">Selected day</h3>
+
+        <div class="ev">
+          <template v-if="selectedDay">
+            <span class="ev-title">{{ selectedDayLabel }}</span>
+            <ul v-if="selectedDay.chips.length" class="day-chips">
+              <li v-for="(chip, i) in selectedDay.chips" :key="i" class="chip" :class="{ 'chip-lobby': chip.lobby }"
+                  :style="chip.colour ? { background: chip.colour } : null">{{ chip.text }}</li>
+            </ul>
+            <p v-else class="ev-meta">Everyone's free</p>
+          </template>
+          <p v-else class="ev-meta">Pick a day on the calendar to see what's on.</p>
+        </div>
+
+        <button class="btn btn-lime add-plan" type="button" @click="showPlanForm = true">Add plan</button>
+        </template>
+      </div>
+    </aside>
+
     <!-- ───── Registered events (scrolls inside its own box) ───── -->
-    <aside class="panel-wrap" aria-label="Registered events">
+    <aside v-else class="panel-wrap" aria-label="Registered events">
       <div class="side-panel">
         <h3 class="panel-title">Registered events</h3>
 
@@ -248,6 +284,9 @@
 import { ref, reactive, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import FolderTabs from '../components/FolderTabs.vue'
 import LobbyInvite from '../views/LobbyInvite.vue'
+import LobbyCalendar from '../components/LobbyCalendar.vue'
+import PlanForm from '../components/PlanForm.vue'
+import { useAuth } from '../composables/useAuth'
 // NOTE: every page must import the SAME useLobbies file, or each page gets its own separate copy of the data.
 import { useLobbies, daysAgo, timeAgo, INACTIVE_DAYS } from '../composables/useLobbies'
 
@@ -258,6 +297,7 @@ const props = defineProps({
 const emit = defineEmits(['back', 'deleted', 'invite', 'remove', 'register', 'respond'])
 
 const store = useLobbies()
+const { userId } = useAuth()
 const friends = computed(() => store.friends)
 const events = computed(() => store.events)
 const lobby = computed(() => store.get(props.lobbyId))
@@ -272,8 +312,14 @@ const tabs = [
   { id: 'invite', label: 'INVITE', theme: 'theme-green' },
   { id: 'roster', label: 'ROSTER', theme: 'theme-orange' },
   { id: 'register', label: 'REGISTER', theme: 'theme-purple' },
+  { id: 'calendar', label: 'SHARED CALENDAR', theme: 'theme-yellow' },
 ]
 const tab = ref('invite')
+const selectedDay = ref(null)   // { date: "YYYY-MM-DD", chips } picked in the Shared calendar tab
+const selectedDayLabel = computed(() => selectedDay.value &&
+  new Date(`${selectedDay.value.date}T00:00`).toLocaleDateString('en-SG', { weekday: 'long', day: 'numeric', month: 'long' }))
+const showPlanForm = ref(false)
+const calendarEl = ref(null)
 const folderKey = ref(0)
 function goTo(id) {
   tab.value = id
@@ -542,7 +588,9 @@ button.badge-pill:disabled { opacity: 0.45; cursor: not-allowed; }
 .edit-actions { display: flex; gap: 8px; }
 
 /* ── Folder content ── */
-.stage { grid-area: stage; min-width: 0; }
+.stage { grid-area: stage; min-width: 0; display: flex; flex-direction: column; }
+.stage > :deep(.folder-container) { flex: 1 1 0; height: auto; min-height: 420px; }
+.register-bar { flex: none; }
 .pane { display: grid; gap: 20px; }
 .section-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .section-title { margin: 0 0 4px; color: #fff; font: 400 20px/1.1 'HeaderFont', sans-serif; letter-spacing: 0.03em; text-transform: uppercase; }
@@ -582,12 +630,24 @@ button.badge-pill:disabled { opacity: 0.45; cursor: not-allowed; }
 
 /* register tab */
 .events { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; }
-.event { display: block; cursor: pointer; }
-.event.used { opacity: 0.6; cursor: not-allowed; }
-.event-body { display: grid; justify-items: start; gap: 3px; height: 100%; padding: 15px; border-radius: 15px; background: var(--card); color: var(--ink); border: 3px solid transparent; }
+.event { position: relative; display: block; cursor: pointer; }
+.event.used { cursor: not-allowed; }
+.event.used .event-body { background: rgba(240, 241, 247, 0.6); }
+.event.used .event-body > :not(.badge-pill) { opacity: 0.6; }
+
+.event-body {
+  display: grid; justify-items: start; gap: 3px; height: 100%;
+  padding: 15px; border-radius: 15px; border: 3px solid transparent;
+  background: var(--card); color: var(--ink);
+}
+.event-body > * { min-width: 0; }
 .event-body strong { font: 400 14px/1.2 'HeaderFont', sans-serif; letter-spacing: 0.03em; text-transform: uppercase; }
 .event-meta { opacity: 0.8; }
-.event-body .badge-pill { margin-top: 4px; }
+.event-body .badge-pill {
+  margin-top: 4px; max-width: 100%;
+  height: auto; min-height: 22px;
+  white-space: normal; letter-spacing: 0.05em; line-height: 1.2;
+}
 .event input:checked + .event-body { border-color: var(--lime); background: #fff; }
 .event input:focus-visible + .event-body { outline: 3px solid #fff; outline-offset: 2px; }
 .names { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
@@ -626,6 +686,18 @@ button.badge-pill:disabled { opacity: 0.45; cursor: not-allowed; }
 .stat-declined b, .stat-accepted b { background: rgba(0, 0, 0, 0.3); }
 .ev-empty { display: grid; justify-items: start; gap: 10px; padding: 15px; border-radius: 15px; background: var(--card); }
 .ev-empty p { margin: 0; }
+/* Register tab: the event list fills the folder instead of stopping at 300px */
+.pane-fill { flex: 1 1 auto; min-height: 0; grid-template-rows: minmax(0, 1fr); }
+.fill { display: flex; flex-direction: column; min-height: 0; }
+.fill .scroll { flex: 1 1 auto; min-height: 170px; max-height: none; }
+
+/* Selected day panel: Add plan sits at the bottom; chips match LobbyCalendar.vue */
+.day-panel { display: flex; flex-direction: column; gap: 12px; }
+.day-panel .panel-title { margin-bottom: 3px; }
+.add-plan { margin-top: auto; align-self: stretch; }
+.day-chips { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; width: 100%; }
+.chip { padding: 5px 10px 4px; border-radius: 999px; background: var(--card); color: var(--ink); font-size: 11px; overflow-wrap: anywhere; }
+.chip-lobby { background: var(--dark-blue); color: #fff; font-weight: 700; }
 
 /* ── Overlays ── */
 .overlay { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 15px; overflow-y: auto; background: rgba(31, 42, 68, 0.65); }
@@ -642,6 +714,7 @@ button.badge-pill:disabled { opacity: 0.45; cursor: not-allowed; }
   .app { grid-template-columns: minmax(0, 1fr); grid-template-areas: 'head' 'stage' 'panel'; grid-template-rows: auto; }
   .panel-wrap { min-height: 0; }
   .side-panel { position: static; max-height: 480px; }
+  .stage { min-height: 640px; }
 }
 @media (max-width: 720px) {
   .people { grid-template-columns: 1fr; }

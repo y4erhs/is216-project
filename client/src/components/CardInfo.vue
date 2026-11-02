@@ -1,7 +1,7 @@
 
 <script setup>
 import { computed, ref } from 'vue'
-import CategoryPill from '@/components/CategoryPill.vue'
+import CategoryPill from '@/components/categoryPill.vue'
 
 const props = defineProps({
   event: { type: Object, required: true },
@@ -111,7 +111,7 @@ const displayTime = computed(() => {
 
             <div class="categories-row">
               <CategoryPill
-                v-for="(cat, index) in event.categories"
+                v-for="(cat, index) in event.tags"
                 :key="index"
                 :category="cat"
               />

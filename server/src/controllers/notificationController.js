@@ -611,12 +611,13 @@ exports.notifyFriendRequest = async (receiverId,requesterName,friendshipId, requ
   });
 };
 
-exports.notifyFriendAccepted = async (userId,acceptedByName) => {
+exports.notifyFriendAccepted = async (userId,acceptedByName,receiverAvatar) => {
   return createNotification({
     userId,
     type: "friend_accepted",
     title: "Friend Request Accepted",
-    message:`${acceptedByName} accepted your friend request.`
+    message:`${acceptedByName} accepted your friend request.`,
+    metadata: {receiverAvatar}
     });
 };
 

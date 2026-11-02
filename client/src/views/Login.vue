@@ -5,6 +5,7 @@ import 'bootstrap/dist/js/bootstrap.bundle.min.js'
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '../stores/userStore'
+
 import axios from 'axios'
 import BaseButton from '../components/BaseButton.vue'
 import FolderTabs from '../components/FolderTabs.vue'
@@ -12,6 +13,7 @@ import '../assets/theme.css'
 
 const router = useRouter()
 const userStore = useUserStore()
+
 
 onMounted(() => {
   document.documentElement.style.overflow = 'hidden'
@@ -48,10 +50,7 @@ const handleLogin = async () => {
   } catch (error) {
     console.error('Login failed:', error)
 
-    // get backend message from the store to display
-    const backendMsg = error.message || error.response?.data?.message || ''
-
-    errorMsg.value = backendMsg.toLowerCase();
+    errorMsg.value = userStore.error
   }
 }
 

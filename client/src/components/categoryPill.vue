@@ -1,4 +1,6 @@
 <script setup>
+import { interestLabel } from '../utils/interests'
+
 const props = defineProps({
   category: {
     type: String,
@@ -48,7 +50,7 @@ function getThemeClass(name, type) {
 
 <template>
   <span class="cat-pill" :class="getThemeClass(category, type)">
-    {{ category }}
+    {{ type === 'club' ? category : interestLabel(category) }}
   </span>
 </template>
 

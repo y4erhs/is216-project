@@ -1,14 +1,26 @@
 <script setup>
-import { ref, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import NotificationBell from '../components/NotificationBell.vue'
 
 const router = useRouter();
+const route = useRoute();
 // --- Emits ---
 const emit = defineEmits(['toggle-menu'])
 
 // --- State ---
 const searchQuery = ref('')
+
+// Open the search page with what was typed
+function runSearch() {
+    const q = searchQuery.value.trim()
+    router.push({ path: '/search', query: q ? { q } : {} })
+}
+
+// Keep the box matching the search page, and clear it after leaving
+watch(() => [route.path, route.query.q], () => {
+    searchQuery.value = route.path === '/search' ? (route.query.q || '') : ''
+}, { immediate: true })
 
 // --- Notification ---
 function onNotification(item) {
@@ -16,10 +28,12 @@ function onNotification(item) {
     router.push({ path: '/friends', query: { tab: 'requests' } })
   } else if (item.type === 'friend_accepted') {
     router.push('/friends')
-  } else if (['lobby_deleted', 'lobby_removed','lobby_invite',"lobby_joined_via_link","lobby_member_responded"].includes(item.type)) {
+  } else if (['lobby_deleted', 'lobby_removed','lobby_invite',"lobby_joined_via_link","lobby_member_responded","lobby_event_pitched"].includes(item.type)) {
     router.push('/lobby') 
-  } else if (item.type === 'event_reminder') {
+  } else if (item.type === 'upcoming_event') {
     router.push(`/activity-tracking`)
+  } else if(item.type === 'group_register'){
+    router.push('/activity-tracking')
   }
   else {
     // FALLBACK FOR DEMO: Routes to discover if no ID is present
@@ -66,15 +80,15 @@ const mobileDate = computed(() => {
 
         <!-- Search Bar -->
         <div class="search-pill d-flex align-items-center gap-2 px-3 py-2 flex-grow-1 me-1 me-md-3">
-            <span class="search-icon">
+            <button type="button" class="search-icon search-btn" aria-label="Search" @click="runSearch">
                 <i class="bi bi-search"></i>
-            </span>
+            </button>
 
             <input type="text" class="search-input flex-grow-1 d-none d-md-block" v-model="searchQuery"
-                placeholder="Search events, friends or opportunities" />
+                placeholder="Search events" aria-label="Search events" @keyup.enter="runSearch" />
 
             <input type="text" class="search-input flex-grow-1 d-block d-md-none" v-model="searchQuery"
-                placeholder="Search..." />
+                placeholder="Search events" aria-label="Search events" @keyup.enter="runSearch" />
 
         </div>
 
@@ -127,6 +141,14 @@ const mobileDate = computed(() => {
 }
 
 /* --- Search Bar --- */
+.search-btn {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    cursor: pointer;
+}
+
 .search-pill {
     min-width: 0;
     height: 40px;

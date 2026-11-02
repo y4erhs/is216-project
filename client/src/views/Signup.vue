@@ -10,6 +10,7 @@
     import FolderTabs from '../components/FolderTabs.vue'
     import BaseInput from '../components/BaseInput.vue'
     import '../assets/theme.css'
+    import { INTERESTS, MAX_INTERESTS } from '../utils/interests'
 
     // CREATE ACCOUNT DATA
     const fullName = ref('');
@@ -75,20 +76,7 @@
       }
     }
 
-    const availableInterests = [
-      { id: 'tech', label: 'Tech' },
-      { id: 'arts', label: 'Arts' },
-      { id: 'culture', label: 'Cultural Clubs' },
-      { id: 'community-service', label: 'Community Service' },
-      { id: 'sports-outdoors', label: 'Sports and Outdoors' },
-      { id: 'career', label: 'Career' },
-      { id: 'overseas', label: 'Overseas Activities' },
-      { id: 'networking', label: 'Networking Event' },
-      { id: 'workshops', label: 'Skills Upgrading Workshop' },
-      { id: 'food', label: 'Food' },
-      { id: 'wellness', label: 'Wellness' },
-      { id: 'talks', label: 'Guest Lectures' }
-    ]
+    const availableInterests = INTERESTS
 
     const selectedInterests = ref([])
 
@@ -272,7 +260,7 @@
     <template #interests>
       <div class="cards-list">
         <!-- interest event cards -->
-        <h1 class="interest-title"> CHOOSE YOUR INTERESTS </h1>
+        <h1 class="interest-title"> CHOOSE UP TO {{ MAX_INTERESTS }} INTERESTS </h1>
         <div class="folder-scroll-container">
           <div class="interest-grid">
             <div 
@@ -284,7 +272,8 @@
             <div class="card-body p-2">
               <p class="card-text mb-0">
                 <label class="w-100 d-flex align-items-center gap-2 mb-0">
-                  <input type="checkbox" :value="interest.id" v-model="selectedInterests">
+                  <input type="checkbox" :value="interest.id" v-model="selectedInterests"
+                    :disabled="selectedInterests.length >= MAX_INTERESTS && !selectedInterests.includes(interest.id)">
                   <span> {{interest.label}} </span>
                 </label>
               </p>
