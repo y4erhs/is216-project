@@ -5,6 +5,7 @@ import axios from 'axios'
 import CategoryPill from '@/components/categoryPill.vue'
 import { useAuth } from '../composables/useAuth'
 import { REMINDER_OPTIONS } from '../utils/reminders'
+import { API_URL } from '../utils/api'
 
 const props = defineProps({
   event: { type: Object, required: true },
@@ -27,7 +28,6 @@ function handleRegister() {
   emit('register', props.event.registrationUrl)
 }
 
-const API_URL = 'http://localhost:8000'
 const { userId } = useAuth()
 
 // Reminder for this event, which appears in the notification bell when it's due

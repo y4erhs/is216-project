@@ -2,8 +2,8 @@
 // Shared lobby state for every lobby page, now backed by the real API.
 import { reactive } from 'vue'
 import { useAuth } from './useAuth'
+import { API_URL } from '../utils/api'
 
-const API_URL = 'http://localhost:8000'
 export const INACTIVE_DAYS = 14
 
 const DAY = 86400000

@@ -10,6 +10,7 @@ import axios from 'axios'
 import BaseButton from '../components/BaseButton.vue'
 import FolderTabs from '../components/FolderTabs.vue'
 import '../assets/theme.css'
+import { API_URL } from '../utils/api'
 
 const route = useRoute()
 const router = useRouter()
@@ -50,7 +51,7 @@ const GOOGLE_ERRORS = {
 function continueWithGoogle() {
   // Remember where they were going, since the trip to Google leaves this page
   if (route.query.redirect) sessionStorage.setItem('loginRedirect', route.query.redirect)
-  window.location.href = 'http://localhost:8000/auth/google/signin'
+  window.location.href = `${API_URL}/auth/google/signin`
 }
 
 // Back from Google: log in with the one-time code, or show what went wrong
@@ -98,7 +99,7 @@ const handleSendReset = async () => {
     resetError.value = ''
     resetMessage.value = ''
 
-    const response = await axios.post('http://localhost:8000/api/users/forgot-password', {
+    const response = await axios.post(`${API_URL}/api/users/forgot-password`, {
       email: resetEmail.value
     })
 

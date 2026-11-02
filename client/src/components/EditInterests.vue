@@ -4,6 +4,7 @@ import axios from 'axios'
 import BaseButton from './BaseButton.vue'
 import { useAuth } from '../composables/useAuth'
 import { INTERESTS, interestLabel } from '../utils/interests'
+import { API_URL } from '../utils/api'
 
 
 const { userId } = useAuth()
@@ -15,7 +16,7 @@ const message = ref('')
 
 async function loadData() {
     try {
-        const prefs = await axios.get(`http://localhost:8000/api/users/${userId.value}/preferences`)
+        const prefs = await axios.get(`${API_URL}/api/users/${userId.value}/preferences`)
         // drop old interests that aren't on the list any more
         selectedInterests.value = prefs.data.filter(i => allInterests.includes(i))
     } catch (error) {
@@ -27,7 +28,7 @@ async function saveInterests() {
     saving.value = true
     message.value = ''
     try {
-        await axios.put(`http://localhost:8000/api/users/${userId.value}`, {
+        await axios.put(`${API_URL}/api/users/${userId.value}`, {
             interests: selectedInterests.value
         })
         message.value = 'Interests saved!'

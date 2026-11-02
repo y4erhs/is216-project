@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import axios from 'axios'
 import { useAuth } from '../composables/useAuth'
+import { API_URL } from '../utils/api'
 
 const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000
 
@@ -70,7 +71,7 @@ export const useNotificationStore = defineStore('notifications', () => {
     if (!userId.value) return
     loading.value = true
     try {
-      const response = await axios.get(`http://localhost:8000/api/notifications?limit=15&userId=${userId.value}`)
+      const response = await axios.get(`${API_URL}/api/notifications?limit=15&userId=${userId.value}`)
       rawItems.value = response.data.items ?? []
       total.value = response.data.total ?? rawItems.value.length
     } catch (err) {
@@ -91,7 +92,7 @@ export const useNotificationStore = defineStore('notifications', () => {
     }
 
     try {
-      await axios.put(`http://localhost:8000/api/notifications/${item._id}/read?userId=${userId.value}`)
+      await axios.put(`${API_URL}/api/notifications/${item._id}/read?userId=${userId.value}`)
       target.isRead = true
     } catch (err) {
       console.error('Failed to mark notification as read', err)
@@ -104,7 +105,7 @@ export const useNotificationStore = defineStore('notifications', () => {
       //return
     //}
     try {
-      await axios.put(`http://localhost:8000/api/notifications/read-all?userId=${userId.value}`)
+      await axios.put(`${API_URL}/api/notifications/read-all?userId=${userId.value}`)
       rawItems.value = rawItems.value.map(n => ({ ...n, isRead: true }))
     } catch (err) {
       console.error('Failed to mark all notifications as read', err)
@@ -121,7 +122,7 @@ export const useNotificationStore = defineStore('notifications', () => {
     }
 
     try {
-      await axios.delete(`http://localhost:8000/api/notifications/${item._id}?userId=${userId.value}`)
+      await axios.delete(`${API_URL}/api/notifications/${item._id}?userId=${userId.value}`)
       rawItems.value.splice(targetIndex, 1)
     } catch (err) {
       console.error('Failed to delete notification', err)
@@ -139,7 +140,7 @@ export const useNotificationStore = defineStore('notifications', () => {
       return
     }
     try {
-      await axios.put(`http://localhost:8000/api/friends/${friendshipId}/accept`)
+      await axios.put(`${API_URL}/api/friends/${friendshipId}/accept`)
       await markRead(item)
     } catch (err) {
       console.error('Error accepting friend request:', err)
@@ -157,7 +158,7 @@ export const useNotificationStore = defineStore('notifications', () => {
       return
     }
     try {
-      await axios.delete(`http://localhost:8000/api/friends/${friendshipId}/reject`)
+      await axios.delete(`${API_URL}/api/friends/${friendshipId}/reject`)
       await markRead(item)
     } catch (err) {
       console.error('Error rejecting friend request:',err)

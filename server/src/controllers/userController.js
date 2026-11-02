@@ -195,7 +195,7 @@ exports.forgotPassword = async (req, res) => {
         await user.save();
 
         // 3. Simulate sending email (Check your backend terminal for this link!)
-        const resetUrl = `http://localhost:5173/reset-password/${resetToken}`;
+        const resetUrl = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
         console.log(`🔗 PASSWORD RESET LINK for ${email}: ${resetUrl}`);
 
         return res.status(200).json({ 

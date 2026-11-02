@@ -8,6 +8,7 @@ import Header from '@/components/Header.vue'
 import { useAuth } from '@/composables/useAuth'
 
 import '@/assets/theme.css'
+import { API_URL } from './utils/api'
 
 const isMobileNavOpen = ref(false)
 const isNavbarCollapsed = ref(false)
@@ -21,7 +22,7 @@ const { userId, setSession } = useAuth()
 watch(userId, async (id) => {
   if (!id) return
   try {
-    const { data } = await axios.get(`http://localhost:8000/api/users/${id}`)
+    const { data } = await axios.get(`${API_URL}/api/users/${id}`)
     if (id === userId.value) setSession(data)   // skip if they logged out in the meantime
   } catch (error) {
     console.log('There was an error: ' + error.message)

@@ -63,8 +63,8 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
+import { API_URL } from '../utils/api'
 
-const API_URL = 'http://localhost:8000'
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 // same palette as the lobby avatars, handed out in member order
 const COLOURS = ['#C9EB6C', '#D98BF5', '#F2B16B', '#9fd3ff', '#ffb3a7', '#fdebd0']

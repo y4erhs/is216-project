@@ -1,5 +1,6 @@
 <script setup>
 import { ref, onMounted } from 'vue'
+import { API_URL } from '../utils/api'
 
 const props = defineProps({
   userId: { type: String, required: true },
@@ -12,7 +13,6 @@ const props = defineProps({
 })
 const emit = defineEmits(['close', 'created'])
 
-const API_URL = 'http://localhost:8000'
 
 // form fields
 const title = ref(props.plan?.title || '')

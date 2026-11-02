@@ -4,6 +4,7 @@ import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
 import BaseButton from './BaseButton.vue'
 import BaseInput from './BaseInput.vue'
 import { formatSession, sessionKey } from '../utils/formatSession'
+import { API_URL } from '../utils/api'
 
 const props = defineProps({
   event: { type: Object, required: true },
@@ -202,7 +203,6 @@ const matchBadgeClass = computed(() =>
   props.score >= 80 ? 'badge-green' : 'badge-orange'
 )
 
-const API_URL = 'http://localhost:8000'
 
 const imageFailed = ref(false)   // show the placeholder if the image can't load
 

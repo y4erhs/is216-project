@@ -13,13 +13,13 @@ import { INTERESTS, MAX_INTERESTS } from '../utils/interests'
 import { userImageUrl } from '../utils/userDisplay'
 import { REMINDER_OPTIONS } from '../utils/reminders'
 import { COURSES } from '../utils/courses'
+import { API_URL } from '../utils/api'
 
 
 const userStore = useUserStore()
 const router = useRouter()
 const { userId, setSession } = useAuth()
 
-const API_URL = 'http://localhost:8000'
 
 // The logged-in user's details and stats, from the API
 const profile = ref(null)
@@ -145,7 +145,7 @@ const allAvailableInterests = INTERESTS
 
 async function loadInterests() {
   try {
-    const response = await axios.get(`http://localhost:8000/api/users/${userId.value}/preferences`)
+    const response = await axios.get(`${API_URL}/api/users/${userId.value}/preferences`)
     categories.value = response.data
     savedInterests.value = [...response.data]
   } catch (error) {

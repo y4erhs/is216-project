@@ -13,6 +13,7 @@
     import '../assets/theme.css'
     import { INTERESTS, MAX_INTERESTS } from '../utils/interests'
     import { COURSES } from '../utils/courses'
+    import { API_URL } from '../utils/api'
 
     // CREATE ACCOUNT DATA
     const fullName = ref('');
@@ -100,7 +101,7 @@
     const router = useRouter();
 
     function continueWithGoogle() {
-      window.location.href = 'http://localhost:8000/auth/google/signin'
+      window.location.href = `${API_URL}/auth/google/signin`
     }
 
     // Back from Google with a new account: start on the Profile step with their details
@@ -109,7 +110,7 @@
       if (!code) return
 
       try {
-        const { data } = await axios.get('http://localhost:8000/auth/google/signin/signup-info', { params: { code } })
+        const { data } = await axios.get(`${API_URL}/auth/google/signin/signup-info`, { params: { code } })
         email.value = data.email
         fullName.value = data.name
         displayName.value = data.name

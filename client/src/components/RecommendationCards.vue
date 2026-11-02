@@ -61,7 +61,7 @@
                     <span v-if="status === 'attending'">✓ Attending</span>
                     <span v-else-if="status === 'interested'">♡ Interested</span>
                     <span v-else>+ Add to planner</span>
-                </BaseButton>   dsdsds
+                </BaseButton>
                 <div class="small text-muted">
                     <a href="#" class="text-muted text-decoration-none" v-on:click.prevent="emit('hide')">Hide</a>
                     ·

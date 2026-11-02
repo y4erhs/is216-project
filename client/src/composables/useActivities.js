@@ -1,8 +1,9 @@
 import { ref, computed, unref } from 'vue'
 import axios from 'axios'
 import { useAuth } from './useAuth'
+import { API_URL } from '../utils/api'
 
-const API = 'http://localhost:8000/api/activities'
+const API = `${API_URL}/api/activities`
 const activities = ref([])   // raw list from GET, events populated
 
 export function useActivities() {
