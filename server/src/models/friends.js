@@ -66,7 +66,7 @@ friendSchema.statics.acceptFriendRequest = function(friendshipId) {
         { new: true }
     )
     .populate('requester', 'username')
-    .populate('receiver', 'username');
+    .populate('receiver', 'username avatar');
 };
 
 friendSchema.statics.getAcceptedFriends = function(userId) {
