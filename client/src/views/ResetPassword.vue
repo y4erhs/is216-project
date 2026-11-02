@@ -30,11 +30,29 @@ const handleResetPassword = async () => {
     successMsg.value = ''
     isSubmitted.value = true
 
+    if (password.value.length < 8) {
+        errorMsg.value = 'Password must be at least 8 characters'
+        isSubmitted.value = false  // 👈 HERE
+        return
+      }
+
+      const hasCapital = /[A-Z]/.test(password.value)
+      const hasNumber = /\d/.test(password.value)
+      const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password.value)
+
+      if (!hasCapital || !hasNumber || !hasSpecial) {
+        errorMsg.value = 'Password must include at least 1 capital letter, 1 number, and 1 special character.'
+        isSubmitted.value = false  
+        return
+      }
+
     // Grab the token from the URL parameters (/reset-password/:token)
     const token = route.params.token
 
     const response = await axios.post(`http://localhost:8000/api/users/reset-password/${token}`, {
       password: password.value
+
+      
     })
 
     successMsg.value = response.data.message
@@ -63,7 +81,7 @@ const handleResetPassword = async () => {
                 <div>
                 <input type="password" v-model='password' placeholder="Enter new Password">
                 </div>
-                <p v-if="errorMsg" class="text-warning small">{{ errorMsg }}</p>
+                <p v-if="errorMsg" style="color: #e63c25;">{{ errorMsg }}</p>
                 <p v-if="successMsg" class="text-success small">{{ successMsg }}</p>
 
                 <BaseButton type="submit" class="auth-btn" :disabled="isSubmitted">{{ isSubmitted ? 'Resetting...' : 'Update Password' }}</BaseButton>
