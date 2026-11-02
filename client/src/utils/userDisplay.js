@@ -9,9 +9,16 @@ export function userInitials(user) {
     return userName(user).trim().split(/\s+/).map(word => word[0]).slice(0, 2).join('').toUpperCase()
 }
 
+// The default image is a placeholder for "no picture", so it counts as none
+export const DEFAULT_IMAGE = '/uploads/default.png'
+
+export function userImageUrl(path) {
+    if (!path || path === DEFAULT_IMAGE) return ''
+    return path.startsWith('/') ? API_URL + path : path
+}
+
 export function userAvatarUrl(user) {
-    const path = user?.avatar
-    return path?.startsWith('/') ? API_URL + path : path || ''
+    return userImageUrl(user?.avatar)
 }
 
 // e.g. "Software Engineering · Y2". Older accounts store the year as 2, newer ones as "Year 2".

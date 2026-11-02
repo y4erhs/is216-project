@@ -10,6 +10,7 @@ import { useUserStore } from '../stores/userStore'
 import { useRouter } from 'vue-router'
 import { useAuth } from '../composables/useAuth'
 import { INTERESTS, MAX_INTERESTS } from '../utils/interests'
+import { userImageUrl } from '../utils/userDisplay'
 
 
 const userStore = useUserStore()
@@ -34,7 +35,6 @@ const profileName = computed(() =>
 const initials = computed(() =>
   profileName.value.split(' ').map(word => word[0]).slice(0, 2).join('').toUpperCase())
 
-const imageUrl = (path) => (path?.startsWith('/') ? API_URL + path : path)
 
 async function loadProfile() {
   try {
@@ -207,11 +207,11 @@ async function saveProfile() {
         <div class="profile-card">
           <div class="profile-header-visual">
             <div class="profile-banner">
-              <img v-if="profile?.banner && !bannerFailed" :src="imageUrl(profile.banner)" alt=""
+              <img v-if="userImageUrl(profile?.banner) && !bannerFailed" :src="userImageUrl(profile.banner)" alt=""
                 @error="bannerFailed = true" />
             </div>
             <div class="avatar">
-              <img v-if="profile?.avatar && !avatarFailed" :src="imageUrl(profile.avatar)" alt=""
+              <img v-if="userImageUrl(profile?.avatar) && !avatarFailed" :src="userImageUrl(profile.avatar)" alt=""
                 @error="avatarFailed = true" />
               <p v-else class="header-style">{{ initials }}</p>
             </div>

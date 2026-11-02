@@ -204,6 +204,8 @@ const matchBadgeClass = computed(() =>
 
 const API_URL = 'http://localhost:8000'
 
+const imageFailed = ref(false)   // show the placeholder if the image can't load
+
 const imageSrc = computed(() =>
   props.event.image?.startsWith('/')
     ? API_URL + props.event.image
@@ -217,10 +219,11 @@ const imageSrc = computed(() =>
     <!-- LEFT: A4 POSTER -->
     <div class="poster-container">
       <img
-        v-if="event.image"
+        v-if="event.image && !imageFailed"
         :src="imageSrc"
         :alt="event.title"
         class="poster-img"
+        @error="imageFailed = true"
       />
       <div v-else class="poster-placeholder"></div>
     </div>

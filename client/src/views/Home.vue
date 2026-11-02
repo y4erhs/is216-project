@@ -7,6 +7,7 @@ import BaseButton from '../components/BaseButton.vue'
 import FolderTabs from '../components/FolderTabs.vue'
 import BaseInput from '../components/BaseInput.vue'
 import CardInfo from '../components/CardInfo.vue'
+import SideUpcoming from '../components/SideUpcoming.vue'
 
 import { useActivities } from '../composables/useActivities'
 import { useAuth } from '../composables/useAuth'
@@ -432,6 +433,7 @@ function handleRegister(url) {
 
                 <!-- WHITE SIDE BOX -->
                 <div class="side-box-container">
+                    <SideUpcoming />
                 </div>
 
             </div>
@@ -730,9 +732,9 @@ function handleRegister(url) {
     width: 100%;
     height: calc(100% - 38px);
     margin-top: 38px;
-    background-color: var(--color-white, #fff);
+    background-color: var(--color-grey);
     border-radius: 25px;
-    padding: 20px;
+    padding: 15px;
     box-sizing: border-box;
     box-shadow: 0 4px 14px rgba(10, 29, 43, .08);
     overflow-y: auto;
@@ -810,6 +812,33 @@ function handleRegister(url) {
 
     .folder-feed-header {
         flex-wrap: wrap;
+    }
+}
+
+/* Phones: the whole page scrolls, with the folder first and Coming up underneath */
+@media (max-width: 700px) {
+    .home-page-container,
+    .discover-container {
+        height: auto;
+        max-height: none;
+        overflow: visible;
+    }
+
+    .discover-main-layout {
+        grid-template-rows: auto auto;
+        overflow: visible;
+    }
+
+    .folder-wrapper {
+        height: 75vh;
+        height: 75dvh;
+        min-height: 420px;
+    }
+
+    .side-box-container {
+        height: auto;
+        margin-top: 0;
+        overflow: visible;
     }
 }
 </style>
