@@ -40,7 +40,17 @@ exports.rejectFriendRequest = async(req,res) => {
         });
     }catch(err){
         res.status(500).json({error: err.message});
-    }}
+    }
+};
+
+exports.getSentRequests = async (req, res) => {
+  try {
+    res.json(await Friends.getSentRequests(req.params.userId)); // [] when none
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 exports.getPendingRequests = async (req, res) => {
   try {
     const { userId } = req.params;

@@ -70,6 +70,26 @@
                 </ul>
               </div>
             </section>
+
+            <section>
+              <h3 class="section-title">Sent by you</h3>
+              <p class="section-sub">{{ sentLine }}</p>
+
+              <div v-if="!outgoing.length" class="empty">
+                <p>No pending requests. Find people on the Add tab.</p>
+              </div>
+
+              <div v-else class="scroll">
+                <ul class="people">
+                  <li v-for="r in outgoing" :key="r._id" class="person">
+                    <span class="avatar" :style="{ background: colorFor(r.receiver._id) }">{{ initials(r.receiver.username) }}</span>
+                    <span class="who">{{ r.receiver.username }}</span>
+                    <span class="badge-pill pill-pending">Sent</span>
+                    <button class="badge-pill pill-grey" type="button" :disabled="busyId === r._id" @click="cancel(r)">Cancel</button>
+                  </li>
+                </ul>
+              </div>
+            </section>
           </div>
         </template>
 
@@ -98,7 +118,8 @@
                     <span class="avatar" :style="{ background: colorFor(u._id) }">{{ initials(u.username) }}</span>
                     <span class="who">{{ u.username }}</span>
                     <span v-if="isFriend(u._id)" class="badge-pill pill-accepted">Friends</span>
-                    <span v-else-if="sentIds.includes(u._id)" class="badge-pill pill-pending">Sent</span>
+                    <span v-else-if="isSent(u._id)" class="badge-pill pill-pending">Sent</span>
+                    <button v-else-if="requestedMe(u._id)" class="badge-pill pill-invite" type="button" @click="tab = 'requests'">Respond</button>
                     <button v-else class="badge-pill pill-invite" type="button" :disabled="busyId === u._id" @click="add(u)">Add</button>
                   </li>
                 </ul>
@@ -126,6 +147,8 @@ const reqs = useFriendRequests()
 
 const friends = computed(() => lobbies.friends)
 const incoming = computed(() => reqs.state.incoming)
+const outgoing = computed(() => reqs.state.outgoing)
+const sentLine = computed(() => (outgoing.value.length ? `Waiting for ${plural(outgoing.value.length, 'person', 'people')} to reply.` : 'Nothing sent.'))
 
 /* ---------- FolderTabs (the Requests label carries the count) ---------- */
 const validTabs = ['friends', 'requests', 'add']
@@ -141,10 +164,13 @@ const tabs = computed(() => [
 ])
 
 const initials = (name = '') => name.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase()
-const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`
+const plural = (n, word, many = word + 's') => `${n} ${n === 1 ? word : many}`
 const friendsLine = computed(() => (friends.value.length ? plural(friends.value.length, 'friend') + '.' : 'Nobody here yet.'))
 const requestsLine = computed(() => (incoming.value.length ? `${plural(incoming.value.length, 'request')} waiting for you.` : 'Nothing waiting.'))
 const isFriend = (id) => friends.value.some((f) => f.id === String(id))
+const sentTo = computed(() => new Set(reqs.state.outgoing.map((r) => String(r.receiver._id))))
+const isSent = (id) => sentTo.value.has(String(id))
+const requestedMe = (id) => incoming.value.some((r) => String(r.requester._id) === String(id))
 
 /* ---------- friends: remove ---------- */
 const removingId = ref(null)
@@ -171,9 +197,17 @@ async function accept(r) {
     busyId.value = null
   }
 }
+
 async function decline(r) {
   busyId.value = r._id
   try { await reqs.decline(r._id) }
+  catch (e) { error.value = e.message }
+  finally { busyId.value = null }
+}
+
+async function cancel(r) {
+  busyId.value = r._id
+  try { await reqs.decline(r._id) }   // same delete call: removes the pending request
   catch (e) { error.value = e.message }
   finally { busyId.value = null }
 }
@@ -182,7 +216,6 @@ async function decline(r) {
 const query = ref('')
 const results = ref([])
 const searching = ref(false)
-const sentIds = ref([])
 const error = ref('')
 
 let timer
@@ -207,7 +240,6 @@ async function add(u) {
   busyId.value = u._id
   try {
     await reqs.send(u._id)
-    sentIds.value.push(u._id)
   } catch (e) {
     error.value = e.message   // e.g. "Request or friendship already exists"
   } finally {
@@ -221,6 +253,7 @@ onMounted(() => {
   lobbies.loadFriends()
   reqs.load()
   poll = setInterval(reqs.load, 15000)
+  poll = setInterval(() => { reqs.load(); lobbies.loadFriends() }, 15000)
 })
 onBeforeUnmount(() => {
   clearTimeout(timer)
@@ -294,6 +327,7 @@ button.badge-pill:disabled { opacity: 0.45; cursor: not-allowed; }
 
 /* ── Folder content ── */
 .pane { display: grid; gap: 20px; }
+.pane .scroll { max-height: clamp(120px, 24vh, 220px); }
 .section-title { margin: 0 0 4px; color: #fff; font: 400 20px/1.1 'HeaderFont', sans-serif; letter-spacing: 0.03em; text-transform: uppercase; }
 .section-sub { margin: 0 0 12px; color: #fff; line-height: 1.4; }
 .hint-row { margin: 12px 0 0; }

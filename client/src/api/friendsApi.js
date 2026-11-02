@@ -5,6 +5,7 @@ export const friendsApi = {
   search:   (q, uid) => api(`/api/users/search?q=${encodeURIComponent(q)}&userId=${uid}`),
   send:     (requesterId, receiverId) =>
     api('/api/friends/request', { method: 'POST', body: { requesterId, receiverId } }),
+  sent: (uid) => api(`/api/friends/${uid}/sent`),
   accept:   (id) => api(`/api/friends/${id}/accept`, { method: 'PUT' }),
   remove:   (id) => api(`/api/friends/${id}`, { method: 'DELETE' }),
 }
