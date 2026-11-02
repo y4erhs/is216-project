@@ -16,6 +16,14 @@ const route = useRoute()
 function handleCollapseChange(value) {
   isNavbarCollapsed.value = value
 }
+
+function toggleMobileNav() {
+  isMobileNavOpen.value = !isMobileNavOpen.value
+}
+
+function closeMobileNav() {
+  isMobileNavOpen.value = false
+}
 </script>
 
 <template>
