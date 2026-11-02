@@ -196,6 +196,9 @@ importers:
       multer:
         specifier: ^2.5.0
         version: 2.5.0
+      node-cron:
+        specifier: ^4.6.0
+        version: 4.6.0
       openai:
         specifier: ^7.32.0
         version: 7.32.0
@@ -656,6 +659,10 @@ packages:
   node-addon-api@8.9.2:
     resolution: {integrity: sha512-VijLXbi3UACN69I0JVXJsX4tjACjNoQDgv2gTF6sx2wWEi8tkSg2eX8p5gSIFi8z2+DL3oHmY6OyKce38SDolg==}
     engines: {node: ^18 || ^20 || >= 21}
+
+  node-cron@4.6.0:
+    resolution: {integrity: sha512-Si/bzYiKRHOB8/a99T2+SDGN582ONDMSTlJr5oCkT6GtnqPjZ2s10eoQRYkW9ZHwjVxONL+W8Fb+qR0AHMQsdg==}
+    engines: {node: '>=20'}
 
   node-domexception@1.0.0:
     resolution: {integrity: sha512-/jKZoMpw0F8GRwl4/eLROPA3cfcXtLApP0QzLmUT/HuPCZWyB7IY9ZrMeKw2O/nFIqPQB3PVM9aYm0F312AXDQ==}
@@ -1385,6 +1392,8 @@ snapshots:
   negotiator@0.6.3: {}
 
   node-addon-api@8.9.2: {}
+
+  node-cron@4.6.0: {}
 
   node-domexception@1.0.0: {}
 

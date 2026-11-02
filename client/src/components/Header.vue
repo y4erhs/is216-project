@@ -28,10 +28,12 @@ function onNotification(item) {
     router.push({ path: '/friends', query: { tab: 'requests' } })
   } else if (item.type === 'friend_accepted') {
     router.push('/friends')
-  } else if (['lobby_deleted', 'lobby_removed','lobby_invite',"lobby_joined_via_link","lobby_member_responded"].includes(item.type)) {
+  } else if (['lobby_deleted', 'lobby_removed','lobby_invite',"lobby_joined_via_link","lobby_member_responded","lobby_event_pitched"].includes(item.type)) {
     router.push('/lobby') 
-  } else if (item.type === 'event_reminder') {
+  } else if (item.type === 'upcoming_event') {
     router.push(`/activity-tracking`)
+  } else if(item.type === 'group_register'){
+    router.push('/activity-tracking')
   }
   else {
     // FALLBACK FOR DEMO: Routes to discover if no ID is present
