@@ -3,7 +3,7 @@ import 'bootstrap/dist/css/bootstrap.min.css'
 import 'bootstrap/dist/js/bootstrap.bundle.min.js'
 
 import { ref, onMounted, onUnmounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '../stores/userStore'
 
 import axios from 'axios'
@@ -11,6 +11,7 @@ import BaseButton from '../components/BaseButton.vue'
 import FolderTabs from '../components/FolderTabs.vue'
 import '../assets/theme.css'
 
+const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
 
@@ -46,7 +47,7 @@ const handleLogin = async () => {
       password: password.value
     })
     console.log("Login successful!")
-    router.push('/')
+    router.push(route.query.redirect || '/')
   } catch (error) {
     console.error('Login failed:', error)
 
@@ -328,4 +329,36 @@ input:focus {
   color: var(--color-green);
   opacity: 0.75;
 } */
+
+/* Phones and tablets: no artwork, and the folder sits upright */
+@media (max-width: 991px) {
+  .page-wrapper {
+    justify-content: center;
+    align-items: flex-start;
+    padding: 16px;
+    overflow-y: auto;
+  }
+
+  .main-page-art {
+    display: none;
+  }
+
+  .rotated-folder {
+    transform: none;
+    width: 100%;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+
+  .log-in {
+    width: 100%;
+    height: auto;
+    padding: 24px 16px;
+  }
+
+  form {
+    width: 100%;
+    transform: none;
+  }
+}
 </style>

@@ -1,8 +1,5 @@
 import { ref, computed } from 'vue'
 
-// TEMPORARY: pretend this user is logged in until the real login page exists.
-const DEV_USER = { _id: '6acd9e65046b9013f579fc7d' }
-
 function normalise(raw) {
     const u = raw?.user || raw
     const id = u?._id || u?.id
@@ -11,9 +8,9 @@ function normalise(raw) {
 
 function readStoredUser() {
     try {
-        return normalise(JSON.parse(localStorage.getItem('user') || 'null')) || DEV_USER
+        return normalise(JSON.parse(localStorage.getItem('user') || 'null'))
     } catch {
-        return DEV_USER
+        return null
     }
 }
 

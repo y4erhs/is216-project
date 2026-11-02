@@ -102,7 +102,7 @@
       }
 
       // check if email is an smu email
-      if (!(email.value.includes('@smu.edu.sg'))) {
+      if (!email.value.trim().endsWith('@smu.edu.sg')) {
         errorMsg.value = 'Email must end with @smu.edu.sg'
         return
       }
@@ -110,6 +110,7 @@
       // check if password is 8 characters and includes at least 1 number, 1 special char and capital letter
       if (password.value.length < 8) {
         errorMsg.value = 'Password must be at least 8 characters'
+        return
       }
 
       const hasCapital = /[A-Z]/.test(password.value)
@@ -160,11 +161,11 @@
     // 1. Create and populate the FormData object first
       const formData = new FormData();
       formData.append('fullName', fullName.value);
-      formData.append('email', email.value);
+      formData.append('email', email.value.trim());
       formData.append('password', password.value);
       formData.append('displayName', displayName.value);
       formData.append('username', username.value);
-      formData.append('course', selectedCourse.value);
+      formData.append('school', selectedCourse.value);   // this list is SMU's schools
       formData.append('year', selectedYear.value);
       formData.append('interests', JSON.stringify(selectedInterests.value));
 
@@ -739,4 +740,56 @@ input:focus {
   justify-content: center;
 }
 
+/* Tablets and phones: one column that fills the screen */
+@media (max-width: 767px) {
+  .page-wrapper {
+    align-items: flex-start;
+    padding: 16px;
+  }
+
+  .page-wrapper > * {
+    width: 100%;
+  }
+
+  :deep(h1) {
+    font-size: 1.6rem;
+  }
+
+  form {
+    margin: 16px auto;
+  }
+
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  .auth-btn,
+  .final-btn {
+    width: 100%;
+  }
+
+  .profile-cards-list {
+    flex-direction: column !important;
+    gap: 1rem !important;
+  }
+
+  .left-column,
+  .right-section {
+    width: 100%;
+    flex: none;
+  }
+
+  .next-btn {
+    position: static;
+    width: 100%;
+  }
+
+  .folder-scroll-container {
+    max-height: none;
+    padding-right: 0;
+  }
+
+  .interest-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
 </style>

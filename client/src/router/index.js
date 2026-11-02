@@ -8,6 +8,7 @@ import Calendar from "@/views/Calendar.vue";
 import LobbyHub from "@/views/LobbyHub.vue";
 import tracking from "@/views/ActivityTracking.vue";
 import ResetPassword from "@/views/ResetPassword.vue"
+import { useAuth } from "@/composables/useAuth";
 
 const routes = [
   { path: "/", name: "Home", component: Home },
@@ -16,14 +17,14 @@ const routes = [
     path: "/login",
     name: "Login",
     component: Login,
-    meta: { hideLayout: true },
+    meta: { hideLayout: true, public: true },
   },
 
   {
     path: "/signup",
     name: "Signup",
     component: Signup,
-    meta: { hideLayout: true },
+    meta: { hideLayout: true, public: true },
   },
 
   { path: "/profile", name: "Profile", component: Profile },
@@ -46,7 +47,7 @@ const routes = [
     path: '/reset-password/:token',
     name: 'ResetPassword',
     component: ResetPassword,
-    meta: { hideLayout: true }
+    meta: { hideLayout: true, public: true }
   }
 
 ];
@@ -54,6 +55,18 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes,
+});
+
+// Logged-out users can only see the public pages; remember where they were going
+router.beforeEach((to) => {
+  const { isLoggedIn } = useAuth();
+
+  if (!to.meta.public && !isLoggedIn.value) {
+    return { path: "/login", query: { redirect: to.fullPath } };
+  }
+  if (isLoggedIn.value && (to.path === "/login" || to.path === "/signup")) {
+    return { path: "/" };
+  }
 });
 
 export default router;

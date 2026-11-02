@@ -3,6 +3,16 @@ const User = require('../models/user');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 
+// Same password rules as the signup and reset pages. Returns the problem, or null if it's fine.
+function passwordProblem(password) {
+    if (String(password).length < 8) {
+        return 'Password must be at least 8 characters';
+    }
+    if (!/[A-Z]/.test(password) || !/\d/.test(password) || !/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+        return 'Password must include at least 1 capital letter, 1 number, and 1 special character.';
+    }
+    return null;
+}
 
 // CREATE a user
 exports.createUser = async (req, res) => {
@@ -11,13 +21,17 @@ exports.createUser = async (req, res) => {
     try {
         let {
             username, fullName, displayName, email, password,
-            dob, interests, avatar, bio, major, year, ccas
+            dob, interests, avatar, banner, bio, school, major, year, ccas
         } = req.body;
 
         if (!username || !email || !password) {
             return res.status(400).json({
                 message: 'Username, email and password are required'
             });
+        }
+        const problem = passwordProblem(password);
+        if (problem) {
+            return res.status(400).json({ message: problem });
         }
         if(!email.endsWith('@smu.edu.sg')){
             return res.status(400).json({
@@ -31,25 +45,21 @@ exports.createUser = async (req, res) => {
             } else if (req.files.avatar && req.files.avatar[0]) {
                 avatar = `/uploads/${req.files.avatar[0].filename}`;
             }
+            if (req.files.bannerImage && req.files.bannerImage[0]) {
+                banner = `/uploads/${req.files.bannerImage[0].filename}`;
+            }
         }
 
         if (typeof interests === 'string') {
             try { interests = JSON.parse(interests); } catch (e) { interests = {}; }
         }
-        if (year !== undefined && year !== null && year !== '') {
-            const parsedYear = Number(year);
-            year = isNaN(parsedYear) ? undefined : parsedYear;
-        } else {
-            year = undefined; 
-        }
-
         const hashedPassword = await bcrypt.hash(password, 12);
 
         const user = await User.createUser({
             username, fullName, displayName,
             email,
             password: hashedPassword,
-            dob, interests, avatar, bio, major, year, ccas
+            dob, interests, avatar, banner, bio, school, major, year, ccas
         });
 
         const result = user.toObject();
@@ -178,6 +188,10 @@ exports.resetPassword = async (req, res) => {
 
         if (!password) {
             return res.status(400).json({ message: 'New password is required' });
+        }
+        const problem = passwordProblem(password);
+        if (problem) {
+            return res.status(400).json({ message: problem });
         }
 
         // 1. Find user by token and ensure the token hasn't expired

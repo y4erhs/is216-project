@@ -179,4 +179,26 @@ input:focus {
   opacity: 0.75;
 }
 
+/* Phones: fill the screen */
+@media (max-width: 767px) {
+  .page-wrapper {
+    padding: 16px;
+  }
+
+  .page-wrapper > * {
+    width: 100%;
+  }
+
+  :deep(h1) {
+    font-size: 1.6rem;
+  }
+
+  form {
+    margin: 16px auto;
+  }
+
+  .auth-btn {
+    width: 100%;
+  }
+}
 </style>

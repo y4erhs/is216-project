@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import axios from 'axios';
+import { useAuth } from '../composables/useAuth';
 
 const STORAGE_KEY = 'user';
 
@@ -14,6 +15,11 @@ export const useUserStore = defineStore('user', () => {
   const isLoggedIn = computed(() => !!currentUser.value);
 
   // Actions
+  function setUser(user) {
+    currentUser.value = user;
+    useAuth().setSession(user);
+  }
+
   async function login(credentials) {
     loading.value = true;
     error.value = null;
@@ -28,21 +34,8 @@ export const useUserStore = defineStore('user', () => {
 
       const data = response.data;
 
-      // Extract user info safely
-      currentUser.value = { 
-        username: data.username || data.user?.username || userInput.username,
-        fullName: data.fullName || data.user?.fullName,
-        displayName: data.displayName || data.user?.displayName,
-        email: data.email || data.user?.email,
-        avatar: data.avatar || data.user?.avatar,
-        banner: data.banner || data.user?.banner,
-        school: data.school || data.user?.school,
-        year: data.year || data.user?.year,
-        interests: data.interests || data.user?.interests
-      };
-
-      // Save to local storage
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(currentUser.value));
+      // Saves to local storage and tells every page who is logged in
+      setUser(data.user || data);
       console.log("3. SAVED TO LOCAL STORAGE");
 
       return data;
@@ -62,8 +55,7 @@ export const useUserStore = defineStore('user', () => {
     error.value = null;
     try {
       const response = await axios.post('http://localhost:8000/api/users/register', formData);
-      currentUser.value = { username: response.data.username || formData.get?.('username') };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(currentUser.value));
+      setUser(response.data);   // a new user is logged in straight away
       return response.data;
     } catch (err) {
       error.value = err.response?.data?.message || err.message || 'Registration failed';
@@ -88,6 +80,7 @@ export const useUserStore = defineStore('user', () => {
   function logout() {
     currentUser.value = null;
     localStorage.removeItem(STORAGE_KEY);
+    useAuth().logout();
   }
 
   function clearError() {
