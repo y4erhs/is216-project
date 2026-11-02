@@ -60,8 +60,8 @@ const userSchema = new mongoose.Schema({
         default: ''
     },
     year: {
-        type: Number,
-        default: null
+        type: String,
+        default: ''
     },
     ccas: {
         type: [String],
