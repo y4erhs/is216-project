@@ -1,6 +1,7 @@
 const GoogleConnection = require('../models/googleConnection');
 const Plan = require('../models/plan');
 const Notification = require('../models/notification');
+const User = require('../models/user');
 const Activity = require('../models/activity');
 const { createOAuthClient } = require('../utils/googleClient');
 const { addSessionToGoogle } = require('./googleCalendarService');
@@ -35,8 +36,9 @@ function fromGoogleTimes(event) {
 
 // Deletes the plan and tells invited friends
 async function cancelPlan(plan) {
-    if (plan.invitees.length) {
-        await Notification.insertMany(plan.invitees.map(id => ({
+    const wanted = await User.idsWantingAlert(plan.invitees, 'plans');
+    if (wanted.length) {
+        await Notification.insertMany(wanted.map(id => ({
             userId: id,
             type: 'plan_cancelled',
             title: 'Plan cancelled',

@@ -8,7 +8,21 @@ function getUserId(req) {
 }
 
 function defaultPrefs() {
-  return { push: true, email: true, remindMinutesBefore: 15 };
+  return {
+    push: true,
+    email: true,
+    remindMinutesBefore: 15,
+    upcomingEvents: true,
+    lobbyActivity: true,
+    plans: true,
+  };
+}
+
+// Which Profile switch controls this alert. Others, like reminders the user set, always send.
+function alertSetting(type) {
+  if (type === "upcoming_event") return "upcomingEvents";
+  if (type.startsWith("lobby_") || type.startsWith("group_")) return "lobbyActivity";
+  return null;
 }
 
 async function getPrefs(userId) {
@@ -70,6 +84,9 @@ async function createNotification({
   metadata = {},
 }) {
   const prefs = await getPrefs(userId);
+  const setting = alertSetting(type);
+  if (setting && !prefs[setting]) return null;   // the user switched this alert off
+
   const when = scheduledFor ? new Date(scheduledFor) : new Date();
   const isFuture = when.getTime() > Date.now();
 
@@ -199,7 +216,7 @@ exports.getPreferences = async (req, res) => {
 
 exports.updatePreferences = async (req, res) => {
   try {
-    const { push, email, remindMinutesBefore } = req.body;
+    const { push, email, remindMinutesBefore, upcomingEvents, lobbyActivity, plans } = req.body;
     const update = {};
 
     if (typeof push === "boolean") {
@@ -207,6 +224,15 @@ exports.updatePreferences = async (req, res) => {
     }
     if (typeof email === "boolean") {
       update["notificationPreferences.email"] = email;
+    }
+    if (typeof upcomingEvents === "boolean") {
+      update["notificationPreferences.upcomingEvents"] = upcomingEvents;
+    }
+    if (typeof lobbyActivity === "boolean") {
+      update["notificationPreferences.lobbyActivity"] = lobbyActivity;
+    }
+    if (typeof plans === "boolean") {
+      update["notificationPreferences.plans"] = plans;
     }
     if (remindMinutesBefore != null) {
       const minutes = Number(remindMinutesBefore);
@@ -583,11 +609,11 @@ exports.dispatchUpcomingEvents = async (req, res) => {
           createdAt: { $gte: last24Hours }   // a later session of the same event can alert again
         });
       if (!existing) {
-        await exports.notifyUpcomingEvent(
+        const sent = await exports.notifyUpcomingEvent(
           userId,
           event
         );
-        count++;
+        if (sent) count++;
       }
     }
     const payload = {

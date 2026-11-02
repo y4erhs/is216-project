@@ -11,6 +11,7 @@ import { useRouter } from 'vue-router'
 import { useAuth } from '../composables/useAuth'
 import { INTERESTS, MAX_INTERESTS } from '../utils/interests'
 import { userImageUrl } from '../utils/userDisplay'
+import { REMINDER_OPTIONS } from '../utils/reminders'
 
 
 const userStore = useUserStore()
@@ -76,10 +77,41 @@ onMounted(() => {
   loadProfile()
   loadStats()
   loadInterests()
+  loadAlertSettings()
 })
 
-const setting1Push = ref(true)
-const setting1Email = ref(true)
+// Alerts the user can switch off. These save as soon as they're changed.
+const ALERT_ROWS = [
+  { key: 'upcomingEvents', title: 'Upcoming events', desc: 'Events you\'re attending in the next 24 hours' },
+  { key: 'lobbyActivity', title: 'Lobby activity', desc: 'Invites, replies, pitched events and group registration' },
+  { key: 'plans', title: 'Plans', desc: 'Plan invites, replies, changes and cancellations' }
+]
+const alertSettings = ref({ upcomingEvents: true, lobbyActivity: true, plans: true, remindMinutesBefore: 15 })
+const alertMessage = ref('')
+
+async function loadAlertSettings() {
+  try {
+    const { data } = await axios.get(`${API_URL}/api/notifications/preferences?userId=${userId.value}`)
+    alertSettings.value = data
+  } catch (error) {
+    console.log('There was an error: ' + error.message)
+  }
+}
+
+async function saveAlertSetting(key, value) {
+  const previous = alertSettings.value[key]
+  alertSettings.value[key] = value
+  alertMessage.value = ''
+  try {
+    await axios.put(`${API_URL}/api/notifications/preferences?userId=${userId.value}`, { [key]: value })
+    alertMessage.value = 'Changes saved!'
+  } catch (error) {
+    alertSettings.value[key] = previous
+    alertMessage.value = 'Could not save. Please try again.'
+    console.log('There was an error: ' + error.message)
+  }
+}
+
 const includePersonal = ref(true)
 
 const handleLogout = () => {
@@ -302,27 +334,36 @@ async function saveProfile() {
         <div class="settings-header-row">
           <span class="header-col-title">ALERT TYPE</span>
           <div class="header-col-switches">
-            <span>PUSH</span>
-            <span>EMAIL</span>
+            <span>IN-APP</span>
           </div>
         </div>
 
-        <div class="settings-item-row">
+        <div v-for="row in ALERT_ROWS" :key="row.key" class="settings-item-row">
           <div class="setting-info">
-            <p class="setting-title">Setting Title</p>
-            <p class="setting-desc">Short description/example</p>
+            <p class="setting-title">{{ row.title }}</p>
+            <p class="setting-desc">{{ row.desc }}</p>
           </div>
           <div class="setting-switches">
             <label class="toggle-switch">
-              <input type="checkbox" v-model="setting1Push" />
-              <span class="slider"></span>
-            </label>
-            <label class="toggle-switch">
-              <input type="checkbox" v-model="setting1Email" />
+              <input type="checkbox" :checked="alertSettings[row.key]" :aria-label="row.title"
+                @change="saveAlertSetting(row.key, $event.target.checked)" />
               <span class="slider"></span>
             </label>
           </div>
         </div>
+
+        <div class="settings-reminder-row">
+          <div class="setting-info">
+            <p class="setting-title">Default reminder time</p>
+            <p class="setting-desc">What Remind Me starts on. Reminders you set always go off.</p>
+          </div>
+          <div class="setting-reminder-input">
+            <BaseInput type="select" :modelValue="alertSettings.remindMinutesBefore" :options="REMINDER_OPTIONS"
+              @update:modelValue="saveAlertSetting('remindMinutesBefore', $event)" />
+          </div>
+        </div>
+
+        <p v-if="alertMessage" class="save-message" role="status">{{ alertMessage }}</p>
       </div>
 
     </div>
@@ -641,6 +682,18 @@ async function saveProfile() {
   align-items: center;
 }
 
+.settings-reminder-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.setting-reminder-input {
+  width: 180px;
+}
+
 .setting-info {
   display: flex;
   flex-direction: column;
@@ -665,6 +718,7 @@ async function saveProfile() {
   align-items: center;
   gap: 24px;
   width: 120px;
+  flex-shrink: 0;
   justify-content: space-around;
 }
 

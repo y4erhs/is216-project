@@ -4,6 +4,7 @@ import { computed, onMounted, ref } from 'vue'
 import axios from 'axios'
 import CategoryPill from '@/components/categoryPill.vue'
 import { useAuth } from '../composables/useAuth'
+import { REMINDER_OPTIONS } from '../utils/reminders'
 
 const props = defineProps({
   event: { type: Object, required: true },
@@ -30,11 +31,6 @@ const API_URL = 'http://localhost:8000'
 const { userId } = useAuth()
 
 // Reminder for this event, which appears in the notification bell when it's due
-const REMINDER_OPTIONS = [
-  { value: 15, label: '15 minutes before' },
-  { value: 60, label: '1 hour before' },
-  { value: 1440, label: '1 day before' }
-]
 const reminder = ref(null)
 const reminderMinutes = ref(15)
 const reminderError = ref('')
@@ -54,6 +50,18 @@ async function loadReminder() {
     reminder.value = data.find(item =>
       item.status === 'pending' && (item.eventId?._id || item.eventId) === props.event._id
     ) || null
+  } catch (error) {
+    console.log('There was an error: ' + error.message)
+  }
+}
+
+// Remind Me starts on the time the user picked on their Profile
+async function loadDefaultReminder() {
+  try {
+    const { data } = await axios.get(`${API_URL}/api/notifications/preferences?userId=${userId.value}`)
+    if (REMINDER_OPTIONS.some(option => option.value === data.remindMinutesBefore)) {
+      reminderMinutes.value = data.remindMinutesBefore
+    }
   } catch (error) {
     console.log('There was an error: ' + error.message)
   }
@@ -85,7 +93,10 @@ async function removeReminder() {
   }
 }
 
-onMounted(loadReminder)
+onMounted(() => {
+  loadReminder()
+  loadDefaultReminder()
+})
 
 const imageFailed = ref(false)   // show the placeholder if the image can't load
 

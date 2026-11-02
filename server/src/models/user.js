@@ -93,6 +93,18 @@ const userSchema = new mongoose.Schema({
         remindMinutesBefore: {
             type: Number,
             default: 15
+        },
+        upcomingEvents: {
+            type: Boolean,
+            default: true
+        },
+        lobbyActivity: {
+            type: Boolean,
+            default: true
+        },
+        plans: {
+            type: Boolean,
+            default: true
         }
     },
 
@@ -177,6 +189,15 @@ userSchema.statics.deleteUser = async function(userId) {
 
 userSchema.statics.getPreferences = function(userId) {
     return this.findById(userId).select('interests');
+};
+
+// Of these users, the ones who have this alert switched on (accounts from before the setting count as on)
+userSchema.statics.idsWantingAlert = async function(userIds, setting) {
+    const users = await this.find({
+        _id: { $in: userIds },
+        [`notificationPreferences.${setting}`]: { $ne: false }
+    }).select('_id');
+    return users.map(user => user._id);
 };
 
 const User = mongoose.model('User', userSchema, 'users');
