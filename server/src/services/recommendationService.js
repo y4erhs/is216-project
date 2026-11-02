@@ -21,7 +21,16 @@ exports.generateForUser = async (userId, feedType = 'weekly') => {
     const attendedTags = plannerEntries.filter(p => p.status == 'attended' && p.event).flatMap(p => p.event.tags)
 
     const hiddenRecs = await Recommendation.find({user: userId, hidden: true})
-    const hiddenEventIds = hiddenRecs.map(r => String(r.event))
+        .populate('event', 'title description tags')
+        .sort({ updatedAt: -1 })
+    const hiddenEventIds = hiddenRecs.filter(r => r.event).map(r => String(r.event._id))
+
+    // Events the student pressed "Less like this" on, latest first
+    const lessLikeThese = hiddenRecs.filter(r => r.feedback && r.event).slice(0, 20).map(r => ({
+        title: r.event.title,
+        description: r.event.description,
+        tags: r.event.tags
+    }))
 
     const events = await Event.find({
         sessions: { $elemMatch: { startTime: { $gte: now, $lte: until } } },
@@ -46,6 +55,7 @@ exports.generateForUser = async (userId, feedType = 'weekly') => {
         interests: user.interests,
         ccas: user.ccas,
         notInterestedIn: user.mutedTags || [],
+        lessLikeThese,
         tagsFromEventsAttended: [...new Set(attendedTags)]
     };
     const eventList = candidates.map(e => ({
@@ -63,6 +73,8 @@ exports.generateForUser = async (userId, feedType = 'weekly') => {
         Pick up to 10 events this student would most likely enjoy, best first.
         Strongly prefer events matching their interests or CCAs, and events similar to ones they attended.
         Avoid events about topics in "notInterestedIn".
+        The student said "less like this" about the events in "lessLikeThese", so rank events similar to them lower or leave them out.
+        Judge similarity by what the events are about, not just their tags, and don't rule out a whole tag because of one event.
         Leave out events that are a poor match, even if that means returning fewer than 10.
 
         Reply with ONLY a JSON object, no other text, in this exact format:
@@ -101,5 +113,11 @@ exports.generateForUser = async (userId, feedType = 'weekly') => {
         return Recommendation.find({ user: userId, feedType, hidden: false });
     }
     await Recommendation.deleteMany({ user: userId, feedType, hidden: false });
-    return await Recommendation.insertMany(picks);
+    try {
+        return await Recommendation.insertMany(picks, { ordered: false });
+    } catch (err) {
+        // A pick the student hid while the AI was working is skipped; the other picks still save
+        if (err.code !== 11000) throw err;
+        return err.insertedDocs || [];
+    }
 }

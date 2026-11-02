@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import axios from 'axios'
 
 import EventCard from '../components/EventCard.vue'
@@ -22,6 +22,7 @@ const {
 const { userId } = useAuth()
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000
+const REFRESH_DELAY_MS = 1500
 
 const recommendations = ref([])
 const allEvents = ref([])   // this month's and later events, for the All and interest tabs
@@ -267,10 +268,44 @@ async function regenerateRecommendations() {
         console.log('There was an error: ' + error.message)
     } finally {
         updating.value = false
+
+        // Something was hidden during this refresh, so the picks need to take it into account
+        if (refreshAgain) {
+            refreshAgain = false
+            regenerateRecommendations()
+        }
     }
 }
 
+// "Less like this": the card goes straight away, and the AI avoids similar events from now on
+let refreshTimer = null
+let refreshAgain = false
+
+async function lessLikeThis(eventId) {
+    const rec = recommendations.value.find(item => item.event?._id === eventId)
+    if (!rec) return
+
+    recommendations.value = recommendations.value.filter(item => item._id !== rec._id)
+
+    try {
+        await axios.put(`http://localhost:8000/api/recommendations/${rec._id}/less-like`, { userId: userId.value })
+    } catch (error) {
+        console.log('There was an error: ' + error.message)
+        recommendations.value = [...recommendations.value, rec].sort((a, b) => b.score - a.score)   // put it back
+        return
+    }
+
+    // Wait a moment, so hiding a few events in a row only asks the AI once
+    clearTimeout(refreshTimer)
+    refreshTimer = setTimeout(() => {
+        if (updating.value) refreshAgain = true
+        else regenerateRecommendations()
+    }, REFRESH_DELAY_MS)
+}
+
 // Initial loading
+onBeforeUnmount(() => clearTimeout(refreshTimer))
+
 onMounted(async () => {
     loadActivities()
     loadAllEvents()
@@ -377,10 +412,12 @@ function handleRegister(url) {
 
                                         <EventCard v-for="card in filteredCards" :key="card.key"
                                             :event="card.event" :score="card.score" :reason="card.reason"
-                                            show-hide :interested="activityMap[card.event._id]?.interested || false"
+                                            :show-less-like="activeInterest === 'for-you'"
+                                            :interested="activityMap[card.event._id]?.interested || false"
                                             :going-by-session="activityMap[card.event._id]?.sessions || {}"
                                             @set-interested="v => setInterested(card.event._id, v)"
                                             @set-going="p => setGoing(card.event._id, p)"
+                                            @less-like-this="lessLikeThis"
                                             @card-click="handleCardClick" />
 
                                     </div>

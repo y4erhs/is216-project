@@ -12,7 +12,8 @@ const props = defineProps({
   fromDate: { type: String, default: '' },
   score: { type: Number, default: null },
   userSchedule: { type: Array, default: () => [] },
-  variant: { type: String, default: 'discover' }
+  variant: { type: String, default: 'discover' },
+  showLessLike: { type: Boolean, default: false }
 })
 
 const emit = defineEmits([
@@ -241,7 +242,7 @@ const imageSrc = computed(() =>
         <span v-else-if="variant !== 'discover'"></span>
 
         <button
-          v-if="variant === 'discover'"
+          v-if="showLessLike"
           type="button"
           class="card-action-link"
           @click.stop="emit('less-like-this', event._id || event.id)"
