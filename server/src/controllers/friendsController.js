@@ -18,7 +18,7 @@ exports.acceptFriendRequest = async(req,res) => {
     try{
         const { friendshipId } = req.params;
         const updated = await Friends.acceptFriendRequest(friendshipId);
-        await notificationController.notifyFriendAccepted(updated.requester._id, updated.receiver.username)
+        await notificationController.notifyFriendAccepted(updated.requester._id, updated.receiver.username, updated.receiver.avatar)
         res.json(updated);
     }catch(err){
         res.status(500).json({error: err.message});
