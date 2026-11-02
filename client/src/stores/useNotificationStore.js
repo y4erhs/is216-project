@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import axios from 'axios'
+import { useAuth } from '../composables/useAuth'
 
 const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000
 
@@ -26,6 +27,7 @@ const TYPE_META = {
 
 
 export const useNotificationStore = defineStore('notifications', () => {
+  const { userId } = useAuth()
   const rawItems = ref([])
   const total = ref(0)
   const loading = ref(false)
@@ -61,9 +63,10 @@ export const useNotificationStore = defineStore('notifications', () => {
   }
 
   async function load() {
+    if (!userId.value) return
     loading.value = true
     try {
-      const response = await axios.get('http://localhost:8000/api/notifications?limit=15&userId=6acd9e65046b9013f579fc7d')
+      const response = await axios.get(`http://localhost:8000/api/notifications?limit=15&userId=${userId.value}`)
       rawItems.value = response.data.items ?? []
       total.value = response.data.total ?? rawItems.value.length
     } catch (err) {
@@ -84,7 +87,7 @@ export const useNotificationStore = defineStore('notifications', () => {
     }
 
     try {
-      await axios.put(`http://localhost:8000/api/notifications/${item._id}/read`)
+      await axios.put(`http://localhost:8000/api/notifications/${item._id}/read?userId=${userId.value}`)
       target.isRead = true
     } catch (err) {
       console.error('Failed to mark notification as read', err)
@@ -97,7 +100,7 @@ export const useNotificationStore = defineStore('notifications', () => {
       //return
     //}
     try {
-      await axios.put('http://localhost:8000/api/notifications/read-all')
+      await axios.put(`http://localhost:8000/api/notifications/read-all?userId=${userId.value}`)
       rawItems.value = rawItems.value.map(n => ({ ...n, isRead: true }))
     } catch (err) {
       console.error('Failed to mark all notifications as read', err)
@@ -114,7 +117,7 @@ export const useNotificationStore = defineStore('notifications', () => {
     }
 
     try {
-      await axios.delete(`http://localhost:8000/api/notifications/${item._id}`)
+      await axios.delete(`http://localhost:8000/api/notifications/${item._id}?userId=${userId.value}`)
       rawItems.value.splice(targetIndex, 1)
     } catch (err) {
       console.error('Failed to delete notification', err)

@@ -74,14 +74,13 @@ async function createNotification({
 
 exports.getMyNotifications = async (req, res) => {
   try {
-    const userId = '6acd9e65046b9013f579fc7d';
-    console.log("REQ.USER:", req.user);
-    console.log("USERID:", userId);
+    const userId = getUserId(req);
+    if (!userId) return res.status(400).json({ message: "userId is required" });
+
     const { unread, type, page = 1, limit = 20 } = req.query;
     const filter = { userId, status: "sent" };
     if (unread === "true") filter.isRead = false;
     if (type) filter.type = type;
-    const test = await Notification.find({ status: "sent" });
     const pageNum = Math.max(Number(page), 1);
     const pageSize = Math.min(Math.max(Number(limit), 1), 50);
     const skip = (pageNum - 1) * pageSize;
@@ -124,8 +123,11 @@ exports.getNotificationById = async (req, res) => {
 
 exports.markAsRead = async (req, res) => {
   try {
+    const userId = getUserId(req);
+    if (!userId) return res.status(400).json({ message: "userId is required" });
+
     const notification = await Notification.findOneAndUpdate(
-      { _id: req.params.id, userId: '6acd9e65046b9013f579fc7d', status: "sent" },
+      { _id: req.params.id, userId, status: "sent" },
       { isRead: true, readAt: new Date() },
       { new: true }
     );
@@ -141,8 +143,11 @@ exports.markAsRead = async (req, res) => {
 
 exports.markAllAsRead = async (req, res) => {
   try {
+    const userId = getUserId(req);
+    if (!userId) return res.status(400).json({ message: "userId is required" });
+
     const result = await Notification.updateMany(
-      { userId: '6acd9e65046b9013f579fc7d', status: "sent", isRead: false },
+      { userId, status: "sent", isRead: false },
       { isRead: true, readAt: new Date() }
     );
     return res.json({ updated: result.modifiedCount });
@@ -153,10 +158,10 @@ exports.markAllAsRead = async (req, res) => {
 
 exports.deleteNotification = async (req, res) => {
   try {
-    const deleted = await Notification.findOneAndDelete({
-      _id: req.params.id,
-      userId: getUserId(req),
-    });
+    const userId = getUserId(req);
+    if (!userId) return res.status(400).json({ message: "userId is required" });
+
+    const deleted = await Notification.findOneAndDelete({ _id: req.params.id, userId });
     if (!deleted) {
       return res.status(404).json({ message: "Notification not found" });
     }
