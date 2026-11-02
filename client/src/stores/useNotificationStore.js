@@ -169,7 +169,7 @@ export const useNotificationStore = defineStore('notifications', () => {
   function startPolling() {
     load()
     if (!pollInterval) {
-      pollInterval = setInterval(load, 300000)
+      pollInterval = setInterval(load, 5000)
     }
   }
 

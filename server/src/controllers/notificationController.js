@@ -79,12 +79,9 @@ exports.getMyNotifications = async (req, res) => {
     console.log("USERID:", userId);
     const { unread, type, page = 1, limit = 20 } = req.query;
     const filter = { userId, status: "sent" };
-     console.log("FILTER:", filter);
     if (unread === "true") filter.isRead = false;
     if (type) filter.type = type;
     const test = await Notification.find({ status: "sent" });
-
-    console.log("ALL SENT NOTIFS:", test.length);
     const pageNum = Math.max(Number(page), 1);
     const pageSize = Math.min(Math.max(Number(limit), 1), 50);
     const skip = (pageNum - 1) * pageSize;
