@@ -112,6 +112,17 @@ watch(isCollapsed, (value) => {
         </div>
       </RouterLink>
 
+      <RouterLink to="/friends" class="tab-pill theme-grey" :title="isCollapsed ? 'Friends' : ''">
+        <div class="pill-icon position-relative">
+          <i class="bi bi-person-plus fs-5"></i>
+          <span v-if="reqs.state.incoming.length" class="req-badge">{{ reqs.state.incoming.length }}</span>
+        </div>
+        <span v-if="!isCollapsed" class="pill-neck"></span>
+        <div v-if="!isCollapsed" class="pill-label">
+          <span class="header-style">Friends</span>
+        </div>
+      </RouterLink>
+
       <RouterLink
         to="/profile"
         class="tab-pill theme-grey"
@@ -123,17 +134,6 @@ watch(isCollapsed, (value) => {
         <span v-if="!isCollapsed" class="pill-neck"></span>
         <div v-if="!isCollapsed" class="pill-label">
           <span class="header-style">Profile & Settings</span>
-        </div>
-      </RouterLink>
-
-      <RouterLink to="/friends" class="tab-pill theme-grey" :title="isCollapsed ? 'Friends' : ''">
-        <div class="pill-icon position-relative">
-          <i class="bi bi-person-plus fs-5"></i>
-          <span v-if="reqs.state.incoming.length" class="req-badge">{{ reqs.state.incoming.length }}</span>
-        </div>
-        <span v-if="!isCollapsed" class="pill-neck"></span>
-        <div v-if="!isCollapsed" class="pill-label">
-          <span class="header-style">Friends</span>
         </div>
       </RouterLink>
     </div>
