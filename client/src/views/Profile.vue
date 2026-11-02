@@ -14,7 +14,7 @@ import { INTERESTS, MAX_INTERESTS } from '../utils/interests'
 
 const userStore = useUserStore()
 const router = useRouter()
-const { userId } = useAuth()
+const { userId, setSession } = useAuth()
 
 const API_URL = 'http://localhost:8000'
 
@@ -159,7 +159,7 @@ async function saveProfile() {
   saving.value = true
   saveMessage.value = ''
   try {
-    await axios.put(`${API_URL}/api/users/${userId.value}`, {
+    const { data } = await axios.put(`${API_URL}/api/users/${userId.value}`, {
       major: selectedCourse.value,
       year: selectedYear.value,
       graduationYear: selectedGrad.value,
@@ -172,6 +172,7 @@ async function saveProfile() {
     if (interestsChanged) localStorage.setItem('interestsChanged', 'true')
     savedInterests.value = [...categories.value]
 
+    setSession(data)   // the sidebar shows the new course and year straight away
     saveMessage.value = 'Changes saved!'
     showInterestDropdown.value = false
     showClubDropdown.value = false

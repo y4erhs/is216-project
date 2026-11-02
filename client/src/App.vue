@@ -1,8 +1,11 @@
 <script setup>
-import { ref, provide } from 'vue'
+import { ref, provide, watch } from 'vue'
 import { useRoute } from 'vue-router'
+import axios from 'axios'
 import Navbar from '@/components/Navbar.vue'
 import Header from '@/components/Header.vue'
+
+import { useAuth } from '@/composables/useAuth'
 
 import '@/assets/theme.css'
 
@@ -12,6 +15,18 @@ const isNavbarCollapsed = ref(false)
 provide('isNavbarCollapsed', isNavbarCollapsed)
 
 const route = useRoute()
+const { userId, setSession } = useAuth()
+
+// Keep the current user's details fresh, since the saved copy can be out of date
+watch(userId, async (id) => {
+  if (!id) return
+  try {
+    const { data } = await axios.get(`http://localhost:8000/api/users/${id}`)
+    if (id === userId.value) setSession(data)   // skip if they logged out in the meantime
+  } catch (error) {
+    console.log('There was an error: ' + error.message)
+  }
+}, { immediate: true })
 
 function handleCollapseChange(value) {
   isNavbarCollapsed.value = value
