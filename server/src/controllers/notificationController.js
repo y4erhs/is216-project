@@ -414,11 +414,12 @@ exports.notifyLobbyInvite = async (userId, lobby, hostName) => {
 };
 
 exports.notifyJoinedViaLink = async (hostId, lobby, member) => {
+  const displayName = member.username || member.name || 'Someone';
   return createNotification({
     userId: hostId,
     type: "lobby_joined_via_link",
     title: "Someone joined your lobby",
-    message: `${member.name} joined ${lobby.name} via invite link.`,
+    message: `${displayName} joined ${lobby.name} via invite link.`,
     lobbyId: lobby._id,
     metadata: { memberId: member.id || member._id, via: "link" },
   });

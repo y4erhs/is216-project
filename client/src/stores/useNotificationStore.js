@@ -21,6 +21,8 @@ const TYPE_META = {
   group_free_slot: { label: 'Free time', icon: 'bi-clock' },
   group_recommendation: { label: 'For your group', icon: 'bi-stars' },
   rsvp_update: { label: 'RSVP', icon: 'bi-bookmark-check' },
+  plan_invite: { label: 'Plan invite', icon: 'bi-calendar-plus' },
+  plan_cancelled: { label: 'Plan cancelled', icon: 'bi-calendar-x' },
   friend_request: { label: 'Friend Request', icon: 'bi-person-plus' },
   friend_accepted: { label: 'Friend Accepted', icon: 'bi-person-check'}
 }

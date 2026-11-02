@@ -262,6 +262,7 @@ exports.planNext = async (req, res) => {
         lobby.declined = [];
         lobby.lastActiveAt = Date.now();
         await lobby.save();
+        await notificationController.notifyPlanAnother(unique, lobby);
         res.json(lobby);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -278,8 +279,14 @@ exports.joinViaLink = async (req, res) => {
     const lobby = await Lobby.findById(lobbyId);
     if (!lobby) return res.status(404).json({ message: 'Lobby not found' });
 
+    const alreadyIn = [lobby.host, ...lobby.participants].some(id => String(id) === String(userId));
     const updated = await Lobby.acceptInvite(lobbyId, userId);
-    // TODO (notifications): 'lobby_joined_via_link' goes here, giselle's part
+
+    // Opening the link again shouldn't tell the host someone new joined
+    if (!alreadyIn) {
+      const member = await User.findById(userId).select('username');
+      await notificationController.notifyJoinedViaLink(lobby.host, lobby, member || {});
+    }
     res.json(updated);
   } catch (err) {
     res.status(500).json({ error: err.message });

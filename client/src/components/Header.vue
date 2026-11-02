@@ -36,9 +36,11 @@ function onNotification(item) {
     router.push({ path: '/friends', query: { tab: 'requests' } })
   } else if (item.type === 'friend_accepted') {
     router.push('/friends')
-  } else if (['lobby_deleted', 'lobby_removed','lobby_invite',"lobby_joined_via_link","lobby_member_responded","lobby_event_pitched"].includes(item.type)) {
+  } else if (['lobby_deleted', 'lobby_removed','lobby_invite',"lobby_joined_via_link","lobby_member_responded","lobby_event_pitched","lobby_plan_another"].includes(item.type)) {
     router.push('/lobby') 
-  } else if (item.type === 'upcoming_event') {
+  } else if (['plan_invite', 'plan_cancelled'].includes(item.type)) {
+    router.push('/calendar')
+  } else if (['upcoming_event', 'event_reminder'].includes(item.type)) {
     router.push(`/activity-tracking`)
   } else if(item.type === 'group_register'){
     router.push('/activity-tracking')
