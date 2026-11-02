@@ -470,8 +470,8 @@ onMounted(async () => {
     overflow: hidden;
 }
 
-/* Phones: the whole page scrolls, with the folder first and Coming up underneath */
-@media (max-width: 700px) {
+/* Tablets and phones: the whole page scrolls, with the folder first and Coming up underneath */
+@media (max-width: 900px) {
   .activity-page-container {
     height: auto;
     max-height: none;
@@ -481,6 +481,11 @@ onMounted(async () => {
   .activity-main-layout {
     grid-template-columns: minmax(0, 1fr);
     overflow: visible;
+  }
+
+  .folder-cards-grid,
+  .folder-cards-grid.navbar-collapsed {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .folder-wrapper {

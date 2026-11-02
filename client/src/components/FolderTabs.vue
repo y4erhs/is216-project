@@ -378,4 +378,35 @@ watch(() => props.modelValue, (newVal) => {
 
   isolation: isolate;
 }
+
+/* Phones: every tab stays on screen, sharing the width equally */
+@media (max-width: 767.98px) {
+  .tabs-header,
+  .tabs-header.overflow-mode {
+    gap: 0;
+    padding-right: 18px;
+    box-sizing: border-box;
+  }
+
+  .folder-tab,
+  .tabs-header.overflow-mode .folder-tab,
+  .tabs-header.overflow-mode .folder-tab:not(:first-child):hover,
+  .tabs-header.overflow-mode .folder-tab:first-child:hover {
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: none;
+    margin: 0;
+    padding: 0 0 0 20px;   /* clear of the previous tab's curved edge */
+  }
+
+  .folder-tab:first-child {
+    padding-left: 8px;
+  }
+
+  .folder-tab-text {
+    padding-left: 0;
+    font-size: 10.5px;
+    letter-spacing: 0;
+  }
+}
 </style>

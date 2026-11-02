@@ -215,6 +215,9 @@ async function submit() {
 .stack i { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: #9fd3ff; font-style: normal; font-weight: 700; font-size: 11px; }
 .meta { letter-spacing: 0.04em; }
 
-@media (max-width: 900px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 900px) {
+  .layout { grid-template-columns: minmax(0, 1fr); }
+  .app { min-height: 0; max-height: none; overflow-y: visible; }   /* only the page scrolls */
+}
 @media (prefers-reduced-motion: reduce) { .btn { transition: none; } }
 </style>
