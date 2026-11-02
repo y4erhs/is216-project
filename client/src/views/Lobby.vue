@@ -100,7 +100,6 @@
                       <span class="avatar" :style="{ background: m.color || '#fdebd0' }">{{ initials(m.name) }}</span>
                       <span class="who">
                         {{ m.name }}
-                        <small v-if="m.via === 'link'" class="via">via link</small>
                       </span>
                       <span v-if="m.id === lobby.hostId" class="badge-pill pill-host">Host</span>
                       <span v-else class="badge-pill" :class="`pill-${m.status}`">{{ statusLabel[m.status] }}</span>
@@ -237,18 +236,6 @@
       </div>
     </aside>
 
-    <!-- What an invited friend (or someone opening the link) sees -->
-    <Transition name="fade">
-      <div v-if="viewingMember" class="overlay" role="dialog" aria-modal="true" aria-label="Invitation"
-           @click.self="viewingId = null">
-        <LobbyInvite :lobby-name="lobby.name" :description="lobby.description" :host-name="hostName"
-                     :event="selectedEvent" :members="inviteeMembers"
-                     :via="viewingMember.via === 'link' ? 'link' : 'invitation'"
-                     :my-status="viewingMember.status" :me-id="viewingMember.id" :locked="registered"
-                     @respond="onRespond" @close="viewingId = null" />
-      </div>
-    </Transition>
-
     <!-- Delete confirmation -->
     <Transition name="fade">
       <div v-if="confirmingDelete" class="overlay" role="alertdialog" aria-modal="true" aria-labelledby="del-title"
@@ -274,7 +261,6 @@
 <script setup>
 import { ref, reactive, computed, watch, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import FolderTabs from '../components/FolderTabs.vue'
-import LobbyInvite from '../views/LobbyInvite.vue'
 import LobbyCalendar from '../components/LobbyCalendar.vue'
 import PlanForm from '../components/PlanForm.vue'
 import { useAuth } from '../composables/useAuth'
@@ -285,7 +271,7 @@ import { useLobbies, daysAgo, timeAgo, INACTIVE_DAYS } from '../composables/useL
 const props = defineProps({
   lobbyId: { type: String, required: true },
 })
-const emit = defineEmits(['back', 'deleted', 'invite', 'remove', 'register', 'respond'])
+const emit = defineEmits(['back', 'deleted', 'invite', 'remove', 'register'])
 
 const store = useLobbies()
 const { userId } = useAuth()
@@ -420,15 +406,6 @@ const registerHint = computed(() => {
     : `Ready. All ${n} accepted members will be signed up.`
 })
 
-/* ---------- invitee screen (what a friend sees when they open the invite) ---------- */
-const viewingId = ref(null)
-const viewingMember = computed(() => members.value.find((m) => m.id === viewingId.value) || null)
-const inviteeMembers = computed(() => members.value.map((m) => ({ ...m, host: m.id === lobby.value.hostId })))
-function onRespond(status) {
-  if (!viewingMember.value || registered.value) return
-  store.setStatus(props.lobbyId, viewingMember.value.id, status)
-  emit('respond', { memberId: viewingMember.value.id, status }) // -> PATCH /lobbies/:id/members/:memberId
-}
 
 /* ---------- actions ---------- */
 const initials = (name) => name.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase()
@@ -470,7 +447,6 @@ function onEsc(e) {
   if (e.key !== 'Escape') return
   viewingId.value = null
   confirmingDelete.value = false
-  removingId.value = null
 }
 onMounted(() => window.addEventListener('keydown', onEsc))
 onBeforeUnmount(() => window.removeEventListener('keydown', onEsc))
@@ -599,7 +575,6 @@ button.badge-pill:disabled { opacity: 0.45; cursor: not-allowed; }
 .person.asking { background: #fff; box-shadow: inset 0 0 0 2px var(--danger); }
 .avatar { display: grid; place-items: center; width: 32px; height: 32px; flex: none; border-radius: 50%; font-weight: 700; font-size: 11px; }
 .who { flex: 1; min-width: 0; font-size: 13px; letter-spacing: 0.04em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.via { margin-left: 6px; opacity: 0.7; font-size: 11px; }
 .remove-x {
   display: grid; place-items: center; flex: none; width: 26px; height: 26px; padding: 2px 0 0;
   border: 0; border-radius: 50%; background: rgba(31, 42, 68, 0.1); color: var(--ink);
