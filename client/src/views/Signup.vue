@@ -109,34 +109,48 @@ onMounted(async () => {
   const code = route.query.googleCode
   if (!code) return
 
-  try {
-    const { data } = await axios.get(`${API_URL}/auth/google/signin/signup-info`, { params: { code } })
-    email.value = data.email
-    fullName.value = data.name
-    displayName.value = data.name
-    activeTab.value = 'edit-profile'
-    googleCode.value = code
-  } catch (error) {
-    errorMsg.value = error.response?.data?.message || 'Google sign-up failed. Please try again.'
-  }
-  router.replace('/signup')
-})
-const errorMsg = ref('')
-
-// Validation for Create Account
-const handleCreateAccount = () => {
-  errorMsg.value = ''
+      try {
+        const { data } = await axios.get(`${API_URL}/auth/google/signin/signup-info`, { params: { code } })
+        email.value = data.email
+        fullName.value = data.name
+        displayName.value = data.name
+        activeTab.value = 'edit-profile'
+        googleCode.value = code
+      } catch (error) {
+        errorMsg.value = error.response?.data?.message || 'Google sign-up failed. Please try again.'
+      }
+      router.replace('/signup')
+    })
+    const errorMsg = ref('')
+  
+    // Validation for Create Account
+    const handleCreateAccount = async () => {
+      errorMsg.value = ''
 
   if (!fullName.value || !email.value || !password.value || !confirmPassword.value) {
     errorMsg.value = 'Please fill in all required fields.'
     return
   }
 
-  // check if email is an smu email
-  if (!email.value.trim().endsWith('@smu.edu.sg')) {
-    errorMsg.value = 'Email must end with @smu.edu.sg'
-    return
-  }
+      // check if email is an smu email
+      if (!email.value.trim().endsWith('@smu.edu.sg')) {
+        errorMsg.value = 'Email must end with @smu.edu.sg'
+        return
+      }
+
+      try {
+        console.log("Checking store instance:", userStore)
+        const isTaken = await userStore.checkEmail(email.value)
+        
+        if (isTaken) {
+          errorMsg.value = "This email is already registered. Please use another email."
+          return
+        }
+      } catch (error) {
+        console.error('Full error details:', error)
+        errorMsg.value = error.response?.data?.message || 'Failed to verify email. Please try again.'
+        return
+      }
 
   // check if password is 8 characters and includes at least 1 number, 1 special char and capital letter
   if (password.value.length < 8) {

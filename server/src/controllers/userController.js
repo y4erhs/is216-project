@@ -373,3 +373,19 @@ exports.checkUsername = async (req, res) => {
     return res.status(500).json({ message: 'Server error while checking username' });
   }
 };
+
+exports.checkEmail = async (req, res) => {
+  try {
+    const { email } = req.params;
+    
+    // Check if the email already exists (case-insensitive)
+    const existingEmail = await User.findOne({ 
+      email: { $regex: new RegExp(`^${email}$`, 'i') } 
+    });
+
+    return res.status(200).json({ exists: !!existingEmail });
+  } catch (error) {
+    console.error('Error checking email:', error);
+    return res.status(500).json({ message: 'Server error while checking email' });
+  }
+};

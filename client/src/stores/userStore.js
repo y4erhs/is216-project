@@ -85,6 +85,18 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
+  async function checkEmail(email) {
+    try {
+      const response = await axios.get(`${API_URL}/api/users/check-email/${email}`);
+      
+      console.log("SERVER CHECK-EMAIL RESPONSE:", response.data);
+      return response.data.exists; 
+    } catch (err) {
+      console.error('Failed to check email:', err);
+      throw err.response?.data || err.message;
+    }
+  }
+
   function logout() {
     currentUser.value = null;
     localStorage.removeItem(STORAGE_KEY);
@@ -105,6 +117,7 @@ export const useUserStore = defineStore('user', () => {
     loginWithGoogle,
     register,
     checkUsername,
+    checkEmail,
     logout, 
     clearError 
   };
