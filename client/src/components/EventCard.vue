@@ -233,6 +233,7 @@ const imageSrc = computed(() =>
 
       <!-- TOP BAR -->
       <div
+        v-if="(variant === 'discover' && score !== null) || showLessLike"
         class="card-top-bar"
         :class="{ 'non-discover-top-bar': variant !== 'discover' }"
       >
@@ -584,7 +585,7 @@ const imageSrc = computed(() =>
 /* MATCH BADGE */
 .match-badge {
   font-family: 'TextFont', sans-serif;
-  font-size: 8px;
+  font-size: 10px;
   font-weight: 700;
   padding: 4px 10px 1px 10px;
   border-radius: 9999px;

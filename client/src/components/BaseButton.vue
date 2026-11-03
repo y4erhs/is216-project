@@ -54,6 +54,7 @@ defineEmits(['click'])
   color: var(--button-text, var(--text));
   box-sizing: border-box;
   letter-spacing: -0.6px;
+  line-height: 1;
 }
 
 .btn-custom:not(.btn-circle) {

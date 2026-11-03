@@ -147,9 +147,10 @@ watch(() => props.modelValue, (newVal) => {
   margin-bottom: -1px;
   width: 100%;
 
+  z-index: 1;
   position: relative;
   flex-shrink: 0;
-  gap: 8px;
+  gap: 0px;
 }
 
 .folder-tab {
@@ -165,14 +166,14 @@ watch(() => props.modelValue, (newVal) => {
   -webkit-tap-highlight-color: transparent;
   background-color: var(--bg, #d1d5db);
   color: var(--text, #1f2937);
-  height: 40px;
+  height: 35px;
   padding: 0 10px 0 20px; 
   border-top-left-radius: 16px;
   border-top-right-radius: 0;
   flex: 1 1 auto;
   min-width: 90px;
   max-width: 155px; 
-  margin-right: 0;
+  margin-right: -12px;
   transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
@@ -268,21 +269,10 @@ watch(() => props.modelValue, (newVal) => {
   perspective: 1200px;
 
   overflow: hidden;
+
+  z-index: 2;
 }
 
-:deep(.folder-body) {
-  height: 520px !important; 
-  max-height: 520px !important;
-  min-height: 520px !important;
-  overflow: hidden !important;
-}
-
-:deep(.inner-folder) {
-  height: 100% !important;
-  max-height: 100% !important;
-  overflow-y: auto !important;
-  overflow-x: hidden !important;
-}
 
 /* =========================================
    INNER FOLDER
@@ -293,7 +283,7 @@ watch(() => props.modelValue, (newVal) => {
   background-color: var(--bg-dark, #9ca3af);
 
   border-radius: 20px;
-  padding: 15px;
+  padding: 0 15px;
 
   width: 100%;
   height: 100%;

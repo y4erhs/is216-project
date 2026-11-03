@@ -115,7 +115,6 @@ async function loadAllEvents() {
     allLoading.value = true
 
     try {
-        // Upcoming events, plus ones already over from this month
         const thisMonth = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Singapore' }).slice(0, 7)
         const response = await axios.get(`${API_URL}/api/events`, { params: { from: `${thisMonth}-01` } })
         allEvents.value = response.data
@@ -199,14 +198,10 @@ function matchesDateFilter(event) {
     })
 }
 
-// Check whether event matches selected interest tab
-// Event tags are interest ids, the same as the tab ids
 function matchesInterestFilter(event) {
     return (event?.tags || []).includes(activeInterest.value)
 }
 
-// Cards to show, filtered by the dates:
-// All = this month's and later events, For you = top recommendations, other tabs = those events with that tag
 const filteredCards = computed(() => {
     if (activeInterest.value === 'for-you') {
         return recommendations.value
@@ -223,7 +218,6 @@ const filteredCards = computed(() => {
 const cardsLoading = computed(() =>
     activeInterest.value === 'for-you' ? loading.value : allLoading.value)
 
-// Picks are refreshed once a day, so new events can show up
 function picksAreOld() {
     if (recommendations.value.length === 0) return false
 
@@ -231,7 +225,6 @@ function picksAreOld() {
     return Date.now() - newest > ONE_DAY_MS
 }
 
-// Regenerate recommendations
 async function regenerateRecommendations() {
     updating.value = true
 
@@ -254,7 +247,6 @@ async function regenerateRecommendations() {
     } finally {
         updating.value = false
 
-        // Something was hidden during this refresh, so the picks need to take it into account
         if (refreshAgain) {
             refreshAgain = false
             regenerateRecommendations()
@@ -262,7 +254,6 @@ async function regenerateRecommendations() {
     }
 }
 
-// "Less like this": the card goes straight away, and the AI avoids similar events from now on
 let refreshTimer = null
 let refreshAgain = false
 
@@ -276,11 +267,10 @@ async function lessLikeThis(eventId) {
         await axios.put(`${API_URL}/api/recommendations/${rec._id}/less-like`, { userId: userId.value })
     } catch (error) {
         console.log('There was an error: ' + error.message)
-        recommendations.value = [...recommendations.value, rec].sort((a, b) => b.score - a.score)   // put it back
+        recommendations.value = [...recommendations.value, rec].sort((a, b) => b.score - a.score)
         return
     }
 
-    // Wait a moment, so hiding a few events in a row only asks the AI once
     clearTimeout(refreshTimer)
     refreshTimer = setTimeout(() => {
         if (updating.value) refreshAgain = true
@@ -288,7 +278,6 @@ async function lessLikeThis(eventId) {
     }, REFRESH_DELAY_MS)
 }
 
-// Initial loading
 onBeforeUnmount(() => clearTimeout(refreshTimer))
 
 onMounted(async () => {
@@ -301,7 +290,6 @@ onMounted(async () => {
     const interestsChanged = localStorage.getItem('interestsChanged') === 'true'
     if (interestsChanged) localStorage.removeItem('interestsChanged')
 
-    // The current picks stay on screen while the new ones load
     if (interestsChanged || picksAreOld()) regenerateRecommendations()
 })
 
@@ -354,8 +342,7 @@ function handleRegister(url) {
                         CLEAR
                     </BaseButton>
 
-                    <BaseButton class="calendar-btn theme-purple" variant="primary"
-                        @click="$router.push('/calendar')">
+                    <BaseButton class="calendar-btn theme-purple" variant="primary" @click="$router.push('/calendar')">
                         VIEW MY CALENDAR
                     </BaseButton>
                 </div>
@@ -374,7 +361,9 @@ function handleRegister(url) {
 
                             <!-- CARD INFO -->
                             <div v-if="showCardInfo && selectedEvent" class="card-info-wrapper">
-                                <CardInfo :event="selectedEvent" @close="showCardInfo = false"
+                                <CardInfo :event="selectedEvent"
+                                    :is-attending="Object.values(activityMap[selectedEvent._id || selectedEvent.id]?.sessions || {}).includes('attending')"
+                                    @close="showCardInfo = false"
                                     @save-note="text => saveNote(selectedEvent._id || selectedEvent.id, text)"
                                     @register="handleRegister" />
                             </div>
@@ -401,8 +390,7 @@ function handleRegister(url) {
                                             :interested="activityMap[card.event._id]?.interested || false"
                                             :going-by-session="activityMap[card.event._id]?.sessions || {}"
                                             @set-interested="v => setInterested(card.event._id, v)"
-                                            @set-going="p => setGoing(card.event._id, p)"
-                                            @less-like-this="lessLikeThis"
+                                            @set-going="p => setGoing(card.event._id, p)" @less-like-this="lessLikeThis"
                                             @card-click="handleCardClick" />
 
                                     </div>
@@ -433,7 +421,7 @@ function handleRegister(url) {
 
 <style scoped>
 /* =========================================
-   MAIN PAGE
+   MAIN PAGE (1 SCREEN VIEW)
 ========================================= */
 
 .home-page-container {
@@ -466,7 +454,7 @@ function handleRegister(url) {
     align-items: center;
     justify-content: space-between;
     gap: 15px;
-    margin-bottom: 15px;
+    margin-bottom: 12px;
     flex-shrink: 0;
     min-width: 0;
 }
@@ -548,6 +536,7 @@ function handleRegister(url) {
     min-height: 0;
     overflow: hidden;
     align-items: stretch;
+    /* Auto sync height kiri dan kanan */
 }
 
 /* =========================================
@@ -564,7 +553,6 @@ function handleRegister(url) {
     overflow: hidden;
 }
 
-/* FolderTabs container */
 .folder-wrapper :deep(.folder-container) {
     height: 100% !important;
     min-height: 0;
@@ -575,22 +563,25 @@ function handleRegister(url) {
 }
 
 .folder-wrapper :deep(.folder-body) {
-    flex: 1;
-    height: 0;
-    min-height: 0;
+    flex: 1 !important;
+    height: 0 !important;
+    min-height: 0 !important;
     overflow: hidden !important;
     display: flex;
     flex-direction: column;
 }
 
 .folder-wrapper :deep(.inner-folder) {
-    flex: 1;
-    height: 0 !important;
+    flex: 1 !important;
+    width: 100%;
+    height: 100% !important;
     min-height: 0;
     max-height: 100% !important;
-    overflow: hidden !important;
     display: flex;
     flex-direction: column;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    padding-right: 15px;
 }
 
 /* =========================================
@@ -602,6 +593,7 @@ function handleRegister(url) {
     min-height: 0;
     min-width: 0;
     width: 100%;
+    height: 100%;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -628,6 +620,7 @@ function handleRegister(url) {
     min-height: 0;
     min-width: 0;
     display: flex;
+    flex-direction: column;
     overflow: hidden;
 }
 
@@ -647,7 +640,8 @@ function handleRegister(url) {
     flex: 1;
     min-height: 0;
     min-width: 0;
-    overflow-y: auto;
+    overflow-y: visible;
+    /* Biar scroll utamanya di-handle sama inner-folder */
     overflow-x: hidden;
     transition: opacity .2s ease;
 }
@@ -662,6 +656,7 @@ function handleRegister(url) {
     gap: 16px;
     width: 100%;
     align-content: start;
+    margin: 15px 0;
 }
 
 /* =========================================
@@ -692,34 +687,21 @@ function handleRegister(url) {
 }
 
 /* =========================================
-   RIGHT SIDEBAR
-========================================= */
-
-.discover-sidebar {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    min-height: 0;
-    min-width: 0;
-    overflow: hidden;
-}
-
-/* =========================================
-   WHITE SIDE BOX
+   WHITE SIDE BOX (Height matches folder-body exactly)
 ========================================= */
 
 .side-box-container {
-    flex: 1;
-    min-height: 0;
     width: 100%;
-    height: calc(100% - 38px);
-    margin-top: 38px;
+    height: 100%;
+    min-height: 0;
     background-color: var(--color-grey);
     border-radius: 25px;
-    padding: 15px;
+    padding: 16px 7px 2px 15px;
     box-sizing: border-box;
     box-shadow: 0 4px 14px rgba(10, 29, 43, .08);
-    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
 /* =========================================
@@ -729,118 +711,7 @@ function handleRegister(url) {
 .updating-message {
     color: #f1f2f7;
     font-size: 12px;
-    margin: 8px 0 0;
+    margin: 6px 0 0;
     flex-shrink: 0;
-}
-
-/* =========================================
-   RESPONSIVE
-========================================= */
-
-@media (max-width: 1200px) {
-    .folder-cards-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .discover-header,
-    .discover-controls {
-        flex-wrap: wrap;
-    }
-}
-
-@media (max-width: 900px) {
-    .discover-main-layout {
-        grid-template-columns: minmax(0, 1fr) 180px;
-        gap: 14px;
-    }
-}
-
-@media (max-width: 700px) {
-    .discover-header {
-        align-items: flex-start;
-        flex-wrap: wrap;
-    }
-
-    .discover-controls {
-        flex-wrap: wrap;
-        justify-content: flex-start;
-    }
-
-    .discover-main-layout {
-        grid-template-columns: 1fr;
-        grid-template-rows: minmax(0, 1fr) auto;
-        overflow-y: auto;
-    }
-
-    .discover-sidebar {
-        height: 220px;
-    }
-
-    .folder-feed-header {
-        flex-direction: row;
-        align-items: center;
-        height: auto;
-        padding: 8px 0;
-    }
-
-    .folder-cards-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-@media (max-width: 450px) {
-    .discover-controls {
-        gap: 7px;
-    }
-
-    .date-filter {
-        width: 100%;
-    }
-
-    .folder-feed-header {
-        flex-wrap: wrap;
-    }
-}
-
-/* Tablets and phones: the whole page scrolls, with the folder first and Coming up underneath */
-@media (max-width: 900px) {
-    .home-page-container,
-    .discover-container {
-        height: auto;
-        max-height: none;
-        overflow: visible;
-    }
-
-    .discover-main-layout {
-        grid-template-columns: minmax(0, 1fr);
-        grid-template-rows: auto auto;
-        overflow: visible;
-    }
-
-    .discover-header {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .discover-controls {
-        flex-wrap: wrap;
-        justify-content: flex-start;
-    }
-
-    .folder-cards-grid {
-        grid-template-columns: minmax(0, 1fr);
-    }
-
-    .folder-wrapper {
-        height: 75vh;
-        height: 75dvh;
-        min-height: 420px;
-    }
-
-    .side-box-container {
-        height: auto;
-        margin-top: 0;
-        overflow: visible;
-    }
 }
 </style>

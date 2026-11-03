@@ -194,7 +194,7 @@ watch(
 <style scoped>
 .cal {
   --ink: var(--color-black);
-  --card: var(--color-grey);
+  --card: var(--color-white);
   --lobby: var(--color-blue);
   --free: var(--color-white);
   --danger: var(--color-red);
@@ -393,9 +393,9 @@ watch(
 }
 
 .day.selected {
-  background-color: var(--color-yellow);
-  border: none;
+  border: 2px solid var(--color-yellow);
   color: var(--color-dark-yellow);
+  background-color: #f7e7c6;
 }
 
 .day-num {

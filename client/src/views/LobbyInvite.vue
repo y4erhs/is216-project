@@ -92,20 +92,14 @@
 
 <script setup>
 defineProps({
-  /** optional: shown at the top so people know which lobby this is */
   lobbyName: { type: String, default: '' },
   description: { type: String, default: '' },
   hostName: { type: String, default: 'Your friend' },
-  /** { title, date, venue, minGroup, maxGroup, slotsLeft } or null */
   event: { type: Object, default: null },
-  /** [{ id, name, status: 'pending' | 'accepted' | 'declined', host?, color? }] */
   members: { type: Array, default: () => [] },
-  /** 'invitation' (received in-app) or 'link' (opened a shared link) */
   via: { type: String, default: 'invitation' },
   myStatus: { type: String, default: 'pending' },
-  /** id of the person viewing, used to tag their row with "You" */
   meId: { type: String, default: '' },
-  /** true once the host has registered the group */
   locked: { type: Boolean, default: false },
   closable: { type: Boolean, default: true },
 })
@@ -116,8 +110,6 @@ const initials = (name) => name.split(' ').map((w) => w[0]).slice(0, 2).join('')
 </script>
 
 <style scoped>
-/* Design-system rules: outer box 25px radius, inner boxes 15px radius, 15px padding,
-   page title 25px, default text 11px. */
 .invite {
   --ink: var(--color-black, #1f2a44);
   --grey: var(--color-grey, #cfd8e8);
@@ -129,8 +121,10 @@ const initials = (name) => name.split(' ').map((w) => w[0]).slice(0, 2).join('')
   position: relative;
   width: 100%;
   max-width: 560px;
+  max-height: calc(100vh - 40px);
+  max-height: calc(100dvh - 40px);
   padding: 15px;
-  border: 9px solid var(--lime);   /* folder-style frame, like a lobby's Invite tab */
+  border: 9px solid var(--lime);
   border-radius: 25px;
   background: #667033;
   color: var(--ink);
@@ -138,36 +132,50 @@ const initials = (name) => name.split(' ').map((w) => w[0]).slice(0, 2).join('')
   font-size: 11px;
   text-align: left;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
+
 .invite *, .invite *::before, .invite *::after { box-sizing: border-box; }
 .invite :focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
 .card :focus-visible { outline-color: var(--ink); }
 
-.inner { display: grid; gap: 20px; }
+.inner { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 15px; 
+  overflow-y: auto;
+  min-height: 0;
+  flex: 1;
+  padding-right: 4px;
+}
+
 .close {
   position: absolute; top: 12px; right: 12px; z-index: 1;
   display: grid; place-items: center; width: 28px; height: 28px; padding: 2px 0 0;
   border: 0; border-radius: 50%; background: var(--card); color: var(--ink);
   cursor: pointer; font: inherit; line-height: 1;
 }
+
 .lobby-head { display: grid; gap: 2px; padding-right: 40px; color: #fff; line-height: 1.5; }
 .lobby-name { font: 400 14px/1.2 'HeaderFont', sans-serif; letter-spacing: 0.06em; text-transform: uppercase; opacity: 0.9; }
 .title { margin: 0; padding-right: 40px; color: #fff; font: 400 25px/1.1 'HeaderFont', sans-serif; letter-spacing: 0.02em; text-transform: uppercase; }
-.lead { margin: -8px 0 0; color: #fff; line-height: 1.5; }
-.section-title { margin: 0 0 8px; color: #fff; font: 400 20px/1.1 'HeaderFont', sans-serif; letter-spacing: 0.03em; text-transform: uppercase; }
+.lead { margin: -4px 0 0; color: #fff; line-height: 1.4; }
+.section-title { margin: 0 0 6px; color: #fff; font: 400 18px/1.1 'HeaderFont', sans-serif; letter-spacing: 0.03em; text-transform: uppercase; }
 
-.card { display: grid; gap: 4px; padding: 15px; border-radius: 15px; background: var(--card); color: var(--ink); }
-.event-title { font: 400 16px/1.15 'HeaderFont', sans-serif; letter-spacing: 0.03em; text-transform: uppercase; }
+.card { display: grid; gap: 4px; padding: 12px 15px; border-radius: 15px; background: var(--card); color: var(--ink); }
+.event-title { font: 400 15px/1.15 'HeaderFont', sans-serif; letter-spacing: 0.03em; text-transform: uppercase; }
 .plain { margin: 0; line-height: 1.4; }
 
 /* accept / decline */
-.choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 15px; }
-.choice { display: grid; align-content: start; gap: 10px; }
-.choice p { margin: 0; line-height: 1.4; }
+.choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.choice { display: grid; align-content: start; gap: 8px; }
+.choice p { margin: 0; line-height: 1.35; }
 .answer {
-  --nudge: 2px;   /* pushes the label down so it sits in the middle; tune to your font */
+  --nudge: 2px;
   display: block; width: 100%;
-  padding: calc(14px + var(--nudge)) 16px calc(14px - var(--nudge));
+  padding: calc(12px + var(--nudge)) 16px calc(12px - var(--nudge));
   border: 0; border-radius: 999px; cursor: pointer;
   color: var(--ink); font: 700 11px/1 'TextFont', sans-serif; letter-spacing: 0.14em; text-transform: uppercase;
   transition: transform 0.15s;
@@ -176,19 +184,19 @@ const initials = (name) => name.split(' ').map((w) => w[0]).slice(0, 2).join('')
 .answer-accept { background: var(--lime); }
 .answer-decline { background: var(--orange); }
 .chosen { box-shadow: inset 0 0 0 3px var(--ink); }
-.reply-line { margin: 12px 0 0; padding-top: 12px; border-top: 2px dashed rgba(31, 42, 68, 0.2); line-height: 1.4; }
+.reply-line { margin: 8px 0 0; padding-top: 8px; border-top: 2px dashed rgba(31, 42, 68, 0.2); line-height: 1.4; }
 
 /* who's in: same cards as the roster */
 .scroll {
-  max-height: 220px; overflow-y: auto; margin: -3px; padding: 3px 11px 3px 3px;
+  max-height: 160px; overflow-y: auto; margin: -3px; padding: 3px 11px 3px 3px;
   scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.6) transparent;
 }
-.people { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
-.person { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 8px 12px; border-radius: 15px; background: var(--card); color: var(--ink); }
-.avatar { display: grid; place-items: center; width: 32px; height: 32px; flex: none; border-radius: 50%; font-weight: 700; font-size: 11px; }
+.people { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.person { display: flex; align-items: center; gap: 10px; min-height: 42px; padding: 6px 12px; border-radius: 15px; background: var(--card); color: var(--ink); }
+.avatar { display: grid; place-items: center; width: 28px; height: 28px; flex: none; border-radius: 50%; font-weight: 700; font-size: 11px; }
 .who { flex: 1; min-width: 0; font-size: 13px; letter-spacing: 0.04em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-/* pills (same as the lobby pages) */
+/* pills */
 .badge-pill {
   display: inline-block; flex: none; height: 22px; border-radius: 9999px; background-color: var(--grey);
   padding: 5px 12px 8px 12px; color: var(--ink);

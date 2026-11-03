@@ -38,8 +38,8 @@
                     <template v-else>
                       <span class="avatar" :style="{ background: f.color }">{{ initials(f.name) }}</span>
                       <span class="who">{{ f.name }}</span>
-                      <button class="remove-x" type="button" :aria-label="`Remove ${f.name}`" :title="`Remove ${f.name}`"
-                              @click="removingId = f.id">✕</button>
+                      <button class="remove-x" type="button" :aria-label="`Remove ${f.name}`"
+                        :title="`Remove ${f.name}`" @click="removingId = f.id">✕</button>
                     </template>
                   </li>
                 </ul>
@@ -62,10 +62,13 @@
               <div v-else class="scroll">
                 <ul class="people">
                   <li v-for="r in incoming" :key="r._id" class="person">
-                    <span class="avatar" :style="{ background: colorFor(r.requester._id) }">{{ initials(r.requester.username) }}</span>
+                    <span class="avatar" :style="{ background: colorFor(r.requester._id) }">{{
+                      initials(r.requester.username) }}</span>
                     <span class="who">{{ r.requester.username }}</span>
-                    <button class="badge-pill pill-invite" type="button" :disabled="busyId === r._id" @click="accept(r)">Accept</button>
-                    <button class="badge-pill pill-grey" type="button" :disabled="busyId === r._id" @click="decline(r)">Decline</button>
+                    <button class="badge-pill pill-invite" type="button" :disabled="busyId === r._id"
+                      @click="accept(r)">Accept</button>
+                    <button class="badge-pill pill-grey" type="button" :disabled="busyId === r._id"
+                      @click="decline(r)">Decline</button>
                   </li>
                 </ul>
               </div>
@@ -82,10 +85,12 @@
               <div v-else class="scroll">
                 <ul class="people">
                   <li v-for="r in outgoing" :key="r._id" class="person">
-                    <span class="avatar" :style="{ background: colorFor(r.receiver._id) }">{{ initials(r.receiver.username) }}</span>
+                    <span class="avatar" :style="{ background: colorFor(r.receiver._id) }">{{
+                      initials(r.receiver.username) }}</span>
                     <span class="who">{{ r.receiver.username }}</span>
                     <span class="badge-pill pill-pending">Sent</span>
-                    <button class="badge-pill pill-grey" type="button" :disabled="busyId === r._id" @click="cancel(r)">Cancel</button>
+                    <button class="badge-pill pill-grey" type="button" :disabled="busyId === r._id"
+                      @click="cancel(r)">Cancel</button>
                   </li>
                 </ul>
               </div>
@@ -119,8 +124,10 @@
                     <span class="who">{{ u.username }}</span>
                     <span v-if="isFriend(u._id)" class="badge-pill pill-accepted">Friends</span>
                     <span v-else-if="isSent(u._id)" class="badge-pill pill-pending">Sent</span>
-                    <button v-else-if="requestedMe(u._id)" class="badge-pill pill-invite" type="button" @click="tab = 'requests'">Respond</button>
-                    <button v-else class="badge-pill pill-invite" type="button" :disabled="busyId === u._id" @click="add(u)">Add</button>
+                    <button v-else-if="requestedMe(u._id)" class="badge-pill pill-invite" type="button"
+                      @click="tab = 'requests'">Respond</button>
+                    <button v-else class="badge-pill pill-invite" type="button" :disabled="busyId === u._id"
+                      @click="add(u)">Add</button>
                   </li>
                 </ul>
               </div>
@@ -275,7 +282,8 @@ onBeforeUnmount(() => {
   --danger: #b3261e;
 
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr);   /* the folder gets all the height that's left */
+  grid-template-rows: auto minmax(0, 1fr);
+  /* the folder gets all the height that's left */
   gap: 15px;
   height: 100vh;
   height: 100dvh;
@@ -288,84 +296,309 @@ onBeforeUnmount(() => {
   box-sizing: border-box;
   border-radius: 25px;
 }
-.app *, .app *::before, .app *::after { box-sizing: border-box; }
-.app button, .app input { font-family: inherit; }
-.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
-.head :focus-visible, .stage :focus-visible { outline-color: #fff; }
+
+.app *,
+.app *::before,
+.app *::after {
+  box-sizing: border-box;
+}
+
+.app button,
+.app input {
+  font-family: inherit;
+}
+
+.sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+:focus-visible {
+  outline: 3px solid var(--ink);
+  outline-offset: 2px;
+}
+
+.head :focus-visible,
+.stage :focus-visible {
+  outline-color: #fff;
+}
 
 /* ── Heading ── */
-.head { display: grid; gap: 6px; justify-items: start; }
-.page-title { margin: 0; color: #fff; font: 400 25px/1.1 'HeaderFont', sans-serif; letter-spacing: 0.02em; text-transform: uppercase; }
-.head-sub { margin: 0; color: #fff; line-height: 1.5; }
-.stage { min-width: 0; min-height: 0; }
+.head {
+  display: grid;
+  gap: 6px;
+  justify-items: start;
+}
+
+.page-title {
+  margin: 0;
+  color: #fff;
+  font: 400 25px/1.1 'HeaderFont', sans-serif;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.head-sub {
+  margin: 0;
+  color: #fff;
+  line-height: 1.5;
+}
+
+.stage {
+  min-width: 0;
+  min-height: 0;
+}
 
 /* ── Buttons ── */
 .btn {
   --nudge: 2px;
   padding: calc(12px + var(--nudge)) 26px calc(12px - var(--nudge));
-  border: 0; border-radius: 999px; cursor: pointer;
-  font: 700 11px/1 'TextFont', sans-serif; letter-spacing: 0.14em; text-transform: uppercase;
-  background: var(--dark-blue); color: #fff; transition: transform 0.15s;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  font: 700 11px/1 'TextFont', sans-serif;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  background: var(--dark-blue);
+  color: #fff;
+  transition: transform 0.15s;
 }
-.btn-small { padding: calc(8px + var(--nudge)) 16px calc(8px - var(--nudge)); }
-.btn:hover:not(:disabled) { transform: translateY(-1px); }
-.btn-lime { background: var(--lime); color: var(--ink); }
+
+.btn-small {
+  padding: calc(8px + var(--nudge)) 16px calc(8px - var(--nudge));
+}
+
+.btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.btn-lime {
+  background: var(--lime);
+  color: var(--ink);
+}
 
 /* ── Pills ── */
 .badge-pill {
-  display: inline-block; height: 22px; border: 0; border-radius: 9999px; background-color: var(--grey);
-  padding: 5px 12px 8px 12px; color: var(--ink);
-  font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap;
+  display: inline-block;
+  height: 22px;
+  border: 0;
+  border-radius: 9999px;
+  background-color: var(--grey);
+  padding: 5px 12px 8px 12px;
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
-button.badge-pill { cursor: pointer; }
-button.badge-pill:disabled { opacity: 0.45; cursor: not-allowed; }
-.pill-pending { background: var(--orange); color: #fff; }
-.pill-accepted, .pill-invite { background: var(--lime); }
-.pill-grey { background: var(--grey); }
-.pill-danger { background: var(--danger); color: #fff; }
+
+button.badge-pill {
+  cursor: pointer;
+}
+
+button.badge-pill:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.pill-pending {
+  background: var(--orange);
+  color: #fff;
+}
+
+.pill-accepted,
+.pill-invite {
+  background: var(--lime);
+}
+
+.pill-grey {
+  background: var(--grey);
+}
+
+.pill-danger {
+  background: var(--danger);
+  color: #fff;
+}
 
 /* ── Folder content ── */
-.pane { display: grid; gap: 20px; }
-.pane .scroll { max-height: clamp(120px, 24vh, 220px); }
-.section-title { margin: 0 0 4px; color: #fff; font: 400 20px/1.1 'HeaderFont', sans-serif; letter-spacing: 0.03em; text-transform: uppercase; }
-.section-sub { margin: 0 0 12px; color: #fff; line-height: 1.4; }
-.hint-row { margin: 12px 0 0; }
-.scroll {
-  max-height: clamp(170px, 46vh, 420px); overflow-y: auto; margin: 9px -3px 0; padding: 3px 11px 3px 3px;
-  scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.6) transparent;
+.pane {
+  display: grid;
+  gap: 20px;
+  padding-top: 15px;
 }
-.empty { display: grid; justify-items: start; gap: 10px; padding: 15px; border-radius: 15px; background: var(--card); color: var(--ink); }
-.empty p { margin: 0; line-height: 1.4; }
-.error { margin: 10px 0 0; padding: 8px 14px; border-radius: 15px; background: #fff; color: var(--danger); font-weight: 700; }
+
+.pane .scroll {
+  max-height: clamp(120px, 24vh, 220px);
+}
+
+.section-title {
+  margin: 0 0 4px;
+  color: #fff;
+  font: 400 20px/1.1 'HeaderFont', sans-serif;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.section-sub {
+  margin: 0 0 12px;
+  color: #fff;
+  line-height: 1.4;
+}
+
+.hint-row {
+  margin: 12px 0 0;
+}
+
+.scroll {
+  max-height: clamp(170px, 46vh, 420px);
+  overflow-y: auto;
+  margin: 9px -3px 0;
+  padding: 3px 11px 3px 3px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.6) transparent;
+}
+
+.empty {
+  display: grid;
+  justify-items: start;
+  gap: 10px;
+  padding: 15px;
+  border-radius: 15px;
+  background: var(--color-dark-red);
+  color: var(--color-white);
+}
+
+.empty p {
+  margin: 0;
+  line-height: 1.4;
+}
+
+.error {
+  margin: 10px 0 0;
+  padding: 8px 14px;
+  border-radius: 15px;
+  background: #fff;
+  color: var(--danger);
+  font-weight: 700;
+}
 
 /* search box, same look as the lobby link box */
-.search { display: block; }
-.search input {
-  width: 100%; height: 35px; padding: 3px 16px 0; border: 1px solid transparent; border-radius: 999px;
-  background: var(--card); color: var(--ink); font-size: 11px;
+.search {
+  display: block;
 }
-.search input::placeholder { color: var(--ink); opacity: 0.6; }
-.search input:focus { background: #fff; border-color: var(--dark-blue); outline: none; }
+
+.search input {
+  width: 100%;
+  height: 35px;
+  padding: 3px 16px 0;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: -0.93;
+}
+
+.search input::placeholder {
+  color: var(--ink);
+  opacity: 0.6;
+}
+
+.search input:focus {
+  background: #fff;
+  border-color: var(--dark-blue);
+  outline: none;
+}
 
 /* people cards */
-.people { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-.person { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 8px 12px; border-radius: 15px; background: var(--card); color: var(--ink); }
-.person.asking { background: #fff; box-shadow: inset 0 0 0 2px var(--danger); }
-.avatar { display: grid; place-items: center; width: 32px; height: 32px; flex: none; border-radius: 50%; font-weight: 700; font-size: 11px; padding-top: 2px; }
-.who { flex: 1; min-width: 0; font-size: 13px; letter-spacing: 0.04em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.remove-x {
-  display: grid; place-items: center; flex: none; width: 26px; height: 26px; padding: 2px 0 0;
-  border: 0; border-radius: 50%; background: rgba(31, 42, 68, 0.1); color: var(--ink);
-  font-size: 11px; line-height: 1; cursor: pointer; transition: background 0.15s, color 0.15s;
+.people {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
 }
-.remove-x:hover, .remove-x:focus-visible { background: var(--danger); color: #fff; }
+
+.person {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 8px 12px;
+  border-radius: 15px;
+  background: var(--card);
+  color: var(--ink);
+}
+
+.person.asking {
+  background: #fff;
+  box-shadow: inset 0 0 0 2px var(--danger);
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex: none;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 11px;
+  padding-top: 2px;
+}
+
+.who {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.remove-x {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 26px;
+  height: 26px;
+  padding: 2px 0 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(31, 42, 68, 0.1);
+  color: var(--ink);
+  font-size: 11px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.remove-x:hover,
+.remove-x:focus-visible {
+  background: var(--danger);
+  color: #fff;
+}
 
 /* ── Responsive ── */
 @media (max-width: 720px) {
-  .people { grid-template-columns: 1fr; }
+  .people {
+    grid-template-columns: 1fr;
+  }
 }
+
 @media (prefers-reduced-motion: reduce) {
-  .btn, .remove-x { transition: none; }
+
+  .btn,
+  .remove-x {
+    transition: none;
+  }
 }
 </style>

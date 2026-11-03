@@ -1,10 +1,9 @@
 <script setup>
-// Side panel: the next sessions the user is attending
 import { computed } from 'vue'
 import { useActivities } from '../composables/useActivities'
 import { formatSession } from '../utils/formatSession'
 
-const MAX_ITEMS = 5
+const MAX_ITEMS = 10 
 
 const { activities } = useActivities()
 
@@ -41,24 +40,28 @@ const upcoming = computed(() => {
   <section class="side-upcoming" aria-label="Coming up">
     <h2 class="side-title">Coming up</h2>
 
-    <ul v-if="upcoming.length" class="side-list">
-      <li v-for="item in upcoming" :key="item.key" class="side-item">
-        <span class="side-item-title">{{ item.title }}</span>
-        <span class="side-item-meta">{{ item.when }}</span>
-        <span v-if="item.venue" class="side-item-meta">{{ item.venue }}</span>
-      </li>
-    </ul>
+    <div class="side-scroll-container">
+      <ul v-if="upcoming.length" class="side-list">
+        <li v-for="item in upcoming" :key="item.key" class="side-item">
+          <span class="side-item-title">{{ item.title }}</span>
+          <span class="side-item-meta">{{ item.when }}</span>
+          <span v-if="item.venue" class="side-item-meta">{{ item.venue }}</span>
+        </li>
+      </ul>
 
-    <p v-else class="side-empty">Nothing yet. Events you're attending will show up here.</p>
+      <p v-else class="side-empty">Nothing yet. Events you're attending will show up here.</p>
+    </div>
   </section>
 </template>
 
 <style scoped>
-/* Same look as the "Registered events" panel in Lobby.vue */
 .side-upcoming {
   display: flex;
   flex-direction: column;
   color: var(--color-black);
+  height: 100%;      
+  min-height: 0;
+  overflow: hidden;
 }
 
 .side-title {
@@ -67,6 +70,37 @@ const upcoming = computed(() => {
   font: 400 20px/1.1 'HeaderFont', sans-serif;
   letter-spacing: 0.03em;
   text-transform: uppercase;
+  flex-shrink: 0;     
+}
+
+.side-scroll-container {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto !important;
+  overflow-x: hidden;
+  padding-right: 3px; /* Jarak dikit biar thumb scrollbar gak nempel banget ke border luar */
+  
+  /* Firefox modern sleek scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.25) transparent;
+}
+
+/* WebKit (Chrome, Edge, Safari) modern sleek scrollbar */
+.side-scroll-container::-webkit-scrollbar {
+  width: 4px; /* Tipis banget persis kayak referensi */
+}
+
+.side-scroll-container::-webkit-scrollbar-track {
+  background: transparent; /* Track transparan */
+}
+
+.side-scroll-container::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.25); /* Warna gelap soft */
+  border-radius: 10px; /* Bentuk pil rounded */
+}
+
+.side-scroll-container::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0, 0, 0, 0.4);
 }
 
 .side-list {

@@ -37,6 +37,9 @@ const showMenuBox = ref(false);
 const emit = defineEmits(["close", "collapse-change"]);
 
 watch(isCollapsed, (value) => {
+  if (value) {
+    showMenuBox.value = false;
+  }
   emit("collapse-change", value);
 });
 
@@ -159,7 +162,8 @@ const handleLogout = () => {
         </div>
       </div>
 
-      <div v-if="showMenuBox" class="popup-menu-box shadow-sm">
+      <!-- Tambahin class dynamic :class="{ 'collapsed-popup': isCollapsed }" -->
+      <div v-if="showMenuBox" class="popup-menu-box shadow-sm" :class="{ 'collapsed-popup': isCollapsed }">
         <RouterLink to="/profile" class="popup-item header-style" @click="showMenuBox = false">profile & settings</RouterLink>
         <a href="#" class="popup-item header-style logout" @click.prevent="handleLogout(); showMenuBox = false">logout</a>
       </div>
@@ -401,6 +405,13 @@ aside {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
+.popup-menu-box.collapsed-popup {
+  position: fixed;
+  left: 30px; 
+  bottom: 80px;
+  width: 180px;
+}
+
 .popup-item {
   text-decoration: none;
   color: #0a1d2b;
@@ -411,7 +422,7 @@ aside {
 }
 
 .popup-item:hover {
-  background-color: #f1f5f9;
+  background-color: var(--color-grey);
   color: #0a1d2b;
 }
 

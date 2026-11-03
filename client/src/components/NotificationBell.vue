@@ -52,13 +52,8 @@ function hasCustomAvatar(item) {
 
 <template>
   <div class="notif-wrap">
-    <button
-      class="pill-badge icon-pill notif-pill"
-      type="button"
-      aria-label="Notifications"
-      :aria-expanded="n.open"
-      @click.stop="n.toggle()"
-    >
+    <button class="pill-badge icon-pill notif-pill" type="button" aria-label="Notifications" :aria-expanded="n.open"
+      @click.stop="n.toggle()">
       <span class="bell-icon">
         <i class="bi bi-bell-fill text-white"></i>
       </span>
@@ -68,12 +63,7 @@ function hasCustomAvatar(item) {
     <div v-if="n.open" class="notif-panel" role="dialog" aria-label="Notifications">
       <div class="notif-head">
         <h3>Notifications</h3>
-        <button
-          class="link-btn"
-          type="button"
-          :disabled="!n.hasUnread"
-          @click="n.markAllRead()"
-        >
+        <button class="link-btn" type="button" :disabled="!n.hasUnread" @click="n.markAllRead()">
           Mark all read
         </button>
       </div>
@@ -82,29 +72,30 @@ function hasCustomAvatar(item) {
       <p v-else-if="!n.items.length" class="notif-empty">You're all caught up.</p>
 
       <ul v-else class="notif-list">
-        <li v-for="item in n.items":key="item._id"class="notif-row":class="{ unread: !item.isRead }">
+        <li v-for="item in n.items" :key="item._id" class="notif-row" :class="{ unread: !item.isRead }">
           <div class="notif-container">
-            <button class="notif-btn" type="button"@click="openItem(item)">
-            <span class="type-icon">
-              <img v-if="hasCustomAvatar(item)"
-              :src="`${API_URL}${item.metadata.requesterAvatar || item.metadata.receiverAvatar}`" class="notif-avatar" alt=""/>
-              <i v-else class="bi" :class="n.meta(item.type).icon"></i>
-            </span>
-            <span class="notif-body">
-              <div class="notif-top">
-                <div>
-                  <strong>{{ item.title }}</strong>
-                  <span class="msg">{{ item.message }}</span>
-                  <small>{{ n.meta(item.type).label }} ·{{ n.timeAgo(item.sentAt || item.createdAt) }}</small>
+            <button class="notif-btn" type="button" @click="openItem(item)">
+              <span class="type-icon">
+                <img v-if="hasCustomAvatar(item)"
+                  :src="`${API_URL}${item.metadata.requesterAvatar || item.metadata.receiverAvatar}`"
+                  class="notif-avatar" alt="" />
+                <i v-else class="bi" :class="n.meta(item.type).icon"></i>
+              </span>
+              <span class="notif-body">
+                <div class="notif-top">
+                  <div>
+                    <strong>{{ item.title }}</strong>
+                    <span class="msg">{{ item.message }}</span>
+                    <small>{{ n.meta(item.type).label }} ·{{ n.timeAgo(item.sentAt || item.createdAt) }}</small>
+                  </div>
+                  <div v-if="item.type === 'friend_request' && !item.isRead" class="notif-actions">
+                    <button class="accept-btn" @click.stop="acceptFriend(item)">✓</button>
+                    <button class="reject-btn" @click.stop="rejectFriend(item)">✕</button>
+                  </div>
                 </div>
-                <div v-if="item.type === 'friend_request' && !item.isRead"class="notif-actions">
-                  <button class="accept-btn" @click.stop="acceptFriend(item)">✓</button>
-                  <button class="reject-btn" @click.stop="rejectFriend(item)">✕</button>
-                </div>
-          </div>
-            </span>
-            <span v-if="!item.isRead" class="unread-pip">
-            </span>
+              </span>
+              <span v-if="!item.isRead" class="unread-pip">
+              </span>
             </button>
           </div>
         </li>
@@ -114,7 +105,10 @@ function hasCustomAvatar(item) {
 </template>
 
 <style scoped>
-.notif-wrap { position: relative; flex-shrink: 0; }
+.notif-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
 
 .pill-badge {
   height: 40px;
@@ -126,6 +120,7 @@ function hasCustomAvatar(item) {
   box-shadow: 0 4px 15px rgba(10, 29, 43, 0.04);
   border: 0;
 }
+
 .icon-pill {
   width: 40px;
   height: 40px;
@@ -133,8 +128,15 @@ function hasCustomAvatar(item) {
   cursor: pointer;
   font-size: 15px;
 }
-.notif-pill { background-color: #150184; }
-.bell-icon { padding-top: 5px; padding-right: 1px; }
+
+.notif-pill {
+  background-color: var(--color-dark-blue);
+}
+
+.bell-icon {
+  padding-top: 5px;
+}
+
 .notif-dot {
   position: absolute;
   top: 9px;
@@ -168,12 +170,14 @@ function hasCustomAvatar(item) {
   gap: 8px;
   margin-bottom: 8px;
 }
+
 .notif-head h3 {
   margin: 0;
   font: 400 14px/1.2 'HeaderFont', sans-serif;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
+
 .link-btn {
   border: 0;
   background: none;
@@ -183,7 +187,11 @@ function hasCustomAvatar(item) {
   text-transform: uppercase;
   cursor: pointer;
 }
-.link-btn:disabled { opacity: 0.4; cursor: default; }
+
+.link-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
 
 .notif-empty {
   margin: 12px 0 4px;
@@ -191,10 +199,24 @@ function hasCustomAvatar(item) {
   opacity: 0.7;
 }
 
-.notif-list { list-style: none; margin: 0; padding: 0; }
-.notif-row { border-top: 1px dashed rgba(31, 42, 68, 0.18); }
-.notif-row:first-child { border-top: 0; }
-.notif-row.unread { background: #eef2ff; border-radius: 15px; }
+.notif-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.notif-row {
+  border-top: 1px dashed rgba(31, 42, 68, 0.18);
+}
+
+.notif-row:first-child {
+  border-top: 0;
+}
+
+.notif-row.unread {
+  background: #eef2ff;
+  border-radius: 15px;
+}
 
 .notif-btn {
   display: flex;
@@ -208,6 +230,7 @@ function hasCustomAvatar(item) {
   cursor: pointer;
   color: inherit;
 }
+
 .type-icon {
   display: grid;
   place-items: center;
@@ -219,22 +242,30 @@ function hasCustomAvatar(item) {
   color: #4338ca;
   font-size: 13px;
 }
-.notif-body {  min-width: 0;flex: 1; }
+
+.notif-body {
+  min-width: 0;
+  flex: 1;
+}
+
 .notif-body strong {
   font-size: 13px;
   font-weight: 700;
 }
+
 .msg {
   font-size: 12px;
   line-height: 1.35;
   opacity: 0.85;
 }
+
 .notif-body small {
   font-size: 11px;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   opacity: 0.55;
 }
+
 .unread-pip {
   width: 8px;
   height: 8px;
@@ -243,11 +274,13 @@ function hasCustomAvatar(item) {
   border-radius: 50%;
   background: var(--color-blue, #4c74fa);
 }
+
 .notif-actions {
   display: flex;
   gap: 6px;
   flex-shrink: 0;
 }
+
 .accept-btn,
 .reject-btn {
   width: 28px;
@@ -258,28 +291,34 @@ function hasCustomAvatar(item) {
   font-size: 14px;
   font-weight: bold;
 }
+
 .accept-btn {
   background: #b8df52;
 }
+
 .reject-btn {
   background: #ff8a50;
   color: white;
 }
+
 .notif-container {
   display: flex;
   flex-direction: column;
 }
+
 .notif-top {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 12px;
 }
+
 .notif-body strong,
 .notif-body .msg,
 .notif-body small {
   display: block;
 }
+
 .notif-avatar {
   width: 36px;
   height: 36px;
