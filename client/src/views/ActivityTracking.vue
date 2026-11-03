@@ -1,4 +1,3 @@
-
 <script setup>
 import { ref, computed, onMounted, inject } from 'vue'
 import FolderTabs from '../components/FolderTabs.vue'
@@ -50,8 +49,8 @@ function sortKey(a, tab) {
     tab === 'interested'
       ? a.event.sessions.map(s => new Date(s.startTime).getTime())
       : (a.sessions || [])
-          .filter(s => s.going === tab)
-          .map(s => new Date(s.startTime).getTime())
+        .filter(s => s.going === tab)
+        .map(s => new Date(s.startTime).getTime())
 
   return times.length ? Math.min(...times) : 0
 }
@@ -99,6 +98,22 @@ function getGoingBySession(activity) {
   }, {})
 }
 
+// Helper buat dapetin activity data dari event yang lagi dipilih di CardInfo
+const selectedActivity = computed(() => {
+  if (!selectedEvent.value) return null
+  return activities.value.find(a => (a.event?._id || a.event?.id) === (selectedEvent.value._id || selectedEvent.value.id))
+})
+
+const isSelectedEventAttending = computed(() => {
+  const act = selectedActivity.value
+  if (!act || !act.sessions) return false
+  return act.sessions.some(s => s.going === 'attending')
+})
+
+function onInviteFriends(id) {
+  console.log('Invite friends for event:', id)
+}
+
 onMounted(async () => {
   try {
     await loadActivities()
@@ -117,7 +132,7 @@ onMounted(async () => {
     <div class="header-row">
       <h1 class="header-style page-title">MY ACTIVITY</h1>
 
-      <BaseButton class="action-pill-btn calendar-btn" @click="$router.push('/calendar')">
+      <BaseButton class="calendar-btn theme-purple" variant="primary" @click="$router.push('/calendar')">
         VIEW MY CALENDAR
       </BaseButton>
     </div>
@@ -141,23 +156,15 @@ onMounted(async () => {
       <!-- LEFT: FOLDERS -->
       <div class="folder-wrapper">
 
-        <FolderTabs
-          :tabs="tabs"
-          v-model="activeTab"
-          @tab-change="showCardInfo = false"
-        >
+        <FolderTabs :tabs="tabs" v-model="activeTab" @tab-change="showCardInfo = false">
 
           <template v-for="t in tabs" :key="t.id" #[t.id]>
 
             <!-- CARD INFO -->
-            <div
-              v-if="showCardInfo && selectedEvent"
-              class="card-info-wrapper"
-            >
-              <CardInfo
-                :event="selectedEvent"
-                @close="showCardInfo = false"
-              />
+            <div v-if="showCardInfo && selectedEvent" class="card-info-wrapper">
+              <CardInfo :event="selectedEvent" :is-attending="isSelectedEventAttending"
+                :initial-note="selectedActivity?.note || ''" @close="showCardInfo = false"
+                @save-note="text => saveNote(selectedEvent._id || selectedEvent.id, text)" />
             </div>
 
             <!-- FOLDER CONTENT -->
@@ -166,10 +173,7 @@ onMounted(async () => {
               <div class="folder-content-area">
 
                 <!-- EMPTY STATE -->
-                <div
-                  v-if="byStatus[t.id].length === 0"
-                  class="empty-state-box"
-                >
+                <div v-if="byStatus[t.id].length === 0" class="empty-state-box">
                   <p class="empty-text">
                     No {{ t.id }} events yet.
                     Mark events from the Discover page!
@@ -177,40 +181,22 @@ onMounted(async () => {
                 </div>
 
                 <!-- EVENT CARDS -->
-                <div
-                  v-else
-                  class="folder-cards-scroll-area"
-                >
-                  <div
-                    class="folder-cards-grid"
-                    :class="{
-                      'navbar-collapsed': isNavbarCollapsed
-                    }"
-                  >
+                <div v-else class="folder-cards-scroll-area">
+                  <div class="folder-cards-grid" :class="{
+                    'navbar-collapsed': isNavbarCollapsed
+                  }">
 
-                    <EventCard
-                      v-for="a in byStatus[t.id]"
-                      :key="a._id"
-                      :event="a.event"
-                      :variant="t.id"
-                      :interested="a.interested"
-                      :note="a.note || ''"
-                      :going-by-session="getGoingBySession(a)"
+                    <EventCard v-for="a in byStatus[t.id]" :key="a._id" :event="a.event" :variant="t.id"
+                      :interested="a.interested" :note="a.note || ''" :going-by-session="getGoingBySession(a)"
                       @set-interested="
                         val => setInterested(a.event._id, val)
-                      "
-                      @set-going="
+                      " @set-going="
                         payload => setGoing(a.event._id, payload)
-                      "
-                      @save-note="
+                      " @save-note="
                         text => saveNote(a.event._id, text)
-                      "
-                      @remove-history="
+                      " @remove-history="
                         deleteActivity(a.event._id)
-                      "
-                      @invite-friends="$router.push('/lobby')"
-                      @card-click="handleCardClick(a.event)"
-                    />
+                        " @invite-friends="onInviteFriends" @card-click="handleCardClick(a.event)" />
 
                   </div>
                 </div>
@@ -232,7 +218,7 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-/* PAGE */
+/* PAGE (1 SCREEN VIEW) */
 .activity-page-container {
   width: 100%;
   max-width: 1450px;
@@ -266,12 +252,10 @@ onMounted(async () => {
 }
 
 .calendar-btn {
-  background-color: #3b33c0 !important;
-  color: #ffffff !important;
-  font-weight: 800;
-  padding: 0 16px;
-  height: 36px;
-  border-radius: 9999px;
+  width: 200px;
+  min-width: 200px;
+  flex-shrink: 0;
+  box-sizing: border-box;
 }
 
 /* MAIN LAYOUT */
@@ -286,80 +270,65 @@ onMounted(async () => {
 }
 
 /* FOLDER WRAPPER */
-/* FOLDER WRAPPER */
 .folder-wrapper {
-    width: 100%;
-    height: 100%;
-    min-width: 0;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
-
-/* FOLDER TABS */
-.folder-wrapper :deep(.folder-container) {
-    flex: 1;
-    width: 100%;
-    height: 100%;
-    min-height: 0;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
-
-.folder-wrapper :deep(.folder-body) {
-    flex: 1;
-    height: 0;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
-
-.folder-wrapper :deep(.inner-folder) {
-    flex: 1;
-    width: 100%;
-    height: 100%;
-    min-height: 0;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
-
-/*
-  FOLDER TABS
-  These styles apply if the corresponding classes
-  exist inside FolderTabs.vue.
-*/
-.folder-container {
-  height: 100% !important;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
   min-height: 0;
-  max-height: 100% !important;
   display: flex;
   flex-direction: column;
   overflow: hidden;
 }
 
-.folder-body {
+/* FOLDER TABS & BODY */
+.folder-wrapper :deep(.folder-container) {
   flex: 1;
-  height: 0;
+  width: 100%;
+  height: 100%;
   min-height: 0;
-  overflow: hidden !important;
+  min-width: 0;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
-.inner-folder {
-  flex: 1;
+.folder-wrapper :deep(.folder-body) {
+  flex: 1 !important;
   height: 0 !important;
-  min-height: 0;
-  max-height: 100% !important;
-  overflow: hidden !important;
+  min-height: 0 !important;
   display: flex;
   flex-direction: column;
+  overflow: hidden !important;
+}
+
+.folder-wrapper :deep(.inner-folder) {
+  flex: 1 !important;
+  width: 100%;
+  height: 100% !important;
+  min-height: 0;
+  max-height: 100% !important;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  padding-right: 15px;
+
+  /* Sleek thin scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+
+.folder-wrapper :deep(.inner-folder)::-webkit-scrollbar {
+  width: 6px;
+}
+
+.folder-wrapper :deep(.inner-folder)::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.folder-wrapper :deep(.inner-folder)::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
 }
 
 /* FOLDER CONTENT */
@@ -376,7 +345,7 @@ onMounted(async () => {
 .folder-cards-scroll-area {
   flex: 1;
   min-height: 0;
-  overflow-y: auto;
+  overflow-y: visible;
   overflow-x: hidden;
 }
 
@@ -388,6 +357,7 @@ onMounted(async () => {
   width: 100%;
   align-content: start;
   transition: grid-template-columns 0.3s ease;
+  margin: 15px 0;
 }
 
 .folder-cards-grid.navbar-collapsed {
@@ -397,25 +367,13 @@ onMounted(async () => {
 /* RESPONSIVE GRID */
 @media (max-width: 1200px) {
   .folder-cards-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .folder-cards-grid.navbar-collapsed {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 900px) {
-  .folder-cards-grid,
-  .folder-cards-grid.navbar-collapsed {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-@media (max-width: 600px) {
-  .folder-cards-grid,
-  .folder-cards-grid.navbar-collapsed {
-    grid-template-columns: 1fr;
+@media (max-width: 900px) {
+  .folder-cards-grid {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
   }
 }
 
@@ -443,57 +401,29 @@ onMounted(async () => {
 
 /* RIGHT SIDEBAR BOX */
 .side-box-container {
-  height: calc(100% - 38px);
-  margin-top: 38px;
+  width: 100%;
+  height: 100%;
+  margin-top: 0;
   background-color: var(--color-grey);
   border-radius: 25px;
-  padding: 15px;
+  padding: 16px 7px 2px 15px;
   box-sizing: border-box;
   box-shadow: 0 4px 14px rgba(10, 29, 43, 0.08);
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   min-width: 0;
 }
 
 /* CARD INFO */
 .card-info-wrapper {
-    flex: 1;
-    width: 100%;
-    height: 100%;
-    min-height: 0;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
-
-/* Tablets and phones: the whole page scrolls, with the folder first and Coming up underneath */
-@media (max-width: 900px) {
-  .activity-page-container {
-    height: auto;
-    max-height: none;
-    overflow: visible;
-  }
-
-  .activity-main-layout {
-    grid-template-columns: minmax(0, 1fr);
-    overflow: visible;
-  }
-
-  .folder-cards-grid,
-  .folder-cards-grid.navbar-collapsed {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .folder-wrapper {
-    height: 75vh;
-    height: 75dvh;
-    min-height: 420px;
-  }
-
-  .side-box-container {
-    height: auto;
-    margin-top: 0;
-    overflow: visible;
-  }
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 </style>

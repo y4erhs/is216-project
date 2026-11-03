@@ -1,14 +1,28 @@
+```vue
 <script setup>
 import { onMounted, onBeforeUnmount } from 'vue'
 import { useNotifications } from '../composables/useNotifications'
-import AvatarPic from './AvatarPic.vue'
+import { API_URL } from '../utils/api'
 
-const emit = defineEmits(['open-item', 'accept-friend', 'reject-friend'])
+const emit = defineEmits([
+  'open-item',
+  'accept-friend',
+  'reject-friend'
+])
+
 const n = useNotifications()
+
+function hasCustomAvatar(item) {
+  return Boolean(
+    item.metadata?.requesterAvatar ||
+    item.metadata?.receiverAvatar
+  )
+}
 
 function onDocClick(e) {
   if (!e.target.closest('.notif-wrap')) n.close()
 }
+
 function onEsc(e) {
   if (e.key === 'Escape') n.close()
 }
@@ -17,6 +31,7 @@ onMounted(() => {
   document.addEventListener('click', onDocClick)
   window.addEventListener('keydown', onEsc)
 })
+
 onBeforeUnmount(() => {
   document.removeEventListener('click', onDocClick)
   window.removeEventListener('keydown', onEsc)
@@ -25,17 +40,15 @@ onBeforeUnmount(() => {
 function openItem(item) {
   n.markRead(item)
   n.close()
-  emit('open-item', item) // parent can route to lobby / event
+  emit('open-item', item)
 }
 
 function acceptFriend(item) {
-  console.log('Accept friend', item)
   n.acceptFriend(item)
   emit('accept-friend', item)
 }
 
 function rejectFriend(item) {
-  console.log('Reject friend', item)
   n.rejectFriend(item)
   emit('reject-friend', item)
 }
@@ -43,6 +56,7 @@ function rejectFriend(item) {
 
 <template>
   <div class="notif-wrap">
+    <!-- NOTIFICATION BUTTON -->
     <button
       class="pill-badge icon-pill notif-pill"
       type="button"
@@ -53,12 +67,20 @@ function rejectFriend(item) {
       <span class="bell-icon">
         <i class="bi bi-bell-fill text-white"></i>
       </span>
+
       <span v-if="n.hasUnread" class="notif-dot"></span>
     </button>
 
-    <div v-if="n.open" class="notif-panel" role="dialog" aria-label="Notifications">
+    <!-- NOTIFICATION PANEL -->
+    <div
+      v-if="n.open"
+      class="notif-panel"
+      role="dialog"
+      aria-label="Notifications"
+    >
       <div class="notif-head">
         <h3>Notifications</h3>
+
         <button
           class="link-btn"
           type="button"
@@ -69,33 +91,95 @@ function rejectFriend(item) {
         </button>
       </div>
 
-      <p v-if="n.loading && !n.items.length" class="notif-empty">Loading…</p>
-      <p v-else-if="!n.items.length" class="notif-empty">You're all caught up.</p>
+      <p
+        v-if="n.loading && !n.items.length"
+        class="notif-empty"
+      >
+        Loading…
+      </p>
+
+      <p
+        v-else-if="!n.items.length"
+        class="notif-empty"
+      >
+        You're all caught up.
+      </p>
 
       <ul v-else class="notif-list">
-        <li v-for="item in n.items":key="item._id"class="notif-row":class="{ unread: !item.isRead }">
+        <li
+          v-for="item in n.items"
+          :key="item._id"
+          class="notif-row"
+          :class="{ unread: !item.isRead }"
+        >
           <div class="notif-container">
-            <button class="notif-btn" type="button"@click="openItem(item)">
-            <span class="type-icon">
-              <i class="bi" :class="n.meta(item.type).icon"></i>
-              <AvatarPic :path="item.fromAvatar" />
-            </span>
-            <span class="notif-body">
-              <div class="notif-top">
-                <div>
+
+            <!-- MAIN NOTIFICATION CONTENT -->
+            <div class="notif-btn">
+              <button
+                class="notif-main"
+                type="button"
+                @click="openItem(item)"
+              >
+                <span class="type-icon">
+                  <img
+                    v-if="hasCustomAvatar(item)"
+                    :src="`${API_URL}${item.metadata.requesterAvatar || item.metadata.receiverAvatar}`"
+                    class="notif-avatar"
+                    alt=""
+                  />
+
+                  <i
+                    v-else
+                    class="bi"
+                    :class="n.meta(item.type).icon"
+                  ></i>
+                </span>
+
+                <span class="notif-body">
                   <strong>{{ item.title }}</strong>
-                  <span class="msg">{{ item.message }}</span>
-                  <small>{{ n.meta(item.type).label }} ·{{ n.timeAgo(item.sentAt || item.createdAt) }}</small>
-                </div>
-                <div v-if="item.type === 'friend_request' && !item.isRead"class="notif-actions">
-                  <button class="accept-btn" @click.stop="acceptFriend(item)">✓</button>
-                  <button class="reject-btn" @click.stop="rejectFriend(item)">✕</button>
-                </div>
-          </div>
-            </span>
-            <span v-if="!item.isRead" class="unread-pip">
-            </span>
-            </button>
+
+                  <span class="msg">
+                    {{ item.message }}
+                  </span>
+
+                  <small>
+                    {{ n.meta(item.type).label }} ·
+                    {{ n.timeAgo(item.sentAt || item.createdAt) }}
+                  </small>
+                </span>
+
+                <span
+                  v-if="!item.isRead"
+                  class="unread-pip"
+                ></span>
+              </button>
+
+              <!-- FRIEND REQUEST ACTIONS -->
+              <div
+                v-if="item.type === 'friend_request' && !item.isRead"
+                class="notif-actions"
+              >
+                <button
+                  class="accept-btn"
+                  type="button"
+                  aria-label="Accept friend request"
+                  @click="acceptFriend(item)"
+                >
+                  ✓
+                </button>
+
+                <button
+                  class="reject-btn"
+                  type="button"
+                  aria-label="Reject friend request"
+                  @click="rejectFriend(item)"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
           </div>
         </li>
       </ul>
@@ -104,7 +188,10 @@ function rejectFriend(item) {
 </template>
 
 <style scoped>
-.notif-wrap { position: relative; flex-shrink: 0; }
+.notif-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
 
 .pill-badge {
   height: 40px;
@@ -116,6 +203,7 @@ function rejectFriend(item) {
   box-shadow: 0 4px 15px rgba(10, 29, 43, 0.04);
   border: 0;
 }
+
 .icon-pill {
   width: 40px;
   height: 40px;
@@ -123,8 +211,15 @@ function rejectFriend(item) {
   cursor: pointer;
   font-size: 15px;
 }
-.notif-pill { background-color: #150184; }
-.bell-icon { padding-top: 5px; padding-right: 1px; }
+
+.notif-pill {
+  background-color: var(--color-dark-blue);
+}
+
+.bell-icon {
+  padding-top: 5px;
+}
+
 .notif-dot {
   position: absolute;
   top: 9px;
@@ -136,6 +231,7 @@ function rejectFriend(item) {
   border: 1.5px solid #ffffff;
 }
 
+/* NOTIFICATION PANEL */
 .notif-panel {
   position: absolute;
   top: calc(100% + 8px);
@@ -158,12 +254,14 @@ function rejectFriend(item) {
   gap: 8px;
   margin-bottom: 8px;
 }
+
 .notif-head h3 {
   margin: 0;
   font: 400 14px/1.2 'HeaderFont', sans-serif;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
+
 .link-btn {
   border: 0;
   background: none;
@@ -173,7 +271,11 @@ function rejectFriend(item) {
   text-transform: uppercase;
   cursor: pointer;
 }
-.link-btn:disabled { opacity: 0.4; cursor: default; }
+
+.link-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
 
 .notif-empty {
   margin: 12px 0 4px;
@@ -181,16 +283,46 @@ function rejectFriend(item) {
   opacity: 0.7;
 }
 
-.notif-list { list-style: none; margin: 0; padding: 0; }
-.notif-row { border-top: 1px dashed rgba(31, 42, 68, 0.18); }
-.notif-row:first-child { border-top: 0; }
-.notif-row.unread { background: #eef2ff; border-radius: 15px; }
+/* NOTIFICATION LIST */
+.notif-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.notif-row {
+  border-top: 1px dashed rgba(31, 42, 68, 0.18);
+}
+
+.notif-row:first-child {
+  border-top: 0;
+}
+
+.notif-row.unread {
+  background: #eef2ff;
+  border-radius: 15px;
+}
+
+/* ROW LAYOUT */
+.notif-container {
+  display: flex;
+  flex-direction: column;
+}
 
 .notif-btn {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   width: 100%;
+}
+
+/* MAIN CLICKABLE BUTTON */
+.notif-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
   padding: 10px 8px;
   border: 0;
   background: transparent;
@@ -198,6 +330,7 @@ function rejectFriend(item) {
   cursor: pointer;
   color: inherit;
 }
+
 .type-icon {
   display: grid;
   place-items: center;
@@ -210,22 +343,36 @@ function rejectFriend(item) {
   font-size: 13px;
   position: relative;
 }
-.notif-body {  min-width: 0;flex: 1; }
+
+.notif-body {
+  min-width: 0;
+  flex: 1;
+}
+
 .notif-body strong {
   font-size: 13px;
   font-weight: 700;
 }
+
 .msg {
   font-size: 12px;
   line-height: 1.35;
   opacity: 0.85;
 }
+
 .notif-body small {
   font-size: 11px;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   opacity: 0.55;
 }
+
+.notif-body strong,
+.notif-body .msg,
+.notif-body small {
+  display: block;
+}
+
 .unread-pip {
   width: 8px;
   height: 8px;
@@ -234,11 +381,15 @@ function rejectFriend(item) {
   border-radius: 50%;
   background: var(--color-blue, #4c74fa);
 }
+
+/* FRIEND REQUEST BUTTONS */
 .notif-actions {
   display: flex;
   gap: 6px;
   flex-shrink: 0;
+  padding-right: 8px;
 }
+
 .accept-btn,
 .reject-btn {
   width: 28px;
@@ -249,26 +400,21 @@ function rejectFriend(item) {
   font-size: 14px;
   font-weight: bold;
 }
+
 .accept-btn {
   background: #b8df52;
 }
+
 .reject-btn {
   background: #ff8a50;
   color: white;
 }
-.notif-container {
-  display: flex;
-  flex-direction: column;
-}
-.notif-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-}
-.notif-body strong,
-.notif-body .msg,
-.notif-body small {
-  display: block;
+
+/* AVATAR */
+.notif-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
 }
 </style>

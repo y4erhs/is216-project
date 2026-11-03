@@ -37,6 +37,9 @@ const showMenuBox = ref(false);
 const emit = defineEmits(["close", "collapse-change"]);
 
 watch(isCollapsed, (value) => {
+  if (value) {
+    showMenuBox.value = false;
+  }
   emit("collapse-change", value);
 });
 
@@ -53,17 +56,11 @@ const handleLogout = () => {
 <template>
   <aside :class="{ collapsed: isCollapsed, 'mobile-open': isOpen }">
     <div class="header px-2">
-      <div
-        v-if="!isCollapsed"
-        class="logo-section d-flex align-items-center gap-2"
-      >
+      <div v-if="!isCollapsed" class="logo-section d-flex align-items-center gap-2">
         <img :src="logo" class="logo" style="height: 50px" />
       </div>
 
-      <button
-        class="toggle-btn hamburger d-none d-md-flex"
-        @click="isCollapsed = !isCollapsed"
-      >
+      <button class="toggle-btn hamburger d-none d-md-flex" @click="isCollapsed = !isCollapsed">
         {{ isCollapsed ? "☰" : "X" }}
       </button>
 
@@ -78,11 +75,7 @@ const handleLogout = () => {
     </div>
 
     <div class="menu" @click="emit('close')">
-      <RouterLink
-        to="/"
-        class="tab-pill theme-grey"
-        :title="isCollapsed ? 'Discover' : ''"
-      >
+      <RouterLink to="/" class="tab-pill theme-grey" :title="isCollapsed ? 'Discover' : ''">
         <div class="pill-icon">
           <i class="bi bi-compass fs-5"></i>
         </div>
@@ -92,11 +85,7 @@ const handleLogout = () => {
         </div>
       </RouterLink>
 
-      <RouterLink
-        to="/activity-tracking"
-        class="tab-pill theme-grey"
-        :title="isCollapsed ? 'Activity Tracking' : ''"
-      >
+      <RouterLink to="/activity-tracking" class="tab-pill theme-grey" :title="isCollapsed ? 'Activity Tracking' : ''">
         <div class="pill-icon">
           <i class="bi bi-clipboard-check fs-5"></i>
         </div>
@@ -106,11 +95,7 @@ const handleLogout = () => {
         </div>
       </RouterLink>
 
-      <RouterLink
-        to="/calendar"
-        class="tab-pill theme-grey"
-        :title="isCollapsed ? 'My Calendar' : ''"
-      >
+      <RouterLink to="/calendar" class="tab-pill theme-grey" :title="isCollapsed ? 'My Calendar' : ''">
         <div class="pill-icon">
           <i class="bi bi-calendar-event fs-5"></i>
         </div>
@@ -120,11 +105,7 @@ const handleLogout = () => {
         </div>
       </RouterLink>
 
-      <RouterLink
-        to="/lobby"
-        class="tab-pill theme-grey"
-        :title="isCollapsed ? 'My Lobbies' : ''"
-      >
+      <RouterLink to="/lobby" class="tab-pill theme-grey" :title="isCollapsed ? 'My Lobbies' : ''">
         <div class="pill-icon">
           <i class="bi bi-people fs-5"></i>
         </div>
@@ -138,9 +119,13 @@ const handleLogout = () => {
       <RouterLink to="/friends" class="tab-pill theme-grey" :title="isCollapsed ? 'Friends' : ''">
         <div class="pill-icon position-relative">
           <i class="bi bi-person-plus fs-5"></i>
-          <span v-if="reqs.state.incoming.length" class="req-badge">{{ reqs.state.incoming.length }}</span>
+          <span v-if="reqs.state.incoming.length" class="req-badge" style="pointer-events: none">
+            {{ reqs.state.incoming.length }}
+          </span>
         </div>
+
         <span v-if="!isCollapsed" class="pill-neck"></span>
+
         <div v-if="!isCollapsed" class="pill-label">
           <span class="header-style">Friends</span>
         </div>
@@ -159,9 +144,12 @@ const handleLogout = () => {
         </div>
       </div>
 
-      <div v-if="showMenuBox" class="popup-menu-box shadow-sm">
-        <RouterLink to="/profile" class="popup-item header-style" @click="showMenuBox = false">profile & settings</RouterLink>
-        <a href="#" class="popup-item header-style logout" @click.prevent="handleLogout(); showMenuBox = false">logout</a>
+      <!-- Tambahin class dynamic :class="{ 'collapsed-popup': isCollapsed }" -->
+      <div v-if="showMenuBox" class="popup-menu-box shadow-sm" :class="{ 'collapsed-popup': isCollapsed }">
+        <RouterLink to="/profile" class="popup-item header-style" @click="showMenuBox = false">profile & settings
+        </RouterLink>
+        <a href="#" class="popup-item header-style logout"
+          @click.prevent="handleLogout(); showMenuBox = false">logout</a>
       </div>
     </div>
   </aside>
@@ -401,6 +389,13 @@ aside {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
+.popup-menu-box.collapsed-popup {
+  position: fixed;
+  left: 30px;
+  bottom: 80px;
+  width: 180px;
+}
+
 .popup-item {
   text-decoration: none;
   color: #0a1d2b;
@@ -411,7 +406,7 @@ aside {
 }
 
 .popup-item:hover {
-  background-color: #f1f5f9;
+  background-color: var(--color-grey);
   color: #0a1d2b;
 }
 
@@ -494,10 +489,18 @@ aside.collapsed .user-profile {
 }
 
 .req-badge {
-  position: absolute; top: 2px; right: 2px;
-  min-width: 16px; height: 16px; padding: 0 4px;
-  border-radius: 8px; background: var(--color-blue, #4c74fa);
-  color: #fff; font-size: 10px; line-height: 16px; text-align: center;
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 8px;
+  background: var(--color-blue, #4c74fa);
+  color: #fff;
+  font-size: 10px;
+  line-height: 16px;
+  text-align: center;
 }
 
 @media (max-width: 767.98px) {

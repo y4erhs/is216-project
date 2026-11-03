@@ -837,10 +837,10 @@ input:focus {
 .folder-scroll-container {
   flex: 0 1 auto;
   min-height: 0;
-  max-height: 400px;       /* delete this line if the scroll area should fill the folder */
+  max-height: 400px;       
   overflow-y: auto;
   padding-right: 8px;
-  margin: 16px 0;          /* space above (from the title) and below (from the footer) */
+  margin: 16px 0;          
 }
 
 /* real footer row (in the flow, no more floating button) */

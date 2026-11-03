@@ -1,3 +1,9 @@
+<!--
+  Lobby.vue  (Vue 3, <script setup>)
+  Every lobby you host or belong to, searchable and filterable.
+  The header (title, create button, search, filters, event dropdown) stays pinned while the cards scroll.
+  Emits: open(lobbyId), create, open-calendar
+-->
 <template>
   <div v-if="lobby" class="app">
     <header class="head">
@@ -50,7 +56,7 @@
       <FolderTabs :key="folderKey" :tabs="tabs" :default-active="tab" @tab-change="tab = $event">
         <template #invite>
           <div class="pane">
-            <section>
+            <section class="section-wrapper">
               <h3 class="section-title">Invite friends</h3>
               <p v-if="!friends.length" class="section-sub">
                 No friends yet. <RouterLink to="/friends" style="color:#fff">Add some</RouterLink>
@@ -73,7 +79,7 @@
 
         <template #roster>
           <div class="pane">
-            <section>
+            <section class="section-wrapper">
               <div class="section-head">
                 <h3 class="section-title">Who's in</h3>
                 <span class="live">
@@ -116,7 +122,7 @@
         <template #register>
           <div class="pane" :class="{ 'pane-fill': isHost && !registered }">
             <template v-if="registered">
-              <section>
+              <section class="section-wrapper">
                 <h3 class="section-title">Group registered</h3>
                 <p class="section-sub">{{ lastRegEvent?.title }} on {{ lastRegEvent?.date }}. These people are signed
                   up:</p>
@@ -148,17 +154,18 @@
               <h3 class="section-title">Pitch an event</h3>
               <p class="section-sub">Friends can still accept or decline while you choose.</p>
 
-              <div class="filter-row" role="group" aria-label="Which events to show">
-                <button type="button" class="pitch-chip" :class="{ on: pitchMode === 'interested' }"
-                        :aria-pressed="pitchMode === 'interested'" @click="pitchPick = 'interested'">
-                  <span v-if="pitchMode === 'interested'" aria-hidden="true">✓</span>
-                  Interested <b>{{ interestedUpcoming.length }}</b>
-                </button>
-                <button type="button" class="pitch-chip" :class="{ on: pitchMode === 'all' }"
-                        :aria-pressed="pitchMode === 'all'" @click="pitchPick = 'all'">
-                  <span v-if="pitchMode === 'all'" aria-hidden="true">✓</span>
-                  All events <b>{{ upcomingEvents.length }}</b>
-                </button>
+                <div class="filter-row" role="group" aria-label="Which events to show">
+                  <button type="button" class="pitch-chip" :class="{ on: pitchMode === 'interested' }"
+                          :aria-pressed="pitchMode === 'interested'" @click="pitchPick = 'interested'">
+                    <span v-if="pitchMode === 'interested'" aria-hidden="true">✓</span>
+                    Interested <b>{{ interestedUpcoming.length }}</b>
+                  </button>
+                  <button type="button" class="pitch-chip" :class="{ on: pitchMode === 'all' }"
+                          :aria-pressed="pitchMode === 'all'" @click="pitchPick = 'all'">
+                    <span v-if="pitchMode === 'all'" aria-hidden="true">✓</span>
+                    All events <b>{{ upcomingEvents.length }}</b>
+                  </button>
+                </div>
               </div>
 
               <div v-if="!pitchable.length" class="empty-note">
@@ -166,7 +173,7 @@
                   None of your upcoming events are marked as interested. Mark some on the Discover page, or show all events.
                 </p>
                 <p v-else>No upcoming events to pitch right now.</p>
-                <button v-if="pitchMode === 'interested'" class="btn btn-lime btn-small" type="button" @click="pitchPick = 'all'">Show all events</button>
+                <BaseButton v-if="pitchMode === 'interested'" class="theme-green" type="button" @click="pitchPick = 'all'">Show all events</BaseButton>
               </div>
 
               <div v-else class="scroll">
@@ -189,7 +196,7 @@
         </template>
 
         <template #calendar>
-          <div class="pane calendar-pane">
+          <div class="pane calendar-pane section-wrapper">
             <LobbyCalendar ref="calendarEl" :lobby-id="lobbyId" :user-id="userId" @select-day="selectedDay = $event" />
           </div>
         </template>
@@ -236,9 +243,10 @@
     </aside>
 
     <aside v-else class="panel-wrap" aria-label="Registered events">
-      <div class="side-panel">
+      <div class="side-panel side-panel-split">
         <h3 class="panel-title">Registered events</h3>
 
+        <div class="side-scroll">
         <ul v-if="eventRows.length" class="evlist">
           <li v-for="(r, i) in eventRows" :key="r.key" class="ev">
             <button class="ev-head" type="button" :aria-expanded="isOpen(r, i)" :aria-controls="`ev-${r.key}`"
@@ -566,9 +574,8 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onEsc))
 .app {
   width: 100%;
   max-width: 1450px;
-  height: 100vh;
-  max-height: 100vh;
-  max-height: 100dvh;
+  height: calc(100vh - 30px);
+  max-height: calc(100vh - 30px);
   margin: 0 auto;
   display: grid;
   grid-template-columns: minmax(0, 1fr) 280px;
@@ -613,6 +620,28 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onEsc))
 .head :focus-visible,
 .stage :focus-visible {
   outline-color: #fff;
+}
+
+.pitch-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.pitch-header-row .section-title,
+.pitch-header-row .section-sub {
+  margin-bottom: 0;
+}
+
+.filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 0; 
+  justify-content: flex-end;
 }
 
 .badge-pill {
@@ -695,10 +724,6 @@ button.badge-pill:disabled {
   flex: none;
 }
 
-/* .head-btn {
-  color: var(--color-white) !important;
-} */
-
 .back-link {
   display: inline-flex;
   align-items: center;
@@ -719,6 +744,7 @@ button.badge-pill:disabled {
 
 .page-title {
   margin: 0;
+  margin-top: 10px;
   color: #fff;
   font: 400 25px/1.1 'HeaderFont', sans-serif;
   text-transform: uppercase;
@@ -798,17 +824,17 @@ button.badge-pill:disabled {
 }
 
 .stage > :deep(.folder-body) {
-  flex: 1;
-  height: 0;
-  min-height: 0;
+  flex: 1 !important;
+  height: 0 !important;
+  min-height: 0 !important;
   overflow: hidden !important;
   display: flex;
   flex-direction: column;
 }
 
 .stage > :deep(.inner-folder) {
-  flex: 1;
-  height: 0 !important;
+  flex: 1 !important;
+  height: 100% !important;
   min-height: 0;
   max-height: 100% !important;
   overflow-y: auto !important;
@@ -824,6 +850,10 @@ button.badge-pill:disabled {
 .pane {
   display: grid;
   gap: 20px;
+}
+
+.section-wrapper {
+  margin-top: 15px;
 }
 
 .section-head {
@@ -1145,7 +1175,8 @@ button.badge-pill:disabled {
   position: absolute;
   inset: 0;
   overflow-y: auto;
-  padding: 15px;
+  padding: 15px 5px 2px 15px;
+  padding-right: px;
   border-radius: 25px;
   background-color: var(--color-grey);
   color: var(--color-black);
@@ -1158,6 +1189,47 @@ button.badge-pill:disabled {
   text-align: center;
   font: 400 20px/1.1 'HeaderFont', sans-serif;
   text-transform: uppercase;
+}
+
+/* Registered events panel: title stays put, only the list scrolls (same as "Coming up" in Activity Tracking) */
+.side-panel-split {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.side-panel-split .panel-title {
+  flex-shrink: 0;
+}
+
+.side-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 3px;
+
+  /* Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.25) transparent;
+}
+
+/* Chrome, Edge, Safari */
+.side-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.side-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.side-scroll::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.25);
+  border-radius: 10px;
+}
+
+.side-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0, 0, 0, 0.4);
 }
 
 .evlist {

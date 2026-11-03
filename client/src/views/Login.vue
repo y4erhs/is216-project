@@ -279,6 +279,17 @@ input {
   font-size: 15px;
   box-sizing: border-box;
   transition: border-color 0.2s ease;
+
+  caret-color: var(--color-white);
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus, 
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px transparent inset !important;
+  -webkit-text-fill-color: var(--color-white) !important;
+  transition: background-color 5000s ease-in-out 0s;
 }
 
 input::placeholder {

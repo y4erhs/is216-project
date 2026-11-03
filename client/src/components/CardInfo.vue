@@ -1,6 +1,5 @@
-
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import axios from 'axios'
 import CategoryPill from '@/components/categoryPill.vue'
 import { useAuth } from '../composables/useAuth'
@@ -9,14 +8,20 @@ import { API_URL } from '../utils/api'
 
 const props = defineProps({
   event: { type: Object, required: true },
-  initialNote: { type: String, default: '' }
+  initialNote: { type: String, default: '' },
+  isAttending: { type: Boolean, default: false }
 })
 
 const emit = defineEmits(['close', 'save-note', 'register'])
 const noteText = ref(props.initialNote)
+const isSaved = ref(false)
 
 function handleSave() {
   emit('save-note', noteText.value)
+  isSaved.value = true
+  setTimeout(() => {
+    isSaved.value = false
+  }, 2000)
 }
 
 function handleClear() {
@@ -30,19 +35,22 @@ function handleRegister() {
 
 const { userId } = useAuth()
 
-// Reminder for this event, which appears in the notification bell when it's due
+// Reminder state
 const reminder = ref(null)
-const reminderMinutes = ref(15)
+const selectedReminderValue = ref('none') // Default 'none'
 const reminderError = ref('')
 const savingReminder = ref(false)
 
 const hasUpcomingSession = computed(() =>
   (props.event.sessions || []).some(session => new Date(session.startTime) > new Date())
 )
-const reminderLabel = computed(() =>
-  REMINDER_OPTIONS.find(option => option.value === reminder.value?.offsetMinutes)?.label
-    || `${reminder.value?.offsetMinutes} minutes before`
-)
+
+const showReminderSection = computed(() => props.isAttending && hasUpcomingSession.value)
+
+const extendedReminderOptions = computed(() => [
+  { label: 'None', value: 'none' },
+  ...REMINDER_OPTIONS
+])
 
 async function loadReminder() {
   try {
@@ -50,30 +58,41 @@ async function loadReminder() {
     reminder.value = data.find(item =>
       item.status === 'pending' && (item.eventId?._id || item.eventId) === props.event._id
     ) || null
-  } catch (error) {
-    console.log('There was an error: ' + error.message)
-  }
-}
 
-// Remind Me starts on the time the user picked on their Profile
-async function loadDefaultReminder() {
-  try {
-    const { data } = await axios.get(`${API_URL}/api/notifications/preferences?userId=${userId.value}`)
-    if (REMINDER_OPTIONS.some(option => option.value === data.remindMinutesBefore)) {
-      reminderMinutes.value = data.remindMinutesBefore
+    if (reminder.value) {
+      selectedReminderValue.value = reminder.value.offsetMinutes
+    } else {
+      selectedReminderValue.value = 'none'
     }
   } catch (error) {
     console.log('There was an error: ' + error.message)
   }
 }
 
-async function setReminder() {
-  savingReminder.value = true
+async function handleReminderChange(newValue) {
   reminderError.value = ''
+
+  if (newValue === 'none') {
+    if (reminder.value) {
+      try {
+        await axios.delete(`${API_URL}/api/notifications/reminders/${reminder.value._id}?userId=${userId.value}`)
+        reminder.value = null
+      } catch (error) {
+        reminderError.value = 'Could not remove the reminder.'
+      }
+    }
+    return
+  }
+
+  savingReminder.value = true
   try {
+    if (reminder.value) {
+      await axios.delete(`${API_URL}/api/notifications/reminders/${reminder.value._id}?userId=${userId.value}`).catch(() => { })
+    }
+
     const { data } = await axios.post(`${API_URL}/api/notifications/reminders?userId=${userId.value}`, {
       eventId: props.event._id,
-      offsetMinutes: reminderMinutes.value
+      offsetMinutes: newValue
     })
     reminder.value = data
   } catch (error) {
@@ -83,22 +102,11 @@ async function setReminder() {
   }
 }
 
-async function removeReminder() {
-  reminderError.value = ''
-  try {
-    await axios.delete(`${API_URL}/api/notifications/reminders/${reminder.value._id}?userId=${userId.value}`)
-    reminder.value = null
-  } catch (error) {
-    reminderError.value = 'Could not remove the reminder.'
-  }
-}
-
 onMounted(() => {
   loadReminder()
-  loadDefaultReminder()
 })
 
-const imageFailed = ref(false)   // show the placeholder if the image can't load
+const imageFailed = ref(false)
 
 const imageSrc = computed(() =>
   props.event.image?.startsWith('/')
@@ -110,17 +118,14 @@ const firstSession = computed(() => props.event.sessions?.[0] ?? null)
 
 function validDate(value) {
   if (!value) return null
-
   const date = new Date(value)
   return Number.isNaN(date.getTime()) ? null : date
 }
 
 const displayDate = computed(() => {
   if (props.event.date) return props.event.date
-
   const start = validDate(firstSession.value?.startTime)
   if (!start) return ''
-
   return new Intl.DateTimeFormat('en-SG', {
     day: 'numeric',
     month: 'short',
@@ -130,18 +135,14 @@ const displayDate = computed(() => {
 
 const displayTime = computed(() => {
   if (props.event.time) return props.event.time
-
   const start = validDate(firstSession.value?.startTime)
   if (!start) return ''
-
   const end = validDate(firstSession.value?.endTime)
-
   const formatTime = (date) =>
     new Intl.DateTimeFormat('en-SG', {
       hour: 'numeric',
       minute: '2-digit'
     }).format(date)
-
   return end
     ? `${formatTime(start)} – ${formatTime(end)}`
     : formatTime(start)
@@ -151,11 +152,7 @@ const displayTime = computed(() => {
 <template>
   <div class="event-detail-box">
 
-    <button
-      type="button"
-      class="close-btn"
-      @click="emit('close')"
-    >
+    <button type="button" class="close-btn" @click="emit('close')">
       X
     </button>
 
@@ -184,83 +181,49 @@ const displayTime = computed(() => {
             </p>
 
             <div class="categories-row">
-              <CategoryPill
-                v-for="(cat, index) in event.tags"
-                :key="index"
-                :category="cat"
-              />
+              <CategoryPill v-for="(cat, index) in event.tags" :key="index" :category="cat" />
             </div>
           </div>
 
         </div>
 
-        <!-- NOTES -->
-        <div class="bottom-notes-section">
-          <BaseInput
-            type="textarea"
-            label="My Notes"
-            v-model="noteText"
-            placeholder="Type your notes here..."
-            class="notes-input-flex"
-          />
-        </div>
-
-        <!-- LEFT ACTIONS -->
-        <div class="left-actions">
-          <BaseButton
-            class="action-pill-btn theme-dark-grey"
-            @click="handleSave"
-          >
-            SAVE NOTE
-          </BaseButton>
-
-          <button
-            type="button"
-            class="clear-link"
-            @click="handleClear"
-          >
-            clear note
-          </button>
-        </div>
-
-        <!-- REMINDER -->
-        <template v-if="hasUpcomingSession">
-          <div class="bottom-notes-section">
-            <BaseInput
-              v-if="!reminder"
-              type="select"
-              label="Remind Me"
-              v-model="reminderMinutes"
-              :options="REMINDER_OPTIONS"
-            />
-            <template v-else>
-              <p class="reminder-label">Remind Me</p>
-              <p class="reminder-text">Reminder set: {{ reminderLabel }}</p>
-            </template>
-          </div>
-
-          <div class="left-actions">
-            <BaseButton
-              v-if="!reminder"
-              class="action-pill-btn theme-dark-grey"
-              :disabled="savingReminder"
-              @click="setReminder"
+        <!-- 2-COLUMN LAYOUT FOR NOTES & REMINDER -->
+        <div class="dual-columns-section" :class="{ 'single-column': !showReminderSection }">
+          <!-- COLUMN 1: MY NOTES -->
+          <div class="column-box">
+            <BaseInput type="textarea" label="My Notes" v-model="noteText" placeholder="Type your notes here..."
+              class="notes-input-flex" />
+            
+            <button 
+              v-if="noteText" 
+              type="button" 
+              class="internal-clear-btn" 
+              @click="handleClear"
+              title="Clear note"
             >
-              SET REMINDER
-            </BaseButton>
-
-            <button
-              v-else
-              type="button"
-              class="clear-link"
-              @click="removeReminder"
-            >
-              remove reminder
+              ✕
             </button>
           </div>
 
-          <p v-if="reminderError" class="reminder-error" role="alert">{{ reminderError }}</p>
-        </template>
+          <!-- COLUMN 2: REMINDER -->
+          <div class="column-box" v-if="showReminderSection">
+            <BaseInput type="select" label="Reminder" v-model="selectedReminderValue" :options="extendedReminderOptions"
+              @update:modelValue="handleReminderChange" />
+            <p v-if="reminderError" class="reminder-error" role="alert">{{ reminderError }}</p>
+          </div>
+        </div>
+
+        <!-- BOTTOM ACTIONS FOR NOTES -->
+        <div class="left-actions">
+          <BaseButton class="action-pill-btn theme-dark-grey" @click="handleSave">
+            SAVE
+          </BaseButton>
+          <transition name="fade">
+            <span v-if="isSaved" class="saved-notification">
+              note saved.
+            </span>
+          </transition>
+        </div>
 
       </div>
 
@@ -270,24 +233,13 @@ const displayTime = computed(() => {
         <div class="poster-actions">
 
           <div class="poster-container">
-            <img
-              v-if="event.image && !imageFailed"
-              :src="imageSrc"
-              :alt="event.title"
-              class="poster-img"
-              @error="imageFailed = true"
-            />
+            <img v-if="event.image && !imageFailed" :src="imageSrc" :alt="event.title" class="poster-img"
+              @error="imageFailed = true" />
 
-            <div
-              v-else
-              class="poster-placeholder"
-            ></div>
+            <div v-else class="poster-placeholder"></div>
           </div>
 
-          <BaseButton
-            class="action-pill-btn btn-blue registration-btn"
-            @click="handleRegister"
-          >
+          <BaseButton class="action-pill-btn btn-blue registration-btn" @click="handleRegister">
             REGISTRATION LINK
           </BaseButton>
 
@@ -317,6 +269,7 @@ const displayTime = computed(() => {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  margin: 15px 0;
 }
 
 /* CLOSE BUTTON */
@@ -341,21 +294,26 @@ const displayTime = computed(() => {
   align-items: start;
 
   flex: 1;
+  height: 100%;
   min-height: 0;
   min-width: 0;
+  overflow: hidden;
 }
+
 /* LEFT CONTENT */
 .detail-left {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  gap: 8px;
+  justify-content: flex-start; 
+  gap: 8px;                   
   margin: 10px;
+  padding-right: 4px;          
 
+  height: 100%;                
   min-height: 0;
   min-width: 0;
   overflow-x: hidden;
-  overflow-y: auto;   /* short screens: the reminder dropdown still fits */
+  overflow-y: auto !important;
 }
 
 .top-info-block {
@@ -366,6 +324,7 @@ const displayTime = computed(() => {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
+  padding-bottom: 10px;
 }
 
 .event-title {
@@ -406,55 +365,97 @@ const displayTime = computed(() => {
   gap: 8px;
 }
 
-/* NOTES */
-.bottom-notes-section {
-  display: flex;
-  flex-direction: column;
+/* 2 COLUMNS SECTION (NOTES & REMINDER) */
+.dual-columns-section {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 15px;
+  width: 100%;
   flex-shrink: 0;
-  margin-top: 0;
+  align-items: stretch;
 }
 
-.notes-input-flex {
+.dual-columns-section.single-column {
+  grid-template-columns: 1fr !important;
+}
+
+.column-box {
+  position: relative;
   display: flex;
   flex-direction: column;
+  min-width: 0;
+}
+
+.internal-clear-btn {
+  position: absolute;
+  top: 30px;
+  right: 12px;
+  background: rgba(0, 0, 0, 0.08);
+  border: none;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 5;
+  padding: 4px 0 0 0;
+  margin-top: 4px;
+}
+
+.internal-clear-btn:hover {
+  background: rgba(0, 0, 0, 0.18);
+  color: #0b1a2d;
+}
+
+.column-box :deep(.dropdown-options-menu),
+.column-box :deep(.base-select-dropdown) {
+  position: absolute !important;
+  bottom: 100% !important;
+  top: auto !important;
+  margin-bottom: 6px !important;
+  margin-top: 0 !important;
+  z-index: 99 !important;
+}
+
+.notes-input-flex,
+.column-box :deep(.base-input-container),
+.column-box :deep(select),
+.column-box :deep(.dropdown-trigger) {
+  height: 100% !important;
+  min-height: 42px !important;
+  box-sizing: border-box;
 }
 
 .notes-input-flex :deep(textarea) {
-  flex: unset !important;
-  height: auto !important;
-  min-height: 40px !important;
-  max-height: 105px !important;
+  flex: 1 !important;
+  height: 100% !important;
+  min-height: 42px !important;
+  max-height: 80px !important;
   resize: none !important;
-}
-
-/* LEFT ACTIONS */
-.left-actions {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  gap: 8px;
-  flex-shrink: 0;
-  margin-top: 0;
-}
-
-.reminder-label {
-  margin: 0 0 4px;
-  color: #1e293b;
-  font-size: 11px;
-}
-
-.reminder-text {
-  margin: 0;
-  color: #1e293b;
-  font-size: 12px;
+  box-sizing: border-box;
 }
 
 .reminder-error {
   width: 100%;
-  margin: 0;
+  margin: 4px 0 0 0;
   color: var(--color-dark-red);
   font-size: 11px;
+}
+
+/* LEFT ACTIONS (SAVE & CLEAR) */
+.left-actions {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  width: 100%;
+  flex-shrink: 0;
+  margin-bottom: 20px;
 }
 
 .clear-link {
@@ -469,15 +470,32 @@ const displayTime = computed(() => {
   white-space: nowrap;
 }
 
+.saved-notification {
+  font-family: 'TextFont', sans-serif;
+  font-size: 11.5px;
+  font-weight: 800;
+  color: var(--color-dark-green);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  text-align: end;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
 /* RIGHT CONTENT */
 .detail-right {
   display: flex;
-  align-items: flex-start; 
+  align-items: flex-start;
   justify-content: center;
-  padding-top: 10px; 
-  padding-right: 10px;
-  padding-bottom: 10px;
-  padding-left: 0;
+  padding: 10px 10px 10px 0;
   box-sizing: border-box;
 
   height: 100%;
@@ -486,37 +504,6 @@ const displayTime = computed(() => {
   overflow: hidden;
 }
 
-/* POSTER + REGISTRATION BUTTON */
-/* MAIN CONTENT GRID */
-.detail-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 16px;
-  align-items: start; 
-
-  flex: 1;
-  min-height: 0;
-  min-width: 0;
-}
-
-/* RIGHT CONTENT */
-.detail-right {
-  display: flex;
-  align-items: flex-start; 
-  justify-content: center;
-  padding-top: 10px; 
-  padding-right: 10px;
-  padding-bottom: 10px;
-  padding-left: 0;
-  box-sizing: border-box;
-
-  height: 100%;
-  min-height: 0;
-  min-width: 0;
-  overflow: hidden;
-}
-
-/* POSTER + REGISTRATION BUTTON */
 .poster-actions {
   display: flex;
   flex-direction: column;
@@ -524,14 +511,13 @@ const displayTime = computed(() => {
   gap: 8px;
 
   height: 100%;
-  max-height: 100%; 
+  max-height: 100%;
   width: fit-content;
   max-width: 100%;
   min-height: 0;
-  justify-content: flex-start; 
+  justify-content: flex-start;
 }
 
-/* A4 POSTER */
 .poster-container {
   height: calc(100% - 43px);
   width: auto;
@@ -558,7 +544,6 @@ const displayTime = computed(() => {
   background-color: var(--color-grey, #e2e8f0);
 }
 
-/* REGISTRATION BUTTON */
 .registration-btn {
   width: 100%;
   flex-shrink: 0;
@@ -569,14 +554,13 @@ const displayTime = computed(() => {
   box-sizing: border-box;
 }
 
-/* BUTTON COLOR */
 .registration-btn :deep(.btn-custom),
 .registration-btn {
   background-color: var(--color-blue) !important;
   color: var(--color-white) !important;
 }
 
-/* MOBILE */
+/* MOBILE RESPONSIVE */
 @media (max-width: 639.98px) {
   .event-detail-box {
     height: 100%;
@@ -589,6 +573,12 @@ const displayTime = computed(() => {
     flex-direction: column;
     flex: none;
     gap: 16px;
+
+    flex: 1;
+    height: 100%;
+    min-height: 0;
+    min-width: 0;
+    overflow: hidden;
   }
 
   .detail-right {
@@ -616,16 +606,8 @@ const displayTime = computed(() => {
     overflow: visible;
   }
 
-  .top-info-block {
-    overflow: visible;
-  }
-
-  .bottom-notes-section {
-    flex-shrink: 0;
-  }
-
-  .left-actions {
-    width: 100%;
+  .dual-columns-section {
+    grid-template-columns: 1fr;
   }
 }
 </style>

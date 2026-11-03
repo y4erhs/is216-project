@@ -32,46 +32,52 @@
 
     <p class="sr" aria-live="polite">{{ rows.length }} lobbies shown</p>
 
-    <!-- Lobby cards -->
-    <ul v-if="rows.length" class="grid">
-      <li v-for="l in rows" :key="l.id">
-        <button class="lobby" type="button" @click="$emit('open', l.id)">
-          <span class="top">
-            <span class="name">{{ l.name }}</span>
-            <span class="badge-pill" :class="roleClass(l)">{{ roleLabel(l) }}</span>
-          </span>
-
-          <span v-if="store.needsReply(l)" class="badge-pill badge-reply">Reply needed. {{ store.hostName(l) }} invited
-            you.</span>
-
-          <span class="events">
-            <span v-for="line in eventLines(l)" :key="line" class="event-line">{{ line }}</span>
-          </span>
-
-          <span class="desc">{{ l.description || 'No description.' }}</span>
-
-          <span class="foot">
-            <span class="stack" aria-hidden="true">
-              <i v-for="m in l.members.slice(0, 4)" :key="m.id" :style="{ background: m.color || 'var(--color-white)' }">{{
-                initials(m.name) }}<AvatarPic :path="m.avatar" /></i>
+    <!-- Scrollable Content Area -->
+    <div class="content-scroll-area">
+      <!-- Lobby cards -->
+      <ul v-if="rows.length" class="grid">
+        <li v-for="l in rows" :key="l.id">
+          <button class="lobby" type="button" @click="$emit('open', l.id)">
+            <span class="lobby-info">
+              <span class="top">
+                <span class="name">{{ l.name }}</span>
+                <span class="badge-pill" :class="roleClass(l)">{{ roleLabel(l) }}</span>
+              </span>
+              <span v-if="store.needsReply(l)" class="badge-pill badge-reply">Reply needed. {{ store.hostName(l) }}
+                invited
+                you.</span>
+              <span class="events">
+                <span v-for="line in eventLines(l)" :key="line" class="event-line">{{ line }}</span>
+              </span>
+              <span class="desc">{{ l.description || 'No description.' }}</span>
             </span>
-            <span class="meta">{{ metaText(l) }}</span>
-            <span v-if="store.isInactive(l) && store.isHost(l)" class="badge-pill badge-warn">Inactive</span>
-          </span>
-        </button>
-      </li>
-    </ul>
 
-    <!-- Empty states -->
-    <div v-else-if="!lobbies.length" class="empty">
-      <h3>You're not in any lobbies yet</h3>
-      <p>Create one to plan events with your friends, or wait for an invite.</p>
-      <BaseButton class="theme-green" @click="$emit('create')">+ Create lobby</BaseButton>
-    </div>
-    <div v-else class="empty">
-      <h3>No lobbies match</h3>
-      <p>Try a different search or clear the filters.</p>
-      <BaseButton variant="outline-main" @click="clear">Clear filters</BaseButton>
+            <span class="foot">
+              <span class="stack" aria-hidden="true">
+                <i v-for="m in l.members.slice(0, 4)" :key="m.id"
+                  :style="{ background: m.color || 'var(--color-white)' }">{{
+                    initials(m.name) }}
+                  <AvatarPic :path="m.avatar" />
+                </i>
+              </span>
+              <span class="meta">{{ metaText(l) }}</span>
+              <span v-if="store.isInactive(l) && store.isHost(l)" class="badge-pill badge-warn">Inactive</span>
+            </span>
+          </button>
+        </li>
+      </ul>
+
+      <!-- Empty states -->
+      <div v-else-if="!lobbies.length" class="empty">
+        <h3>You're not in any lobbies yet</h3>
+        <p>Create one to plan events with your friends, or wait for an invite.</p>
+        <BaseButton class="theme-green" @click="$emit('create')">+ Create lobby</BaseButton>
+      </div>
+      <div v-else class="empty">
+        <h3>No lobbies match</h3>
+        <p>Try a different search or clear the filters.</p>
+        <BaseButton variant="outline-main" @click="clear">Clear filters</BaseButton>
+      </div>
     </div>
   </div>
 </template>
@@ -96,13 +102,6 @@ const eventFilter = ref('all')
 const eventTitle = (id) => events.find((e) => e.id === id)?.title ?? 'Event'
 const initials = (name) => name.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase()
 
-/* options for the BaseInput dropdown */
-// const eventOptions = computed(() => [
-//   { label: 'All events', value: 'all' },
-//   ...events.map((e) => ({ label: e.title, value: e.id })),
-//   { label: 'No event yet', value: 'none' },
-// ])
-
 const eventOptions = computed(() => {
   const ids = new Set(
     lobbies.flatMap((l) => [...l.history.map((h) => h.eventId), l.pitchedEventId]).filter(Boolean)
@@ -114,7 +113,6 @@ const eventOptions = computed(() => {
   ]
 })
 
-/* card pill: Pending (invite waiting for you) / Host / Member, same colours as the filters */
 const roleLabel = (l) => (store.needsReply(l) ? 'Needs Reply' : store.isHost(l) ? 'Host' : 'Member')
 const roleClass = (l) => (store.needsReply(l) ? 'pill-pending' : store.isHost(l) ? 'pill-host' : 'pill-member')
 
@@ -123,7 +121,6 @@ function metaText(l) {
   return store.isHost(l) ? `${n}, active ${timeAgo(l.lastActiveAt)}` : n
 }
 
-/* plain text event lines, like the design */
 function eventLines(l) {
   const lines = []
   if (l.pitchedEventId && !l.registered) lines.push(`Pitched: ${eventTitle(l.pitchedEventId)}`)
@@ -158,7 +155,6 @@ function matches(l) {
   return hay.includes(term)
 }
 
-/* invites you still need to answer first, then most recently active */
 const rows = computed(() =>
   lobbies
     .filter(matches)
@@ -174,18 +170,21 @@ function clear() {
 </script>
 
 <style scoped>
-/* Design-system rules: outer boxes 25px, inner boxes 15px, 15px padding, title 25px, text 11px. */
 .app {
   position: relative;
+  width: 100%;
+  max-width: 1450px;
+  height: 100vh;
   max-height: 100vh;
-  max-height: 100dvh;
-  overflow-y: auto;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   text-align: left;
   font-family: 'TextFont', sans-serif;
   font-size: 11px;
   box-sizing: border-box;
 }
-
 
 .app *,
 .app *::before,
@@ -214,12 +213,10 @@ function clear() {
 
 /* ── Pinned header ── */
 .sticky {
-  position: sticky;
-  top: 0;
-  z-index: 10;
+  flex-shrink: 0;
   display: grid;
   gap: 15px;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
 }
 
 .heading {
@@ -235,38 +232,17 @@ function clear() {
   padding-left: 8px;
   color: #fff;
   font: 400 25px/1.1 'HeaderFont', sans-serif;
-  letter-spacing: 0.02em;
   text-transform: uppercase;
 }
 
-/* ── Buttons ── */
-.btn {
-  --nudge: 2px;
-  padding: calc(14px + var(--nudge)) 28px calc(14px - var(--nudge));
-  border: 0;
-  border-radius: 999px;
-  cursor: pointer;
-  font: 700 11px/1 'TextFont', sans-serif;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  background-color: var(--color-dark-blue);
-  color: #fff;
-  transition: transform 0.15s;
-}
-
-.btn:hover {
-  transform: translateY(-1px);
-}
-
-.btn-lime {
-  background-color: var(--color-green);
-  color: var(--color-black);
-}
-
-.btn-ghost {
-  background: transparent;
-  color: var(--color-black);
-  box-shadow: inset 0 0 0 2px var(--color-black);
+/* ── Scrollable Area for Cards ── */
+.content-scroll-area {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 4px;
+  /* Sedikit spasi buat scrollbar */
 }
 
 /* ── Search, filter pills, event dropdown ── */
@@ -324,7 +300,6 @@ function clear() {
   background-color: var(--color-grey);
   color: #566080;
   font: 700 11px/1 'TextFont', sans-serif;
-  letter-spacing: 0.1em;
   text-transform: uppercase;
   transition: background 0.15s, color 0.15s;
 }
@@ -342,7 +317,6 @@ function clear() {
   font-weight: 700;
 }
 
-/* active: each filter has its own colour, matching the card pills */
 .chip.on {
   color: var(--color-white);
 }
@@ -385,7 +359,6 @@ function clear() {
   background-color: var(--color-orange);
 }
 
-/* the BaseInput dropdown, restyled to match the toolbar */
 .event-select {
   flex: 0 0 190px;
 }
@@ -399,7 +372,6 @@ function clear() {
 
 .toolbar .event-select :deep(.dropdown-trigger) {
   text-transform: uppercase;
-  letter-spacing: 0.1em;
   font-weight: 700;
 }
 
@@ -411,14 +383,12 @@ function clear() {
   margin-top: 6px;
   z-index: 30;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
 }
 
 .toolbar .event-select :deep(.dropdown-option-item) {
   font-size: 11px;
 }
 
-/* ── Pills (one style for every badge) ── */
 .badge-pill {
   display: inline-block;
   height: 22px;
@@ -427,7 +397,6 @@ function clear() {
   padding: 5px 12px 8px 12px;
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.08em;
   text-transform: uppercase;
   white-space: nowrap;
 }
@@ -453,7 +422,6 @@ function clear() {
   background-color: var(--color-purple);
   color: #fff;
   white-space: normal;
-  letter-spacing: 0.04em;
   text-transform: none;
 }
 
@@ -462,10 +430,10 @@ function clear() {
   color: #fff;
 }
 
-/* ── Cards ── */
+/* ── Cards Grid ── */
 .grid {
   list-style: none;
-  margin: 0;
+  margin: 0 0 20px 0;
   padding: 0;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -490,6 +458,11 @@ function clear() {
   transition: transform 0.15s;
 }
 
+.lobby-info {
+  margin: 10px;
+  margin-bottom: 0;
+}
+
 .lobby:hover {
   transform: translateY(-2px);
 }
@@ -500,11 +473,11 @@ function clear() {
   justify-content: space-between;
   gap: 8px;
   width: 100%;
+  margin-bottom: 10px;
 }
 
 .name {
   font: 400 20px/1.1 'HeaderFont', sans-serif;
-  letter-spacing: 0.03em;
   text-transform: uppercase;
   overflow-wrap: anywhere;
 }
@@ -516,7 +489,7 @@ function clear() {
 
 .event-line {
   font-size: 13px;
-  letter-spacing: 0.04em;
+  margin-bottom: 10px;
 }
 
 .desc {
@@ -559,6 +532,7 @@ function clear() {
   font-style: normal;
   font-weight: 700;
   font-size: 11px;
+  padding-top: 4px;
 }
 
 .stack i:first-child {
@@ -567,7 +541,6 @@ function clear() {
 
 .meta {
   flex: 1;
-  letter-spacing: 0.04em;
 }
 
 .empty {
@@ -591,6 +564,7 @@ function clear() {
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .btn,
   .lobby,
   .chip {
