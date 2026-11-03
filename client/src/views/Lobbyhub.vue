@@ -10,9 +10,9 @@
   <MyLobbies v-else-if="!currentId"
              @open="open" @create="creating = true" @open-calendar="$emit('open-calendar')" />
 
-  <Lobby v-else-if="current && store.isHost(current)" :key="current.id" :lobby-id="current.id"
-         @back="toList" @deleted="toList" />
-
+  <Lobby v-else-if="current && (store.isHost(current) || store.myStatus(current) === 'accepted')"
+       :key="current.id" :lobby-id="current.id" @back="toList" @deleted="toList" />
+       
   <div v-else-if="current" class="member-page theme-blue">
     <button class="btn btn-light" type="button" @click="toList">← My lobbies</button>
     <div class="member-wrap">

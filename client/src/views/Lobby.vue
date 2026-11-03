@@ -29,16 +29,20 @@
           <h2 class="page-title">{{ lobby.name }}</h2>
           <p class="lobby-desc">{{ lobby.description || 'No description yet.' }}</p>
           <p class="lobby-meta">
-            Hosted by you. Active {{ timeAgo(lobby.lastActiveAt) }}.
-            <span v-if="inactive" class="badge-pill pill-warn">Inactive</span>
+            {{ isHost ? 'Hosted by you.' : `Hosted by ${hostName}.` }} Active {{ timeAgo(lobby.lastActiveAt) }}.
+            <span v-if="inactive && isHost" class="badge-pill pill-warn">Inactive</span>
           </p>
         </template>
       </div>
 
-      <div v-if="!editing" class="head-actions">
+      <div v-if="isHost && !editing" class="head-actions">
         <BaseButton class="theme-green head-btn" type="button" aria-label="Edit lobby details" @click="startEdit">Edit</BaseButton>
         <BaseButton class="theme-orange head-btn" type="button" aria-label="Delete lobby"
           @click="confirmingDelete = true">Delete</BaseButton>
+      </div>
+      <div v-if="!isHost && !registered" class="head-actions">
+          <BaseButton class="theme-orange head-btn" type="button" aria-label="Leave lobby"
+            @click="confirmingLeave = true">Leave lobby</BaseButton>
       </div>
     </header>
 
@@ -81,7 +85,7 @@
 
               <div class="scroll">
                 <TransitionGroup name="roster" tag="ul" class="people" aria-live="polite">
-                  <li v-for="m in members" :key="m.id" class="person"
+                  <li v-for="m in uniqueMembers" :key="m.id" class="person"
                     :class="{ flash: flashIds.has(m.id), asking: removingId === m.id }">
                     <template v-if="removingId === m.id">
                       <span class="who">Remove {{ m.name.split(' ')[0] }}?</span>
@@ -98,7 +102,7 @@
                       <span v-if="m.id === lobby.hostId" class="badge-pill pill-host">Host</span>
                       <span v-else class="badge-pill" :class="`pill-${m.status}`">{{ statusLabel[m.status] }}</span>
 
-                      <button v-if="m.id !== lobby.hostId && !registered" class="remove-x" type="button"
+                      <button v-if="isHost && m.id !== lobby.hostId && !registered" class="remove-x" type="button"
                         :aria-label="`Remove ${m.name}`" :title="`Remove ${m.name}`"
                         @click="removingId = m.id"><span class="x-text">X</span></button>
                     </template>
@@ -110,7 +114,7 @@
         </template>
 
         <template #register>
-          <div class="pane" :class="{ 'pane-fill': !registered }">
+          <div class="pane" :class="{ 'pane-fill': isHost && !registered }">
             <template v-if="registered">
               <section>
                 <h3 class="section-title">Group registered</h3>
@@ -120,13 +124,25 @@
                   <li v-for="n in lastRegNames" :key="n">{{ n }}</li>
                 </ul>
               </section>
-              <section>
+              <section v-if="isHost">
                 <h3 class="section-title">Same group, another event?</h3>
                 <p class="section-sub">Keep this lobby and pick a new event. Everyone will be asked to confirm again.
                 </p>
                 <BaseButton class="theme-green" type="button" @click="planAnother">Plan another event</BaseButton>
               </section>
             </template>
+
+            <section v-else-if="!isHost">
+              <h3 class="section-title">Pitched event</h3>
+              <div v-if="selectedEvent" class="event-body">
+                <strong>{{ selectedEvent.title }}</strong>
+                <span>{{ selectedEvent.date }}</span>
+                <span>{{ selectedEvent.venue }}</span>
+                <span class="event-meta">{{ selectedEvent.limitsText }}</span>
+              </div>
+              <p v-else class="section-sub">{{ hostName }} hasn't picked an event yet.</p>
+              <p class="section-sub">{{ hostName }} registers the group once enough people have accepted.</p>
+            </section>
 
             <section v-else class="fill">
               <h3 class="section-title">Pitch an event</h3>
@@ -179,7 +195,7 @@
         </template>
       </FolderTabs>
 
-      <div v-if="tab === 'register' && !registered" class="register-bar">
+      <div v-if="tab === 'register' && !registered && isHost" class="register-bar">
         <div class="progress" v-if="selectedEvent">
           <div class="meter" role="progressbar" :aria-valuenow="acceptedMembers.length" aria-valuemin="0"
             :aria-valuemax="selectedEvent.minGroup">
@@ -243,7 +259,7 @@
 
         <div v-else class="ev-empty">
           <p>No events yet. Pitch one to your group.</p>
-          <BaseButton class="theme-green" @click="goTo('register')">Choose event</BaseButton>
+          <BaseButton v-if="isHost" class="theme-green" @click="goTo('register')">Choose event</BaseButton>
         </div>
       </div>
     </aside>
@@ -279,6 +295,20 @@
         </div>
       </div>
     </Transition>
+
+    <Transition name="fade">
+      <div v-if="confirmingLeave" class="overlay" role="alertdialog" aria-modal="true" aria-labelledby="leave-title"
+          @click.self="confirmingLeave = false">
+        <div class="dialog">
+          <h3 id="leave-title" class="dialog-title">Leave "{{ lobby.name }}"?</h3>
+          <p>You'll be marked as declined and won't be signed up for events. {{ hostName }} can invite you again.</p>
+          <div class="dialog-actions">
+            <BaseButton class="btn-ghost" type="button" @click="confirmingLeave = false">Stay</BaseButton>
+            <BaseButton class="theme-red" type="button" @click="leaveLobby">Leave lobby</BaseButton>
+          </div>
+        </div>
+      </div>
+    </Transition>
   </div>
 </template>
 
@@ -303,19 +333,29 @@ const { userId } = useAuth()
 const friends = computed(() => store.friends)
 const events = computed(() => store.events)
 const lobby = computed(() => store.get(props.lobbyId))
+const isHost = computed(() => !!lobby.value && store.isHost(lobby.value))
 const members = computed(() => lobby.value?.members ?? [])
+// Deduplicate members by ID
+const uniqueMembers = computed(() => {
+  const map = new Map()
+  lobby.value?.members?.forEach(m => {
+    map.set(m.id, m)
+  })
+  return Array.from(map.values())
+})
 const registered = computed(() => !!lobby.value?.registered)
 const hostName = computed(() => (lobby.value ? store.hostName(lobby.value) : ''))
 const daysIdle = computed(() => (lobby.value ? daysAgo(lobby.value.lastActiveAt) : 0))
 const inactive = computed(() => daysIdle.value >= INACTIVE_DAYS)
 
-const tabs = [
+const allTabs = [
   { id: 'invite', label: 'INVITE', theme: 'theme-green' },
   { id: 'roster', label: 'ROSTER', theme: 'theme-orange' },
   { id: 'register', label: 'REGISTER', theme: 'theme-purple' },
   { id: 'calendar', label: 'SHARED CALENDAR', theme: 'theme-yellow' },
 ]
-const tab = ref('invite')
+const tabs = computed(() => (isHost.value ? allTabs : allTabs.filter((t) => t.id !== 'invite')))
+const tab = ref(isHost.value ? 'invite' : 'roster')
 const selectedDay = ref(null)
 const selectedDayLabel = computed(() => selectedDay.value &&
   new Date(`${selectedDay.value.date}T00:00`).toLocaleDateString('en-SG', { weekday: 'long', day: 'numeric', month: 'long' }))
@@ -344,17 +384,26 @@ function startEdit() {
   draft.description = lobby.value.description
   editing.value = true
 }
+
 function saveEdit() {
   if (!draft.name.trim()) return
   store.updateLobby(lobby.value.id, draft)
   editing.value = false
 }
+
 const confirmingDelete = ref(false)
 function deleteLobby() {
   const id = lobby.value.id
   confirmingDelete.value = false
   store.deleteLobby(id)
   emit('deleted', id)
+}
+
+const confirmingLeave = ref(false)
+async function leaveLobby() {
+  confirmingLeave.value = false
+  await store.setStatus(props.lobbyId, store.meId(), 'declined')
+  emit('back')
 }
 
 const inviteLink = computed(() => `${window.location.origin}/lobby/${props.lobbyId}`)
@@ -501,6 +550,7 @@ function onEsc(e) {
   if (e.key !== 'Escape') return
   viewingId.value = null
   confirmingDelete.value = false
+  confirmingLeave.value = false
 }
 
 onMounted(async () => {
@@ -716,7 +766,17 @@ button.badge-pill:disabled {
 
 .edit-actions {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   gap: 8px;
+}
+
+.edit-actions > * {
+  flex: none;
+  width: auto !important;
+  min-width: 96px;
+  height: 36px;
+  white-space: nowrap;
 }
 
 .stage {

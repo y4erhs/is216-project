@@ -93,7 +93,7 @@
 <script setup>
 import AvatarPic from '../components/AvatarPic.vue'
 defineProps({
-  /** optional: shown at the top so people know which lobby this is */
+  /* Shown at the top so people know which lobby this is */
   lobbyName: { type: String, default: '' },
   description: { type: String, default: '' },
   hostName: { type: String, default: 'Your friend' },
