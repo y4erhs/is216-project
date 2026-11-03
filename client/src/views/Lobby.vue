@@ -411,9 +411,14 @@ function deleteLobby() {
 }
 
 const confirmingLeave = ref(false)
+
 async function leaveLobby() {
   confirmingLeave.value = false
-  await store.setStatus(props.lobbyId, store.meId(), 'declined')
+  try {
+    await store.removeMember(props.lobbyId, store.meId())
+  } catch (err) {
+    console.error("Failed to leave lobby:", err)
+  }
   emit('back')
 }
 
