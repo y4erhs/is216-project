@@ -142,19 +142,20 @@ onBeforeUnmount(() => {
 .base-input-group {
   width: 100%;
 
-  /* default look (no theme class) */
+  /* default & base look for the input field */
   --field-bg: var(--color-grey);
   --field-text: var(--color-black);
   --field-hover: #c5d2e7;
   --field-focus-bg: #ffffff;
   --field-focus-border: #4b74f6;
   --field-focus-ring: rgba(75, 116, 246, 0.15);
+
   --menu-bg: var(--color-white);
   --menu-border: var(--color-grey);
-  --menu-hover: var(--color-grey);
+  --menu-hover: #f1f5f9;
+  --menu-text: var(--color-black);
 }
 
-/* themed look: <BaseInput class="theme-orange" /> picks up --bg / --text from theme.css */
 .base-input-group[class*="theme-"] {
   --field-bg: var(--bg);
   --field-text: var(--text);
@@ -162,9 +163,6 @@ onBeforeUnmount(() => {
   --field-focus-bg: var(--bg);
   --field-focus-border: var(--text);
   --field-focus-ring: color-mix(in srgb, var(--text) 20%, transparent);
-  --menu-bg: var(--bg);
-  --menu-border: color-mix(in srgb, var(--text) 35%, transparent);
-  --menu-hover: color-mix(in srgb, var(--bg) 88%, black);
 }
 
 .input-label {
@@ -269,7 +267,7 @@ onBeforeUnmount(() => {
   padding: 5px 12px;
   padding-top: 8px;
   border-radius: 10px;
-  color: var(--field-text);
+  color: var(--menu-text);
   font-size: 13px;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -281,7 +279,7 @@ onBeforeUnmount(() => {
 
 .dropdown-option-item.is-active {
   background-color: var(--menu-hover);
-  color: var(--field-text);
+  color: var(--menu-text);
 }
 
 .is-disabled {
