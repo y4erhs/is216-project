@@ -140,6 +140,7 @@
 
             <section v-else-if="!isHost">
               <h3 class="section-title">Pitched event</h3>
+              <br>
               <div v-if="selectedEvent" class="event-body">
                 <strong>{{ selectedEvent.title }}</strong>
                 <span>{{ selectedEvent.date }}</span>
@@ -147,6 +148,7 @@
                 <span class="event-meta">{{ selectedEvent.limitsText }}</span>
               </div>
               <p v-else class="section-sub">{{ hostName }} hasn't picked an event yet.</p>
+              <br>
               <p class="section-sub">{{ hostName }} registers the group once enough people have accepted.</p>
             </section>
 
@@ -851,6 +853,7 @@ button.badge-pill:disabled {
 .pane {
   display: grid;
   gap: 20px;
+  padding-top: 15px;
 }
 
 .section-wrapper {
@@ -1067,15 +1070,33 @@ button.badge-pill:disabled {
 }
 
 .event-body {
-  display: grid;
-  justify-items: start;
-  gap: 3px;
-  height: 100%;
-  padding: 15px;
-  border-radius: 15px;
-  border: 3px solid transparent;
+  display: flex;
+  flex-direction: column;
+  gap: 10px; /* Spacing between title, date, venue, limits */
+  padding: 16px;
   background-color: var(--color-white);
+  border-radius: 15px;
   color: var(--color-black);
+}
+
+.event-title {
+  font-size: 16px;
+  font-family: 'HeaderFont', sans-serif;
+  text-transform: uppercase;
+  margin-bottom: 4px; /* Extra separation below title */
+}
+
+.event-date,
+.event-venue,
+.event-meta {
+  font-size: 11px;
+  line-height: 1.3;
+}
+
+.event-body strong {
+  font-size: 15px;
+  font-family: 'HeaderFont', sans-serif;
+  text-transform: uppercase;
 }
 
 .event-body>* {
