@@ -39,6 +39,9 @@ router.get('/:id/preferences', userController.getPreferences);
 // UPDATE
 router.put('/:id', userController.updateUser);
 
+// update profile picture and banner
+router.put('/:id/images', userController.updateImages)
+
 // DELETE
 router.delete('/:id', userController.deleteUser);
 

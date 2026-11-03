@@ -389,3 +389,27 @@ exports.checkEmail = async (req, res) => {
     return res.status(500).json({ message: 'Server error while checking email' });
   }
 };
+
+// update profile picture or banner
+
+exports.updateImages = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const updateData = {};
+
+        if (req.files?.profileImage) {
+            updateData.avatar = req.files.profileImage[0].path; // or filename/url
+        }
+
+        // If multer processed a new banner image
+        if (req.files?.bannerImage) {
+            updateData.banner = req.files.bannerImage[0].path;
+        }
+
+        const updatedUser = await User.findByIdAndUpdate(userId, updateData, { new: true });
+        return res.status(200).json({ message: 'Images updated successfully', user: updatedUser });
+  } catch (error) {
+        console.log("Error updating image: ", error);
+        return res.status(500).json({ message: 'Server error updating profile images' });
+    }
+};
