@@ -47,19 +47,6 @@
         <template #invite>
           <div class="pane">
             <section>
-<<<<<<< HEAD
-              <h3 class="section-title">Invite link</h3>
-              <p class="section-sub">Anyone with the link can join the lobby.</p>
-              <div class="link-box">
-                <input class="link-input" readonly :value="inviteLink" aria-label="Invite link"
-                  @focus="$event.target.select()" />
-                <BaseButton class="theme-purple" type="button" @click="copyLink">{{ copied ? 'Copied' : 'Copy' }}</BaseButton>
-              </div>
-            </section>
-
-            <section>
-=======
->>>>>>> 6cb8309a2533c74021678adf99bd55c6ab8a7bb7
               <h3 class="section-title">Invite friends</h3>
               <p v-if="!friends.length" class="section-sub">
                 No friends yet. <RouterLink to="/friends" style="color:#fff">Add some</RouterLink>
@@ -144,13 +131,33 @@
             <section v-else class="fill">
               <h3 class="section-title">Pitch an event</h3>
               <p class="section-sub">Friends can still accept or decline while you choose.</p>
-              <p v-if="!events.some((x) => x.upcoming)" class="section-sub">No upcoming events to pitch right now.</p>
+
+              <div class="filter-row" role="group" aria-label="Which events to show">
+                <button type="button" class="pitch-chip" :class="{ on: pitchMode === 'interested' }"
+                        :aria-pressed="pitchMode === 'interested'" @click="pitchPick = 'interested'">
+                  <span v-if="pitchMode === 'interested'" aria-hidden="true">✓</span>
+                  Interested <b>{{ interestedUpcoming.length }}</b>
+                </button>
+                <button type="button" class="pitch-chip" :class="{ on: pitchMode === 'all' }"
+                        :aria-pressed="pitchMode === 'all'" @click="pitchPick = 'all'">
+                  <span v-if="pitchMode === 'all'" aria-hidden="true">✓</span>
+                  All events <b>{{ upcomingEvents.length }}</b>
+                </button>
+              </div>
+
+              <div v-if="!pitchable.length" class="empty-note">
+                <p v-if="pitchMode === 'interested'">
+                  None of your upcoming events are marked as interested. Mark some on the Discover page, or show all events.
+                </p>
+                <p v-else>No upcoming events to pitch right now.</p>
+                <button v-if="pitchMode === 'interested'" class="btn btn-lime btn-small" type="button" @click="pitchPick = 'all'">Show all events</button>
+              </div>
+
               <div v-else class="scroll">
                 <div class="events" role="radiogroup" aria-label="Events">
-                  <label v-for="e in events.filter((x) => x.upcoming)" :key="e.id" class="event"
-                    :class="{ used: usedEventIds.has(e.id) }">
+                  <label v-for="e in pitchable" :key="e.id" class="event" :class="{ used: usedEventIds.has(e.id) }">
                     <input class="sr" type="radio" name="event" :value="e.id" v-model="selectedEventId"
-                      :disabled="usedEventIds.has(e.id)" />
+                          :disabled="usedEventIds.has(e.id)" />
                     <span class="event-body">
                       <strong>{{ e.title }}</strong>
                       <span>{{ e.date }}</span>
@@ -283,6 +290,7 @@ import PlanForm from '../components/PlanForm.vue'
 import BaseButton from '../components/BaseButton.vue'
 import { useAuth } from '../composables/useAuth'
 import { useLobbies, daysAgo, timeAgo, INACTIVE_DAYS } from '../composables/useLobbies'
+import { useActivities } from '../composables/useActivities'
 
 const props = defineProps({
   lobbyId: { type: String, required: true },
@@ -358,6 +366,26 @@ const selectedEventId = computed({
   set: (id) => store.pitchEvent(props.lobbyId, id),
 })
 const selectedEvent = computed(() => events.value.find((e) => e.id === selectedEventId.value) || null)
+/* ---------- which events to offer when pitching ---------- */
+const { activities, loadActivities } = useActivities()
+const actsLoaded = ref(false)
+
+const upcomingEvents = computed(() => events.value.filter((e) => e.upcoming))
+const interestedIds = computed(
+  () => new Set(activities.value.filter((a) => a.interested && a.event).map((a) => String(a.event._id)))
+)
+const interestedUpcoming = computed(() => upcomingEvents.value.filter((e) => interestedIds.value.has(e.id)))
+
+const pitchPick = ref(null)   // null = automatic, until the host presses a button
+const pitchMode = computed(
+  () => pitchPick.value ?? (actsLoaded.value && interestedUpcoming.value.length ? 'interested' : 'all')
+)
+const pitchable = computed(() =>
+  pitchMode.value === 'all'
+    ? upcomingEvents.value
+    // keep the event that's already pitched visible, even if it isn't marked interested
+    : upcomingEvents.value.filter((e) => interestedIds.value.has(e.id) || e.id === selectedEventId.value)
+)
 const acceptedMembers = computed(() => members.value.filter((m) => m.status === 'accepted'))
 const counts = computed(() => ({
   pending: members.value.filter((m) => m.status === 'pending').length,
@@ -473,7 +501,13 @@ function onEsc(e) {
   viewingId.value = null
   confirmingDelete.value = false
 }
-onMounted(() => window.addEventListener('keydown', onEsc))
+
+onMounted(async () => {
+  window.addEventListener('keydown', onEsc)
+  try { await loadActivities() } catch { /* fall back to showing all events */ }
+  actsLoaded.value = true
+})
+
 onBeforeUnmount(() => window.removeEventListener('keydown', onEsc))
 </script>
 
@@ -1313,6 +1347,70 @@ button.badge-pill:disabled {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+}
+
+.filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.filter-row .pitch-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 35px;
+  padding: 3px 8px 0 16px;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  background-color: var(--color-purple);
+  color: var(--color-dark-purple);
+  font: 700 11px/1 'TextFont', sans-serif;
+  text-transform: uppercase;
+  transition: background-color 0.15s, transform 0.15s;
+}
+
+.filter-row .pitch-chip:hover {
+  transform: translateY(-1px);
+}
+
+.filter-row .pitch-chip b {
+  display: grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 2px 4px 0;
+  border-radius: 50%;
+  background-color: var(--color-dark-purple);
+  color: var(--color-white);
+  font-weight: 700;
+}
+
+/* selected: green, same as your accepted pills */
+.filter-row .pitch-chip.on {
+  background-color: var(--color-green);
+  color: var(--color-dark-green);
+}
+
+.filter-row .pitch-chip.on b {
+  background-color: var(--color-dark-green);
+}
+
+.empty-note {
+  display: grid;
+  justify-items: start;
+  gap: 10px;
+  padding: 15px;
+  border-radius: 15px;
+  background-color: var(--color-white);
+  color: var(--color-black);
+}
+
+.empty-note p {
+  margin: 0;
+  line-height: 1.4;
 }
 
 @media (max-width: 1100px) {

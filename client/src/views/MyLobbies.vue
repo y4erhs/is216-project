@@ -96,11 +96,22 @@ const eventTitle = (id) => events.find((e) => e.id === id)?.title ?? 'Event'
 const initials = (name) => name.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase()
 
 /* options for the BaseInput dropdown */
-const eventOptions = computed(() => [
-  { label: 'All events', value: 'all' },
-  ...events.map((e) => ({ label: e.title, value: e.id })),
-  { label: 'No event yet', value: 'none' },
-])
+// const eventOptions = computed(() => [
+//   { label: 'All events', value: 'all' },
+//   ...events.map((e) => ({ label: e.title, value: e.id })),
+//   { label: 'No event yet', value: 'none' },
+// ])
+
+const eventOptions = computed(() => {
+  const ids = new Set(
+    lobbies.flatMap((l) => [...l.history.map((h) => h.eventId), l.pitchedEventId]).filter(Boolean)
+  )
+  return [
+    { label: 'All events', value: 'all' },
+    ...events.filter((e) => ids.has(e.id)).map((e) => ({ label: e.title, value: e.id })),
+    { label: 'No event yet', value: 'none' },
+  ]
+})
 
 /* card pill: Pending (invite waiting for you) / Host / Member, same colours as the filters */
 const roleLabel = (l) => (store.needsReply(l) ? 'Needs Reply' : store.isHost(l) ? 'Host' : 'Member')
