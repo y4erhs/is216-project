@@ -152,7 +152,7 @@ onBeforeUnmount(() => {
 
   --menu-bg: var(--color-white);
   --menu-border: var(--color-grey);
-  --menu-hover: #f1f5f9;
+  --menu-hover: var(--color-grey);
   --menu-text: var(--color-black);
 }
 
