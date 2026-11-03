@@ -46,7 +46,7 @@ async function cancelPlan(plan) {
             channels: ['in_app'],
             status: 'sent',
             sentAt: new Date(),
-            metadata: { planId: plan._id }
+            metadata: { planId: plan._id, fromUserId: plan.creator }
         })));
     }
     await Plan.deleteOne({ _id: plan._id });

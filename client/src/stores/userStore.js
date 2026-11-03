@@ -167,7 +167,8 @@ async function deleteUser(userId) {
     checkUsername,
     checkEmail,
     deleteUser,
-    logout, 
+    updateProfileImages,
+    logout,
     clearError 
   };
 

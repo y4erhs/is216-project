@@ -53,7 +53,7 @@
           <span class="foot">
             <span class="stack" aria-hidden="true">
               <i v-for="m in l.members.slice(0, 4)" :key="m.id" :style="{ background: m.color || 'var(--color-white)' }">{{
-                initials(m.name) }}</i>
+                initials(m.name) }}<AvatarPic :path="m.avatar" /></i>
             </span>
             <span class="meta">{{ metaText(l) }}</span>
             <span v-if="store.isInactive(l) && store.isHost(l)" class="badge-pill badge-warn">Inactive</span>
@@ -81,6 +81,7 @@ import { ref, computed } from 'vue'
 import BaseInput from '../components/BaseInput.vue'
 import { useLobbies, timeAgo } from '../composables/useLobbies.js'
 import BaseButton from '../components/BaseButton.vue';
+import AvatarPic from '../components/AvatarPic.vue'
 
 defineEmits(['open', 'create', 'open-calendar'])
 
@@ -547,6 +548,7 @@ function clear() {
 }
 
 .stack i {
+  position: relative;
   display: grid;
   place-items: center;
   width: 30px;

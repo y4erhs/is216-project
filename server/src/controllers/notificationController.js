@@ -1,7 +1,9 @@
+const mongoose = require("mongoose");
 const Notification = require("../models/notification");
 const User = require("../models/user");
 const Event = require("../models/events");
 const Activity = require("../models/activity");
+const Plan = require("../models/plan");
 
 function getUserId(req) {
   return req.user?.id || req.user?._id || req.query.userId;
@@ -107,6 +109,40 @@ async function createNotification({
   });
 }
 
+// Notifications about something the lobby host did, for older ones that didn't save who sent them
+const FROM_LOBBY_HOST = [
+  "lobby_invite", "lobby_event_pitched", "lobby_plan_another", "lobby_removed",
+  "group_register", "lobby_left_out",
+];
+const FROM_PLAN_CREATOR = ["plan_invite", "plan_updated"];
+
+// Adds fromAvatar: the current picture of the person behind each notification
+async function addSenderAvatars(items) {
+  const planIds = items
+    .filter((item) => FROM_PLAN_CREATOR.includes(item.type) && mongoose.isValidObjectId(item.metadata?.planId))
+    .map((item) => item.metadata.planId);
+  const plans = planIds.length ? await Plan.find({ _id: { $in: planIds } }).select("creator").lean() : [];
+  const creators = new Map(plans.map((plan) => [String(plan._id), plan.creator]));
+
+  const senderOf = (item) => {
+    const saved = item.metadata?.fromUserId || item.metadata?.memberId;
+    if (saved) return saved;
+    if (FROM_LOBBY_HOST.includes(item.type)) return item.lobbyId?.host;
+    if (FROM_PLAN_CREATOR.includes(item.type)) return creators.get(String(item.metadata?.planId));
+    return null;
+  };
+
+  const senderIds = items.map(senderOf).filter((id) => id && mongoose.isValidObjectId(id));
+  const users = senderIds.length ? await User.find({ _id: { $in: senderIds } }).select("avatar").lean() : [];
+  const avatars = new Map(users.map((user) => [String(user._id), user.avatar]));
+
+  return items.map((item) => ({
+    ...item,
+    // older friend notifications only saved a copy of the picture
+    fromAvatar: avatars.get(String(senderOf(item))) || item.metadata?.requesterAvatar || item.metadata?.receiverAvatar || "",
+  }));
+}
+
 exports.getMyNotifications = async (req, res) => {
   try {
     const userId = getUserId(req);
@@ -126,13 +162,13 @@ exports.getMyNotifications = async (req, res) => {
         .skip(skip)
         .limit(pageSize)
         .populate("eventId", "title startTime startDate date venue location")
-        .populate("lobbyId", "name")
+        .populate("lobbyId", "name host")
         .lean(),
       Notification.countDocuments(filter),
       Notification.countDocuments({ userId, status: "sent", isRead: false }),
     ]);
 
-    return res.json({ items, total, unreadCount, page: pageNum, limit: pageSize });
+    return res.json({ items: await addSenderAvatars(items), total, unreadCount, page: pageNum, limit: pageSize });
   } catch (err) {
     return res.status(500).json({ message: "Failed to load notifications", error: err.message });
   }
@@ -539,6 +575,7 @@ exports.notifyLobbyDeleted = async (memberIds, lobby) => {
         title: "Lobby deleted",
         message: `${lobby.name} was deleted. Events already registered were not cancelled.`,
         lobbyId: lobby._id,
+        metadata: { fromUserId: lobby.host?._id || lobby.host },
       })
     )
   );
@@ -684,13 +721,13 @@ exports.notifyFriendRequest = async (receiverId,requesterName,friendshipId, requ
   });
 };
 
-exports.notifyFriendAccepted = async (userId,acceptedByName, receiverAvatar) => {
+exports.notifyFriendAccepted = async (userId,acceptedByName, receiverAvatar, fromUserId) => {
   return createNotification({
     userId,
     type: "friend_accepted",
     title: "Friend Request Accepted",
     message:`${acceptedByName} accepted your friend request.`,
-    metadata: {receiverAvatar}
+    metadata: {receiverAvatar, fromUserId}
     });
 };
 

@@ -182,19 +182,7 @@ watch(myInterests, () => {
 
         <!-- Filters -->
         <div class="filter-card row g-2 align-items-end mx-0">
-            <div class="col-12 col-md-4">
-                <label class="form-label small" for="search-keyword">Keyword</label>
-                <input
-                    id="search-keyword"
-                    type="text"
-                    class="form-control"
-                    placeholder="e.g. python, hackathon, SMU BIA"
-                    v-model="keyword"
-                    v-on:keyup.enter="searchEvents"
-                >
-            </div>
-
-            <div class="col-6 col-md-2">
+            <div class="col-6 col-md-3">
                 <label class="form-label small" for="search-category">Category</label>
                 <select id="search-category" class="form-select" v-model="category" v-on:change="selectCategory">
                     <option value="">All</option>
@@ -202,17 +190,17 @@ watch(myInterests, () => {
                 </select>
             </div>
 
-            <div class="col-6 col-md-2">
+            <div class="col-6 col-md-3">
                 <label class="form-label small" for="search-from">From</label>
                 <input id="search-from" type="date" class="form-control" v-model="fromDate" v-on:change="searchEvents">
             </div>
 
-            <div class="col-6 col-md-2">
+            <div class="col-6 col-md-3">
                 <label class="form-label small" for="search-to">To</label>
                 <input id="search-to" type="date" class="form-control" v-model="toDate" v-on:change="searchEvents">
             </div>
 
-            <div class="col-6 col-md-2 d-flex gap-2">
+            <div class="col-6 col-md-3 d-flex gap-2">
                 <BaseButton class="theme-green" variant="primary" v-on:click="searchEvents">Search</BaseButton>
                 <BaseButton variant="outline-main" v-on:click="clearFilters">Clear</BaseButton>
             </div>

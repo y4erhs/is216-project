@@ -56,7 +56,7 @@ server/                 Express API
   src/controllers/      Request handlers
   src/services/         Calendar, plans, recommendations and Telegram parsing
   src/models/           MongoDB models
-  uploads/              Uploaded images
+  uploads/              Default picture and Telegram event images (profile pictures are in the database)
 ```
 
 ## Set up

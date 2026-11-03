@@ -99,10 +99,6 @@ function getGoingBySession(activity) {
   }, {})
 }
 
-function onInviteFriends(id) {
-  console.log('Invite friends for event:', id)
-}
-
 onMounted(async () => {
   try {
     await loadActivities()
@@ -212,7 +208,7 @@ onMounted(async () => {
                       @remove-history="
                         deleteActivity(a.event._id)
                       "
-                      @invite-friends="onInviteFriends"
+                      @invite-friends="$router.push('/lobby')"
                       @card-click="handleCardClick(a.event)"
                     />
 

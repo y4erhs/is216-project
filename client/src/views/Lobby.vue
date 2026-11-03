@@ -54,7 +54,7 @@
               <div v-else class="scroll">
                 <ul class="people">
                   <li v-for="f in friends" :key="f.id" class="person">
-                    <span class="avatar" :style="{ background: f.color }">{{ initials(f.name) }}</span>
+                    <span class="avatar" :style="{ background: f.color }">{{ initials(f.name) }}<AvatarPic :path="f.avatar" /></span>
                     <span class="who">{{ f.name }}</span>
                     <span v-if="statusOf(f.id) && statusOf(f.id) !== 'declined'" class="badge-pill"
                       :class="`pill-${statusOf(f.id)}`">{{ statusLabel[statusOf(f.id)] }}</span>
@@ -91,7 +91,7 @@
                     </template>
 
                     <template v-else>
-                      <span class="avatar" :style="{ background: m.color || 'var(--color-white)' }">{{ initials(m.name) }}</span>
+                      <span class="avatar" :style="{ background: m.color || 'var(--color-white)' }">{{ initials(m.name) }}<AvatarPic :path="m.avatar" /></span>
                       <span class="who">
                         {{ m.name }}
                       </span>
@@ -288,6 +288,7 @@ import FolderTabs from '../components/FolderTabs.vue'
 import LobbyCalendar from '../components/LobbyCalendar.vue'
 import PlanForm from '../components/PlanForm.vue'
 import BaseButton from '../components/BaseButton.vue'
+import AvatarPic from '../components/AvatarPic.vue'
 import { useAuth } from '../composables/useAuth'
 import { useLobbies, daysAgo, timeAgo, INACTIVE_DAYS } from '../composables/useLobbies'
 import { useActivities } from '../composables/useActivities'
@@ -873,6 +874,7 @@ button.badge-pill:disabled {
   font-weight: 700;
   font-size: 11px;
   padding-top: 4px;
+  position: relative;
 }
 
 .who {

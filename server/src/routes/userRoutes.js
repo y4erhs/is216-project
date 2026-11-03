@@ -5,12 +5,29 @@ const userController = require('../controllers/userController');
 const router = express.Router();
 
 const multer = require('multer');
-const upload = multer({ dest: 'uploads/' });
+const IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/webp', 'image/gif'];
+const upload = multer({
+    storage: multer.memoryStorage(),   // saved to the database by the controller
+    limits: { fileSize: 5 * 1024 * 1024 },
+    fileFilter: (req, file, cb) => {
+        if (IMAGE_TYPES.includes(file.mimetype)) return cb(null, true);
+        cb(new Error('Images must be PNG, JPG, WebP or GIF.'));
+    }
+});
+
+// Runs the upload, and replies with a clear message if the file isn't allowed
+const uploadImages = (fields) => (req, res, next) => {
+    upload.fields(fields)(req, res, (err) => {
+        if (!err) return next();
+        const message = err.code === 'LIMIT_FILE_SIZE' ? 'Images must be 5 MB or smaller.' : err.message;
+        return res.status(400).json({ message });
+    });
+};
 
 // CREATE: Register a user
 router.post('/', userController.createUser);
 
-router.post('/register', upload.fields([
+router.post('/register', uploadImages([
     { name: 'profileImage', maxCount: 1 },
     { name: 'bannerImage', maxCount: 1 },
     { name: 'avatar', maxCount: 1 }
@@ -40,7 +57,10 @@ router.get('/:id/preferences', userController.getPreferences);
 router.put('/:id', userController.updateUser);
 
 // update profile picture and banner
-router.put('/:id/images', userController.updateImages)
+router.put('/:id/images', uploadImages([
+    { name: 'profileImage', maxCount: 1 },
+    { name: 'bannerImage', maxCount: 1 }
+]), userController.updateImages)
 
 // DELETE
 router.delete('/:id', userController.deleteUser);

@@ -1,5 +1,7 @@
 const { LengthFinishReasonError } = require('openai/error.js');
 const User = require('../models/user');
+const Friends = require('../models/friends');
+const Image = require('../models/image');
 const GoogleSignInCode = require('../models/googleSignInCode');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
@@ -55,12 +57,12 @@ exports.createUser = async (req, res) => {
 
         if (req.files) {
             if (req.files.profileImage && req.files.profileImage[0]) {
-                avatar = `/uploads/${req.files.profileImage[0].filename}`;
+                avatar = await Image.saveUpload(req.files.profileImage[0]);
             } else if (req.files.avatar && req.files.avatar[0]) {
-                avatar = `/uploads/${req.files.avatar[0].filename}`;
+                avatar = await Image.saveUpload(req.files.avatar[0]);
             }
             if (req.files.bannerImage && req.files.bannerImage[0]) {
-                banner = `/uploads/${req.files.bannerImage[0].filename}`;
+                banner = await Image.saveUpload(req.files.bannerImage[0]);
             }
         }
 
@@ -311,6 +313,11 @@ exports.deleteUser = async (req, res) => {
             });
         }
 
+        // their friend requests and friendships go with them
+        await Friends.deleteMany({ $or: [{ requester: req.params.id }, { receiver: req.params.id }] });
+        await Image.removeByPath(user.avatar);
+        await Image.removeByPath(user.banner);
+
         return res.status(200).json({
             message: 'User deleted successfully'
         });
@@ -351,7 +358,7 @@ exports.searchUsers = async (req, res) => {
     const users = await User.find({
       username: { $regex: safe, $options: 'i' },
       ...(userId && { _id: { $ne: userId } }),
-    }).select('_id username').limit(10);
+    }).select('_id username avatar').limit(10);
     res.json(users);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -394,19 +401,27 @@ exports.checkEmail = async (req, res) => {
 
 exports.updateImages = async (req, res) => {
     try {
-        const { userId } = req.params;
+        const { id: userId } = req.params;
         const updateData = {};
 
+        const existing = await User.findById(userId).select('avatar banner');
+        if (!existing) return res.status(404).json({ message: 'User not found' });
+
         if (req.files?.profileImage) {
-            updateData.avatar = req.files.profileImage[0].path; // or filename/url
+            updateData.avatar = await Image.saveUpload(req.files.profileImage[0]);
         }
 
         // If multer processed a new banner image
         if (req.files?.bannerImage) {
-            updateData.banner = req.files.bannerImage[0].path;
+            updateData.banner = await Image.saveUpload(req.files.bannerImage[0]);
         }
 
-        const updatedUser = await User.findByIdAndUpdate(userId, updateData, { new: true });
+        const updatedUser = await User.findByIdAndUpdate(userId, updateData, { new: true }).select('-password');
+
+        // the pictures they just replaced aren't needed any more
+        if (updateData.avatar) await Image.removeByPath(existing.avatar);
+        if (updateData.banner) await Image.removeByPath(existing.banner);
+
         return res.status(200).json({ message: 'Images updated successfully', user: updatedUser });
   } catch (error) {
         console.log("Error updating image: ", error);

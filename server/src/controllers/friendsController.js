@@ -21,7 +21,7 @@ exports.acceptFriendRequest = async(req,res) => {
         console.log(updated)
         console.log("UPDATED RECEIVER:", updated.receiver);
         console.log("AVATAR:", updated.receiver.avatar);
-        await notificationController.notifyFriendAccepted(updated.requester._id, updated.receiver.username, updated.receiver.avatar)
+        await notificationController.notifyFriendAccepted(updated.requester._id, updated.receiver.username, updated.receiver.avatar, updated.receiver._id)
         res.json(updated);
     }catch(err){
         res.status(500).json({error: err.message});
@@ -45,7 +45,8 @@ exports.rejectFriendRequest = async(req,res) => {
 
 exports.getSentRequests = async (req, res) => {
   try {
-    res.json(await Friends.getSentRequests(req.params.userId)); // [] when none
+    const sent = await Friends.getSentRequests(req.params.userId);
+    res.json(sent.filter((r) => r.receiver)); // [] when none; receiver is null if that account was deleted
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -54,7 +55,8 @@ exports.getSentRequests = async (req, res) => {
 exports.getPendingRequests = async (req, res) => {
   try {
     const { userId } = req.params;
-    res.json(await Friends.getPendingRequests(userId)); // [] when none
+    const pending = await Friends.getPendingRequests(userId);
+    res.json(pending.filter((r) => r.requester)); // [] when none; requester is null if that account was deleted
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -64,7 +66,7 @@ exports.getAcceptedFriends = async(req,res) =>{
     try{
         const {userId} = req.params;
         console.log(userId)
-        const friends = await Friends.getAcceptedFriends(userId);
+        const friends = (await Friends.getAcceptedFriends(userId)).filter((f) => f.requester && f.receiver);
         if(!friends || friends.length === 0 ){
             return res.status(404).json({ message: 'No accepted friends found'})
         }

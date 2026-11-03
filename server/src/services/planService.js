@@ -53,7 +53,7 @@ async function getGoogleClient(userId) {
 }
 
 // In-app notification to each person in the list who has plan alerts on
-async function notifyUsers(userIds, type, title, message, planId) {
+async function notifyUsers(userIds, type, title, message, planId, fromUserId) {
     const wanted = await User.idsWantingAlert(userIds, 'plans');
     if (!wanted.length) return null;
     return Notification.insertMany(wanted.map(id => ({
@@ -64,7 +64,7 @@ async function notifyUsers(userIds, type, title, message, planId) {
         channels: ['in_app'],
         status: 'sent',
         sentAt: new Date(),
-        metadata: { planId }
+        metadata: { planId, fromUserId }
     })));
 }
 
@@ -209,7 +209,8 @@ exports.createPlan = async ({ userId, title, allDay = false, start, end, locatio
             'plan_invite',
             'New plan invite',
             lobby ? `${creatorName} added "${plan.title}" to ${lobby.name}` : `${creatorName} invited you to "${plan.title}"`,
-            plan._id
+            plan._id,
+            creator._id
         );
     }
 
@@ -264,7 +265,8 @@ exports.updatePlan = async (planId, { userId, title, allDay = false, start, end,
         'plan_updated',
         'Plan updated',
         timeChanged ? `"${plan.title}" has a new time. Please reply again.` : `"${plan.title}" was updated`,
-        plan._id
+        plan._id,
+        plan.creator
     );
 
     return { plan, warning };
@@ -293,7 +295,7 @@ exports.deletePlan = async (planId, userId) => {
         }
     }
 
-    await notifyUsers(plan.invitees, 'plan_cancelled', 'Plan cancelled', `"${plan.title}" has been cancelled`, plan._id);
+    await notifyUsers(plan.invitees, 'plan_cancelled', 'Plan cancelled', `"${plan.title}" has been cancelled`, plan._id, plan.creator);
     await Plan.deleteOne({ _id: plan._id });
 
     return { warning };
@@ -321,7 +323,8 @@ exports.respondToPlan = async (planId, { userId, response }) => {
             'plan_response',
             'Plan reply',
             `${name} ${response} your plan "${plan.title}"`,
-            plan._id
+            plan._id,
+            userId
         );
     }
 

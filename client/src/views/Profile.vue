@@ -44,8 +44,6 @@ const newAvatarFile = ref(null)
 const bannerPreview = ref(null)
 const avatarPreview = ref(null)
 
-const loading = ref(false)
-
 
 const profileName = computed(() =>
   profile.value?.displayName || profile.value?.fullName || profile.value?.username || '')
@@ -218,21 +216,14 @@ const handleAvatarSelection = (event) => {
 const saveImages = async () => {
   if (!newBannerFile.value && !newAvatarFile.value) return
 
-  loading.value = true
-  try {
-    const formData = new FormData()
-    if (newBannerFile.value) formData.append('bannerImage', newBannerFile.value)
-    if (newAvatarFile.value) formData.append('profileImage', newAvatarFile.value)
+  const formData = new FormData()
+  if (newBannerFile.value) formData.append('bannerImage', newBannerFile.value)
+  if (newAvatarFile.value) formData.append('profileImage', newAvatarFile.value)
 
-    // Call store action passing userId and formData
-    await userStore.updateProfileImages(userId.value, formData)
-    
-    alert('Profile pictures updated successfully!')
-  } catch (err) {
-    console.error('Failed to update images:', err)
-  } finally {
-    loading.value = false
-  }
+  // Call store action passing userId and formData
+  await userStore.updateProfileImages(userId.value, formData)
+  newBannerFile.value = null
+  newAvatarFile.value = null
 }
 
 async function saveProfile() {
@@ -240,6 +231,7 @@ async function saveProfile() {
   saving.value = true
   saveMessage.value = ''
   try {
+    await saveImages()   // first, so the response below has the new pictures
     const { data } = await axios.put(`${API_URL}/api/users/${userId.value}`, {
       major: selectedCourse.value,
       year: selectedYear.value,
@@ -253,12 +245,13 @@ async function saveProfile() {
     if (interestsChanged) localStorage.setItem('interestsChanged', 'true')
     savedInterests.value = [...categories.value]
 
-    setSession(data)   // the sidebar shows the new course and year straight away
+    profile.value = { ...profile.value, avatar: data.avatar, banner: data.banner }
+    setSession(data)   // the sidebar shows the new course, year and picture straight away
     saveMessage.value = 'Changes saved!'
     showInterestDropdown.value = false
     showClubDropdown.value = false
   } catch (error) {
-    saveMessage.value = 'Could not save. Please try again.'
+    saveMessage.value = `Could not save: ${error.response?.data?.message || error.message}`
     console.log('There was an error: ' + error.message)
   } finally {
     saving.value = false

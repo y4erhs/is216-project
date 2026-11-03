@@ -65,7 +65,7 @@
           <span class="event-line">No event yet.</span>
           <span class="desc">{{ description.trim() || 'No description.' }}</span>
           <span class="foot">
-            <span class="stack" aria-hidden="true"><i>{{ myInitials }}</i></span>
+            <span class="stack" aria-hidden="true"><i>{{ myInitials }}<AvatarPic :path="user?.avatar" /></i></span>
             <span class="meta">1 member. You'll invite friends next.</span>
           </span>
         </div>
@@ -79,6 +79,7 @@ import { ref, computed, onMounted } from 'vue'
 // NOTE: every page must import the SAME useLobbies file, or each page gets its own separate copy of the data.
 import { useLobbies } from '../composables/useLobbies'
 import { useAuth } from '../composables/useAuth'
+import AvatarPic from '../components/AvatarPic.vue'
 
 const emit = defineEmits(['created', 'cancel'])
 const store = useLobbies()
@@ -212,7 +213,7 @@ async function submit() {
   line-height: 1.4; opacity: 0.85; margin-bottom: 6px;
 }
 .foot { display: flex; align-items: center; gap: 10px; width: 100%; margin-top: 4px; padding-top: 12px; border-top: 2px dashed rgba(31, 42, 68, 0.2); }
-.stack i { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: #9fd3ff; font-style: normal; font-weight: 700; font-size: 11px; }
+.stack i { position: relative; display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: #9fd3ff; font-style: normal; font-weight: 700; font-size: 11px; }
 .meta { letter-spacing: 0.04em; }
 
 @media (max-width: 900px) {

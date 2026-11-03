@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted, onBeforeUnmount } from 'vue'
 import { useNotifications } from '../composables/useNotifications'
-import { API_URL } from '../utils/api'
+import AvatarPic from './AvatarPic.vue'
 
 const emit = defineEmits(['open-item', 'accept-friend', 'reject-friend'])
 const n = useNotifications()
@@ -38,15 +38,6 @@ function rejectFriend(item) {
   console.log('Reject friend', item)
   n.rejectFriend(item)
   emit('reject-friend', item)
-}
-
-const DEFAULT_AVATAR = '/uploads/default.png'
-
-function hasCustomAvatar(item) {
-  const avatar = item.metadata?.requesterAvatar || item.metadata?.receiverAvatar
-  return ['friend_request', 'friend_accepted'].includes(item.type)
-    && !!avatar
-    && avatar !== DEFAULT_AVATAR
 }
 </script>
 
@@ -86,9 +77,8 @@ function hasCustomAvatar(item) {
           <div class="notif-container">
             <button class="notif-btn" type="button"@click="openItem(item)">
             <span class="type-icon">
-              <img v-if="hasCustomAvatar(item)"
-              :src="`${API_URL}${item.metadata.requesterAvatar || item.metadata.receiverAvatar}`" class="notif-avatar" alt=""/>
-              <i v-else class="bi" :class="n.meta(item.type).icon"></i>
+              <i class="bi" :class="n.meta(item.type).icon"></i>
+              <AvatarPic :path="item.fromAvatar" />
             </span>
             <span class="notif-body">
               <div class="notif-top">
@@ -218,6 +208,7 @@ function hasCustomAvatar(item) {
   background: #e0e7ff;
   color: #4338ca;
   font-size: 13px;
+  position: relative;
 }
 .notif-body {  min-width: 0;flex: 1; }
 .notif-body strong {
@@ -279,11 +270,5 @@ function hasCustomAvatar(item) {
 .notif-body .msg,
 .notif-body small {
   display: block;
-}
-.notif-avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  object-fit: cover;
 }
 </style>
