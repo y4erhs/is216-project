@@ -124,7 +124,7 @@
     const errorMsg = ref('')
   
     // Validation for Create Account
-    const handleCreateAccount = () => {
+    const handleCreateAccount = async () => {
       errorMsg.value = ''
 
       if (!fullName.value || !email.value || !password.value || !confirmPassword.value) {
@@ -135,6 +135,20 @@
       // check if email is an smu email
       if (!email.value.trim().endsWith('@smu.edu.sg')) {
         errorMsg.value = 'Email must end with @smu.edu.sg'
+        return
+      }
+
+      try {
+        console.log("Checking store instance:", userStore)
+        const isTaken = await userStore.checkEmail(email.value)
+        
+        if (isTaken) {
+          errorMsg.value = "This email is already registered. Please use another email."
+          return
+        }
+      } catch (error) {
+        console.error('Full error details:', error)
+        errorMsg.value = error.response?.data?.message || 'Failed to verify email. Please try again.'
         return
       }
 
@@ -236,7 +250,7 @@
                 <input type="password" v-model='password' placeholder="Password">
                 <input type="password" v-model='confirmPassword' placeholder="Confirm Password"><br>
 
-                <p v-if="errorMsg" style="color: #e63c25;">{{ errorMsg }}</p>
+                <p v-if="errorMsg" style="color: #a12f1f;">{{ errorMsg }}</p>
 
                 <BaseButton type="submit" class="auth-btn">REGISTER</BaseButton>
                 <span>Or</span>

@@ -24,6 +24,9 @@ router.post('/login', userController.login);
 // check if username is available 
 router.get('/check-username/:username', userController.checkUsername);
 
+//check if email has been used
+router.get('/check-email/:email', userController.checkEmail);
+
 
 // READ
 router.get('/', userController.getUsers);
