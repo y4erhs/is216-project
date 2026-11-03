@@ -41,12 +41,12 @@ friendSchema.statics.sendFriendRequest = async function (requesterId, receiverId
 
 friendSchema.statics.getSentRequests = function (userId) {
   return this.find({ requester: userId, status: 'pending' })
-    .populate('receiver', 'username');
+    .populate('receiver', 'username avatar');
 };
 
 friendSchema.statics.getPendingRequests = function (userId) {
   return this.find({ receiver: userId, status: 'pending' })
-    .populate('requester', 'username');
+    .populate('requester', 'username avatar');
 };
 
 friendSchema.statics.areFriends = async function (a, b) {
@@ -82,8 +82,8 @@ friendSchema.statics.getAcceptedFriends = function(userId) {
             { receiver: userId }
         ]
     })
-    .populate('requester', 'username')
-    .populate('receiver', 'username');
+    .populate('requester', 'username avatar')
+    .populate('receiver', 'username avatar');
 };
 
 // friendSchema.statics.blockFriend = function(friendshipId) {

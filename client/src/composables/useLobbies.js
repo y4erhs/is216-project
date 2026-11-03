@@ -68,7 +68,7 @@ function toLobby(raw) {
     createdAt: ts(raw.createdAt),
     lastActiveAt: ts(raw.lastActiveAt),
     members: (raw.members || []).map((m) => ({
-      id: String(m.id), name: m.name, status: m.status, color: colorFor(m.id),
+      id: String(m.id), name: m.name, status: m.status, color: colorFor(m.id), avatar: m.avatar,
     })),
     pitchedEventId,
     // "registered" = the current event is already in the history
@@ -123,6 +123,7 @@ async function loadFriends() {
       friendshipId: idOf(f),   // NEW: needed to remove a friend
       name: other.username,
       color: colorFor(idOf(other)),
+      avatar: other.avatar,
     }
   }))
 }

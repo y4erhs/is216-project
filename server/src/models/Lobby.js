@@ -80,18 +80,18 @@ lobbySchema.statics.getLobbyForUser = function(userId) {
         ]
     })
     .populate('host', 'username')
-    .populate('invited', 'username')
-    .populate('participants', 'username')
-    .populate('declined', 'username')
+    .populate('invited', 'username avatar')
+    .populate('participants', 'username avatar')
+    .populate('declined', 'username avatar')
     .populate('event');
 };
 
 lobbySchema.statics.getLobbyById = function(lobbyId) {
     return this.findById(lobbyId)
         .populate('host', 'username')
-        .populate('invited', 'username')
-        .populate('participants', 'username')
-        .populate('declined', 'username')
+        .populate('invited', 'username avatar')
+        .populate('participants', 'username avatar')
+        .populate('declined', 'username avatar')
         .populate('event')
         .populate('history.eventId')
         .populate('history.memberIds', 'username');

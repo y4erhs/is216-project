@@ -77,7 +77,7 @@
         <div class="scroll">
           <ul class="people">
             <li v-for="m in members" :key="m.id" class="person">
-              <span class="avatar" :style="{ background: m.color || '#fdebd0' }">{{ initials(m.name) }}</span>
+              <span class="avatar" :style="{ background: m.color || '#fdebd0' }">{{ initials(m.name) }}<AvatarPic :path="m.avatar" /></span>
               <span class="who">{{ m.name }}</span>
               <span v-if="m.host" class="badge-pill pill-host">Host</span>
               <span v-else-if="m.id === meId" class="badge-pill pill-grey">You</span>
@@ -91,6 +91,7 @@
 </template>
 
 <script setup>
+import AvatarPic from '../components/AvatarPic.vue'
 defineProps({
   lobbyName: { type: String, default: '' },
   description: { type: String, default: '' },
@@ -191,9 +192,15 @@ const initials = (name) => name.split(' ').map((w) => w[0]).slice(0, 2).join('')
   max-height: 160px; overflow-y: auto; margin: -3px; padding: 3px 11px 3px 3px;
   scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.6) transparent;
 }
+<<<<<<< HEAD
 .people { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 .person { display: flex; align-items: center; gap: 10px; min-height: 42px; padding: 6px 12px; border-radius: 15px; background: var(--card); color: var(--ink); }
 .avatar { display: grid; place-items: center; width: 28px; height: 28px; flex: none; border-radius: 50%; font-weight: 700; font-size: 11px; }
+=======
+.people { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.person { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 8px 12px; border-radius: 15px; background: var(--card); color: var(--ink); }
+.avatar { display: grid; place-items: center; width: 32px; height: 32px; flex: none; border-radius: 50%; font-weight: 700; font-size: 11px; position: relative; }
+>>>>>>> 6ceaf72a7f1787d60e798bdf9670d35fd600036b
 .who { flex: 1; min-width: 0; font-size: 13px; letter-spacing: 0.04em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* pills */

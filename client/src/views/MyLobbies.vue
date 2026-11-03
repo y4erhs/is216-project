@@ -43,7 +43,8 @@
                 <span class="name">{{ l.name }}</span>
                 <span class="badge-pill" :class="roleClass(l)">{{ roleLabel(l) }}</span>
               </span>
-              <span v-if="store.needsReply(l)" class="badge-pill badge-reply">Reply needed. {{ store.hostName(l) }} invited
+              <span v-if="store.needsReply(l)" class="badge-pill badge-reply">Reply needed. {{ store.hostName(l) }}
+                invited
                 you.</span>
               <span class="events">
                 <span v-for="line in eventLines(l)" :key="line" class="event-line">{{ line }}</span>
@@ -53,8 +54,11 @@
 
             <span class="foot">
               <span class="stack" aria-hidden="true">
-                <i v-for="m in l.members.slice(0, 4)" :key="m.id" :style="{ background: m.color || 'var(--color-white)' }">{{
-                  initials(m.name) }}</i>
+                <i v-for="m in l.members.slice(0, 4)" :key="m.id"
+                  :style="{ background: m.color || 'var(--color-white)' }">{{
+                    initials(m.name) }}
+                  <AvatarPic :path="m.avatar" />
+                </i>
               </span>
               <span class="meta">{{ metaText(l) }}</span>
               <span v-if="store.isInactive(l) && store.isHost(l)" class="badge-pill badge-warn">Inactive</span>
@@ -83,6 +87,7 @@ import { ref, computed } from 'vue'
 import BaseInput from '../components/BaseInput.vue'
 import { useLobbies, timeAgo } from '../composables/useLobbies.js'
 import BaseButton from '../components/BaseButton.vue';
+import AvatarPic from '../components/AvatarPic.vue'
 
 defineEmits(['open', 'create', 'open-calendar'])
 
@@ -236,7 +241,8 @@ function clear() {
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  padding-right: 4px; /* Sedikit spasi buat scrollbar */
+  padding-right: 4px;
+  /* Sedikit spasi buat scrollbar */
 }
 
 /* ── Search, filter pills, event dropdown ── */
@@ -515,6 +521,7 @@ function clear() {
 }
 
 .stack i {
+  position: relative;
   display: grid;
   place-items: center;
   width: 30px;
@@ -557,6 +564,7 @@ function clear() {
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .btn,
   .lobby,
   .chip {

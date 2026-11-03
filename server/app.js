@@ -22,6 +22,7 @@ const activityRoutes = require('./src/routes/activityRoutes');
 const googleRoutes = require('./src/routes/googleRoutes')
 const notificationRoutes = require('./src/routes/notificationRoutes');
 const planRoutes = require('./src/routes/planRoutes');
+const imageRoutes = require('./src/routes/imageRoutes');
 const scheduleRoutes = require('./src/routes/scheduleRoutes');
 
 
@@ -63,6 +64,7 @@ server.use('/api/activities', activityRoutes);
 server.use("/api/notifications", notificationRoutes);
 server.use('/auth/google', googleRoutes);
 server.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+server.use('/api/images', imageRoutes);
 server.use('/api/plans', planRoutes);
 server.use('/api/schedule', scheduleRoutes);
 

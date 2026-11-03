@@ -97,6 +97,54 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
+  // updating pfp and banner
+  async function updateProfileImages(userId, formData) {
+  try {
+    loading.value = true;
+    const response = await axios.put(`${API_URL}/api/users/${userId}/images`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+
+    // Update with new image URLs returned from server
+    if (currentUser.value) {
+      currentUser.value = response.data.user || response.data;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(currentUser.value));
+    }
+
+    return response.data;
+  } catch (err) {
+    error.value = err.response?.data?.message || 'Failed to update images';
+    throw err;
+  } finally {
+    loading.value = false;
+  }
+}
+
+async function deleteUser(userId) {
+  try {
+    loading.value = true;
+    
+    // Call your backend delete route
+    await axios.delete(`${API_URL}/api/users/${userId}`);
+
+    // Clear local storage / authentication state
+    currentUser.value = null;
+    localStorage.removeItem(STORAGE_KEY); // Removes 'user'
+    
+    
+    useAuth().logout();
+
+    return true;
+  } catch (err) {
+    error.value = err.response?.data?.message || 'Failed to delete account';
+    throw err;
+  } finally {
+    loading.value = false;
+  }
+}
+
   function logout() {
     currentUser.value = null;
     localStorage.removeItem(STORAGE_KEY);
@@ -118,7 +166,9 @@ export const useUserStore = defineStore('user', () => {
     register,
     checkUsername,
     checkEmail,
-    logout, 
+    deleteUser,
+    updateProfileImages,
+    logout,
     clearError 
   };
 

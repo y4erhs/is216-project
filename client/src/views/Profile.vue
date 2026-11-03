@@ -31,6 +31,20 @@ const profileError = ref('')
 const avatarFailed = ref(false)
 const bannerFailed = ref(false)
 
+// updating images
+// References for hidden file inputs
+const bannerInputFile = ref(null)
+const avatarInputFile = ref(null)
+
+// Raw files ready to be uploaded
+const newBannerFile = ref(null)
+const newAvatarFile = ref(null)
+
+// Local previews
+const bannerPreview = ref(null)
+const avatarPreview = ref(null)
+
+
 const profileName = computed(() =>
   profile.value?.displayName || profile.value?.fullName || profile.value?.username || '')
 
@@ -176,11 +190,48 @@ function toggleInterest(cat) {
   }
 }
 
+// Triggers file dialogs
+const triggerBannerInput = () => bannerInputFile.value.click()
+const triggerAvatarInput = () => avatarInputFile.value.click()
+
+// Handle Banner file choice
+const handleBannerSelection = (event) => {
+  const file = event.target.files[0]
+  if (file) {
+    newBannerFile.value = file
+    bannerPreview.value = URL.createObjectURL(file) // Instant UI preview
+  }
+}
+
+// Handle Avatar file choice
+const handleAvatarSelection = (event) => {
+  const file = event.target.files[0]
+  if (file) {
+    newAvatarFile.value = file
+    avatarPreview.value = URL.createObjectURL(file) // Instant UI preview
+  }
+}
+
+// Submit to backend
+const saveImages = async () => {
+  if (!newBannerFile.value && !newAvatarFile.value) return
+
+  const formData = new FormData()
+  if (newBannerFile.value) formData.append('bannerImage', newBannerFile.value)
+  if (newAvatarFile.value) formData.append('profileImage', newAvatarFile.value)
+
+  // Call store action passing userId and formData
+  await userStore.updateProfileImages(userId.value, formData)
+  newBannerFile.value = null
+  newAvatarFile.value = null
+}
+
 async function saveProfile() {
   addClub()   // a club typed in but not added yet still counts
   saving.value = true
   saveMessage.value = ''
   try {
+    await saveImages()   // first, so the response below has the new pictures
     const { data } = await axios.put(`${API_URL}/api/users/${userId.value}`, {
       major: selectedCourse.value,
       year: selectedYear.value,
@@ -194,15 +245,43 @@ async function saveProfile() {
     if (interestsChanged) localStorage.setItem('interestsChanged', 'true')
     savedInterests.value = [...categories.value]
 
-    setSession(data)   // the sidebar shows the new course and year straight away
+    profile.value = { ...profile.value, avatar: data.avatar, banner: data.banner }
+    setSession(data || data.user )   // the sidebar shows the new course, year and picture straight away
     saveMessage.value = 'Changes saved!'
     showInterestDropdown.value = false
     showClubDropdown.value = false
   } catch (error) {
-    saveMessage.value = 'Could not save. Please try again.'
+    saveMessage.value = `Could not save: ${error.response?.data?.message || error.message}`
     console.log('There was an error: ' + error.message)
   } finally {
     saving.value = false
+  }
+}
+
+const deleting = ref(false)
+
+const confirmDelete = async () => {
+  // Always good to double-check with a confirm dialog
+  const isConfirmed = window.confirm(
+    'Are you sure you want to delete your account? This action cannot be undone.'
+  )
+  
+  if (!isConfirmed) return
+
+  deleting.value = true
+  try {
+    // Assuming you have access to the logged-in user's ID
+    const userId = userStore.currentUser?.id || userStore.currentUser?._id
+    
+    await userStore.deleteUser(userId)
+    
+    // Redirect user to login or home page after successful deletion
+    router.push('/login')
+  } catch (err) {
+    console.error('Failed to delete account:', err)
+    alert(err.message || 'Something went wrong while deleting your account.')
+  } finally {
+    deleting.value = false
   }
 }
 </script>
@@ -228,21 +307,36 @@ async function saveProfile() {
 
         <div class="profile-card">
           <div class="profile-header-visual">
-            <div class="profile-banner">
-              <img v-if="userImageUrl(profile?.banner) && !bannerFailed" :src="userImageUrl(profile.banner)" alt=""
-                @error="bannerFailed = true" />
+            <div class="banner-container" @click="triggerBannerInput">
+              <div class="profile-banner">
+                <img v-if="bannerPreview || userImageUrl(profile?.banner) && !bannerFailed" 
+                :src=" bannerPreview || userImageUrl(profile.banner)" alt=""
+                  @error="bannerFailed = true" />
+                <div class="edit-banner-overlay">
+                  <span class="edit-text">Edit Banner</span>
+                </div>
+              </div>
+              <input type="file" ref="bannerInputFile" @change="handleBannerSelection" accept="image/*" class="d-none" />
             </div>
-            <div class="avatar">
-              <img v-if="userImageUrl(profile?.avatar) && !avatarFailed" :src="userImageUrl(profile.avatar)" alt=""
-                @error="avatarFailed = true" />
-              <p v-else class="header-style">{{ initials }}</p>
+
+            <div class="avatar-container" @click="triggerAvatarInput">
+              <div class="avatar">
+                <img v-if=" avatarPreview || userImageUrl(profile?.avatar) && !avatarFailed" 
+                :src=" avatarPreview || userImageUrl(profile.avatar)" alt=""
+                  @error="avatarFailed = true" />
+                <p v-else class="header-style">{{ initials }}</p>
+              </div>
+              <div class="edit-avatar-overlay">
+                  <span class="edit-text">Edit</span>
+                </div>
+              <input type="file" ref="avatarInputFile" @change="handleAvatarSelection" accept="image/*" class="d-none" />
             </div>
           </div>
 
           <div class="user-info mt-3">
             <p v-if="profileError" class="profile-error" role="alert">{{ profileError }}</p>
             <p class="full-name header-style">{{ profileName }}</p>
-            <p class="username">{{ profile?.username }}</p>
+            <p class="username"> @{{ profile?.username }}</p>
             <div class="stats-row">
               <div class="stats-item">
                 <div class="stat-number header-style">{{ eventsAttended }}</div>
@@ -318,6 +412,7 @@ async function saveProfile() {
           </div>
         </div>
       </div>
+      
 
       <!-- SETTINGS -->
       <div class="settings-card">
@@ -355,9 +450,13 @@ async function saveProfile() {
 
         <p v-if="alertMessage" class="save-message" role="status">{{ alertMessage }}</p>
       </div>
-
+      
     </div>
-
+      <div class="page-bottom">
+        <BaseButton class="delete-btn" :disabled="deleting" @click="confirmDelete">
+          {{ deleting ? 'DELETING...' : 'DELETE ACCOUNT' }}
+        </BaseButton>
+      </div>
   </div>
 </template>
 
@@ -371,6 +470,16 @@ async function saveProfile() {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 10px;
+}
+
+.page-bottom {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.delete-btn {
+  background-color: var(--color-red);
 }
 
 .page-title {
@@ -453,28 +562,112 @@ async function saveProfile() {
   margin-bottom: 35px;
 }
 
-.avatar {
-  background-color: var(--color-green);
+.banner-container {
+  position: relative;
+  cursor: pointer;
+  overflow: hidden;
+  width: 100%;
+}
+
+.edit-banner-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(23, 19, 19, 0.4); 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0; /* Hidden by default */
+  transition: opacity 0.2s ease-in-out; /* Smooth fade-in effect */
+  border-radius: 21px;
+  pointer-events: none; /* Allows clicks to pass through overlay */
+}
+
+.edit-banner-overlay .edit-text {
+  color: var(--color-white);
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  
+}
+
+/* Trigger overlay on hover */
+.banner-container:hover .edit-banner-overlay {
+  opacity: 1;
+}
+
+.avatar-container {
+  position: absolute;
+  left: 20px;
+  bottom: -30px;
   width: 80px;
   height: 80px;
+  cursor: pointer;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.edit-avatar-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(23, 19, 19, 0.4); 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0; /* Hidden by default */
+  transition: opacity 0.2s ease-in-out; /* Smooth fade-in effect */
+  border-radius: 20px;
+  pointer-events: none; /* Prevents blocking clicks */
+}
+
+.edit-avatar-overlay .edit-text {
+  color: var(--color-white);
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  
+}
+
+.avatar-container:hover .edit-avatar-overlay {
+  opacity: 1;
+}
+
+.avatar {
+  background-color: var(--color-green);
+  width: 100%;
+  height: 100%;
   border-radius: 20px;
   font-size: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding-top: 14px;
-  position: absolute;
-  left: 20px;
-  bottom: -30px;
+  position: relative;
   overflow: hidden;
+  position: relative;
+  
+}
+
+/* For when initials show as fallback instead of an image */
+.avatar p.header-style {
+  margin: 0;
+  font-size: 30px;
+  color: var(--color-white);
 }
 
 .avatar img {
   position: absolute;
-  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  top: 0;
+  left: 0;
 }
 
 .profile-banner {
@@ -565,7 +758,6 @@ async function saveProfile() {
 
 .checkboxes {
   appearance: none;
-  /* Buat ilangin style bawaan browser yang jelek */
   -webkit-appearance: none;
   width: 16px;
   height: 16px;

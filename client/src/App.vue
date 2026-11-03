@@ -62,14 +62,17 @@ function closeMobileNav() {
 <style scoped>
 .app-layout {
   display: flex;
-  width: 100vw;
+  width: 100%;
   height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
 }
 
 .main-container {
   flex: 1;
   min-width: 0;
-  height: 100vh;
+  min-height: 0;
+  height: 100%;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -77,20 +80,24 @@ function closeMobileNav() {
 
 .content-wrapper {
   flex: 1;
+  min-width: 0;
   min-height: 0;
   display: flex;
   flex-direction: column;
-  padding: 0 16px 16px 16px;
+  padding: 0 16px 16px;
+  overflow: hidden;
 }
 
 .content-scroll {
   flex: 1;
+  min-width: 0;
   min-height: 0;
   display: flex;
-  overflow-y: auto;
   flex-direction: column;
+  overflow-x: hidden;
+  overflow-y: auto;
 
-  padding: 15px;       
+  padding: 15px;
   border-radius: 25px;
   background: #5d6be4;
   box-sizing: border-box;
@@ -98,7 +105,7 @@ function closeMobileNav() {
 
 @media (max-width: 767.98px) {
   .content-wrapper {
-    padding: 0 12px 12px 12px;
+    padding: 0 12px 12px;
   }
 
   .content-scroll {

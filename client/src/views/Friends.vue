@@ -4,7 +4,7 @@
   Needs: FolderTabs.vue, useLobbies.js (friends list), useFriendRequests.js, friendsApi.js
 -->
 <template>
-  <div class="app theme-blue">
+  <div class="app">
     <!-- ───── Heading ───── -->
     <header class="head">
       <h2 class="page-title">Friends</h2>
@@ -36,7 +36,7 @@
                       <button class="badge-pill pill-grey" type="button" @click="removingId = null">Cancel</button>
                     </template>
                     <template v-else>
-                      <span class="avatar" :style="{ background: f.color }">{{ initials(f.name) }}</span>
+                      <span class="avatar" :style="{ background: f.color }">{{ initials(f.name) }}<AvatarPic :path="f.avatar" /></span>
                       <span class="who">{{ f.name }}</span>
                       <button class="remove-x" type="button" :aria-label="`Remove ${f.name}`"
                         :title="`Remove ${f.name}`" @click="removingId = f.id">✕</button>
@@ -63,7 +63,7 @@
                 <ul class="people">
                   <li v-for="r in incoming" :key="r._id" class="person">
                     <span class="avatar" :style="{ background: colorFor(r.requester._id) }">{{
-                      initials(r.requester.username) }}</span>
+                      initials(r.requester.username) }}<AvatarPic :path="r.requester.avatar" /></span>
                     <span class="who">{{ r.requester.username }}</span>
                     <button class="badge-pill pill-invite" type="button" :disabled="busyId === r._id"
                       @click="accept(r)">Accept</button>
@@ -86,7 +86,7 @@
                 <ul class="people">
                   <li v-for="r in outgoing" :key="r._id" class="person">
                     <span class="avatar" :style="{ background: colorFor(r.receiver._id) }">{{
-                      initials(r.receiver.username) }}</span>
+                      initials(r.receiver.username) }}<AvatarPic :path="r.receiver.avatar" /></span>
                     <span class="who">{{ r.receiver.username }}</span>
                     <span class="badge-pill pill-pending">Sent</span>
                     <button class="badge-pill pill-grey" type="button" :disabled="busyId === r._id"
@@ -107,6 +107,7 @@
 
               <label class="search">
                 <span class="sr">Search users</span>
+                <span class="at" aria-hidden="true">@</span>
                 <input v-model="query" type="search" placeholder="Type at least 2 letters" autocomplete="off" />
               </label>
 
@@ -114,13 +115,13 @@
 
               <p v-if="searching" class="section-sub hint-row">Searching…</p>
               <p v-else-if="query.trim().length >= 2 && !results.length" class="section-sub hint-row">
-                No one found for "{{ query.trim() }}". Check the spelling.
+                No one found for "@{{ query.trim() }}". Check the spelling.
               </p>
 
               <div v-if="results.length" class="scroll">
                 <ul class="people">
                   <li v-for="u in results" :key="u._id" class="person">
-                    <span class="avatar" :style="{ background: colorFor(u._id) }">{{ initials(u.username) }}</span>
+                    <span class="avatar" :style="{ background: colorFor(u._id) }">{{ initials(u.username) }}<AvatarPic :path="u.avatar" /></span>
                     <span class="who">{{ u.username }}</span>
                     <span v-if="isFriend(u._id)" class="badge-pill pill-accepted">Friends</span>
                     <span v-else-if="isSent(u._id)" class="badge-pill pill-pending">Sent</span>
@@ -145,6 +146,7 @@ import FolderTabs from '../components/FolderTabs.vue'
 import { useLobbies, colorFor } from '../composables/useLobbies'
 import { useFriendRequests } from '../composables/useFriendRequests'
 import { friendsApi } from '../api/friendsApi'
+import AvatarPic from '../components/AvatarPic.vue'
 import { useRoute } from 'vue-router'
 
 const route = useRoute()
@@ -227,6 +229,8 @@ const error = ref('')
 
 let timer
 watch(query, (q) => {
+  // the box already shows the @, so drop one that's typed or pasted
+  if (/^\s*@/.test(q)) { query.value = q.replace(/^\s*@+/, ''); return }
   clearTimeout(timer)
   error.value = ''
   if (q.trim().length < 2) { results.value = []; searching.value = false; return }
@@ -259,9 +263,13 @@ let poll
 onMounted(() => {
   lobbies.loadFriends()
   reqs.load()
-  poll = setInterval(reqs.load, 15000)
-  poll = setInterval(() => { reqs.load(); lobbies.loadFriends() }, 15000)
+
+  poll = setInterval(() => {
+    reqs.load()
+    lobbies.loadFriends()
+  }, 15000)
 })
+
 onBeforeUnmount(() => {
   clearTimeout(timer)
   clearInterval(poll)
@@ -287,10 +295,7 @@ onBeforeUnmount(() => {
   gap: 15px;
   height: 100vh;
   height: 100dvh;
-  padding: 15px;
   text-align: left;
-  background: var(--blue);
-  color: var(--ink);
   font-family: 'TextFont', sans-serif;
   font-size: 11px;
   box-sizing: border-box;
@@ -488,14 +493,12 @@ button.badge-pill:disabled {
 }
 
 /* search box, same look as the lobby link box */
-.search {
-  display: block;
-}
-
+.search { display: block; position: relative; }
+.search .at { position: absolute; left: 16px; top: 0; line-height: 35px; color: var(--ink); font-size: 11px; font-weight: 700; pointer-events: none; }
 .search input {
   width: 100%;
   height: 35px;
-  padding: 3px 16px 0;
+  padding: 3px 16px 0 29px;
   border: 1px solid transparent;
   border-radius: 999px;
   background: var(--card);
@@ -551,7 +554,7 @@ button.badge-pill:disabled {
   border-radius: 50%;
   font-weight: 700;
   font-size: 11px;
-  padding-top: 2px;
+  padding-top: 2px; position: relative;
 }
 
 .who {

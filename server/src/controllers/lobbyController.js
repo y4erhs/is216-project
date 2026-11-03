@@ -25,18 +25,21 @@ exports.getLobbyForUser = async (req,res) =>{
                 ...lobby.participants.map(user => ({
                     id: user._id,
                     name: user.username,
+                    avatar: user.avatar,
                     status: 'accepted'
                 })),
 
                 ...lobby.invited.map(user => ({
                     id: user._id,
                     name: user.username,
+                    avatar: user.avatar,
                     status: 'pending'
                 })),
 
                 ...lobby.declined.map(user => ({
                     id: user._id,
                     name: user.username,
+                    avatar: user.avatar,
                     status: 'declined'
                 }))
             ];
@@ -71,18 +74,21 @@ exports.getLobbyById = async (req, res) => {
             ...lobby.participants.map(user => ({
                 id: user._id,
                 name: user.username,
+                avatar: user.avatar,
                 status: 'accepted'
             })),
 
             ...lobby.invited.map(user => ({
                 id: user._id,
                 name: user.username,
+                avatar: user.avatar,
                 status: 'pending'
             })),
 
             ...lobby.declined.map(user => ({
                 id: user._id,
                 name: user.username,
+                avatar: user.avatar,
                 status: 'declined'
             }))
         ];

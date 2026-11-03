@@ -139,6 +139,21 @@ exports.signUpUser = async (req, res) => {
             'Registered'
         );
 
+        const hasUpcomingSession =
+            updatedEvent.sessions?.some(session => {
+                const start =new Date(session.startTime);
+                const now = new Date();
+                return (
+                    start > now &&
+                    start.getTime() - now.getTime()
+                        <= 24 * 60 * 60 * 1000
+                );
+            });
+          
+        const existing =await Notification.findOne({userId: userId,eventId: updatedEvent._id,type: 'upcoming_event'});
+        if (hasUpcomingSession && !existing) {
+            await notificationController.notifyUpcomingEvent(userId,updatedEvent);
+        }
         return res.status(200).json(updatedEvent);
 
     } catch (err) {
