@@ -141,6 +141,28 @@ onBeforeUnmount(() => {
 <style scoped>
 .base-input-group {
   width: 100%;
+
+  /* default & base look for the input field */
+  --field-bg: var(--color-grey);
+  --field-text: var(--color-black);
+  --field-hover: #c5d2e7;
+  --field-focus-bg: #ffffff;
+  --field-focus-border: #4b74f6;
+  --field-focus-ring: rgba(75, 116, 246, 0.15);
+
+  --menu-bg: var(--color-white);
+  --menu-border: var(--color-grey);
+  --menu-hover: var(--color-grey);
+  --menu-text: var(--color-black);
+}
+
+.base-input-group[class*="theme-"] {
+  --field-bg: var(--bg);
+  --field-text: var(--text);
+  --field-hover: color-mix(in srgb, var(--bg) 88%, black);
+  --field-focus-bg: var(--bg);
+  --field-focus-border: var(--text);
+  --field-focus-ring: color-mix(in srgb, var(--text) 20%, transparent);
 }
 
 .input-label {
@@ -151,11 +173,11 @@ onBeforeUnmount(() => {
 }
 
 .base-field {
-  background-color: var(--color-grey);
+  background-color: var(--field-bg);
   border: 1px solid transparent;
   border-radius: 13px;
   min-height: 35px;
-  color: var(--color-black);
+  color: var(--field-text);
   padding: 5px 16px;
   padding-top: 8px;
   font-size: 13px;
@@ -166,18 +188,18 @@ onBeforeUnmount(() => {
 }
 
 .base-field:hover:not(:disabled):not(.is-disabled) {
-  background-color: #c5d2e7;
+  background-color: var(--field-hover);
 }
 
 .base-field:focus {
-  background-color: #ffffff;
-  border-color: #4b74f6;
-  box-shadow: 0 0 0 3px rgba(75, 116, 246, 0.15);
+  background-color: var(--field-focus-bg);
+  border-color: var(--field-focus-border);
+  box-shadow: 0 0 0 3px var(--field-focus-ring);
 }
 
 .base-field::placeholder,
 .placeholder-text {
-  color: var(--color-black);
+  color: var(--field-text);
   opacity: 0.6;
 }
 
@@ -209,8 +231,8 @@ onBeforeUnmount(() => {
   display: inline-block;
   width: 7px;
   height: 7px;
-  border-right: 2px solid var(--color-black); 
-  border-bottom: 2px solid var(--color-black); 
+  border-right: 2px solid var(--field-text);
+  border-bottom: 2px solid var(--field-text);
   transform: rotate(45deg);          
   transition: transform 0.25s ease;
   margin-right: 2px;
@@ -226,38 +248,38 @@ onBeforeUnmount(() => {
 }
 
 .dropdown-options-menu {
-  position: relative;
-  margin-top: 6px;
-  top: calc(100% + 6px);
+  position: absolute;         
+  top: 100%;
   left: 0;
+  margin-top: 6px;
   width: 100%;
-  background-color: var(--color-white);
-  border: solid 1.5px;
-  border-color: var(--color-grey);
+  background-color: var(--menu-bg);
+  border: solid 1.5px var(--menu-border);
   border-radius: 15px;
   padding: 6px;
   z-index: 1000;
   max-height: 200px;
   overflow-y: auto;
+  box-shadow: 0 8px 20px rgba(10, 29, 43, 0.18);
 }
 
 .dropdown-option-item {
   padding: 5px 12px;
   padding-top: 8px;
   border-radius: 10px;
-  color: var(--color-black);
+  color: var(--menu-text);
   font-size: 13px;
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
 .dropdown-option-item:hover {
-  background-color: var(--color-grey);
+  background-color: var(--menu-hover);
 }
 
 .dropdown-option-item.is-active {
-  background-color: var(--color-grey);
-  color: var(--color-black);
+  background-color: var(--menu-hover);
+  color: var(--menu-text);
 }
 
 .is-disabled {

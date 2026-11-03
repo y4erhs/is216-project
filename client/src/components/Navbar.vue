@@ -4,6 +4,8 @@ import { useFriendRequests } from '../composables/useFriendRequests'
 import { computed, ref, watch } from "vue";
 import { useAuth } from "../composables/useAuth";
 import { userAvatarUrl, userInitials, userName, userSubtitle } from "../utils/userDisplay";
+import { useUserStore } from "../stores/userStore";
+import { useRouter } from "vue-router";
 import "../assets/theme.css";
 
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -19,20 +21,33 @@ defineProps({
 });
 
 const { user } = useAuth();
+const userStore = useUserStore();
+const router = useRouter();
+
 const avatarUrl = computed(() => userAvatarUrl(user.value));
-const avatarFailed = ref(false);   // show the initials if the picture can't load
+const avatarFailed = ref(false);
 watch(avatarUrl, () => { avatarFailed.value = false; });
 
 const reqs = useFriendRequests();
 onMounted(() => reqs.load());
 
 const isCollapsed = ref(false);
+const showMenuBox = ref(false);
 
 const emit = defineEmits(["close", "collapse-change"]);
 
 watch(isCollapsed, (value) => {
   emit("collapse-change", value);
 });
+
+function toggleMenuBox() {
+  showMenuBox.value = !showMenuBox.value;
+}
+
+const handleLogout = () => {
+  userStore.logout();
+  router.push('/login');
+};
 </script>
 
 <template>
@@ -130,30 +145,23 @@ watch(isCollapsed, (value) => {
           <span class="header-style">Friends</span>
         </div>
       </RouterLink>
-
-      <RouterLink
-        to="/profile"
-        class="tab-pill theme-grey"
-        :title="isCollapsed ? 'Profile & alerts' : ''"
-      >
-        <div class="pill-icon">
-          <i class="bi bi-person-circle fs-5"></i>
-        </div>
-        <span v-if="!isCollapsed" class="pill-neck"></span>
-        <div v-if="!isCollapsed" class="pill-label">
-          <span class="header-style">Profile & Settings</span>
-        </div>
-      </RouterLink>
     </div>
 
-    <div class="user-profile mt-auto pt-3 border-top">
-      <div class="avatar-badge">
-        <img v-if="avatarUrl && !avatarFailed" :src="avatarUrl" alt="" @error="avatarFailed = true" />
-        <template v-else>{{ userInitials(user) }}</template>
+    <div class="user-profile-wrapper mt-auto pt-3 border-top position-relative">
+      <div class="user-profile" @click="toggleMenuBox">
+        <div class="avatar-badge">
+          <img v-if="avatarUrl && !avatarFailed" :src="avatarUrl" alt="" @error="avatarFailed = true" />
+          <template v-else>{{ userInitials(user) }}</template>
+        </div>
+        <div v-if="!isCollapsed" class="user-info">
+          <span class="user-name" :title="userName(user)">{{ userName(user) }}</span>
+          <span v-if="userSubtitle(user)" class="user-desc" :title="userSubtitle(user)">{{ userSubtitle(user) }}</span>
+        </div>
       </div>
-      <div v-if="!isCollapsed" class="user-info">
-        <span class="user-name" :title="userName(user)">{{ userName(user) }}</span>
-        <span v-if="userSubtitle(user)" class="user-desc" :title="userSubtitle(user)">{{ userSubtitle(user) }}</span>
+
+      <div v-if="showMenuBox" class="popup-menu-box shadow-sm">
+        <RouterLink to="/profile" class="popup-item header-style" @click="showMenuBox = false">profile & settings</RouterLink>
+        <a href="#" class="popup-item header-style logout" @click.prevent="handleLogout(); showMenuBox = false">logout</a>
       </div>
     </div>
   </aside>
@@ -358,10 +366,53 @@ aside {
   color: var(--text, #0a1d2b) !important;
 }
 
+.user-profile-wrapper {
+  position: relative;
+}
+
 .user-profile {
   display: flex;
   align-items: center;
   gap: 10px;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 10px;
+  transition: background-color 0.2s ease;
+}
+
+.user-profile:hover {
+  background-color: #f1f5f9;
+}
+
+.popup-menu-box {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  width: 100%;
+  min-width: 150px;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 1060;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.popup-item {
+  text-decoration: none;
+  color: #0a1d2b;
+  font-size: 13px;
+  padding: 10px 12px 6px 12px;
+  border-radius: 8px;
+  transition: background-color 0.15s ease;
+}
+
+.popup-item:hover {
+  background-color: #f1f5f9;
+  color: #0a1d2b;
 }
 
 .avatar-badge {
