@@ -154,18 +154,17 @@
               <h3 class="section-title">Pitch an event</h3>
               <p class="section-sub">Friends can still accept or decline while you choose.</p>
 
-                <div class="filter-row" role="group" aria-label="Which events to show">
-                  <button type="button" class="pitch-chip" :class="{ on: pitchMode === 'interested' }"
-                          :aria-pressed="pitchMode === 'interested'" @click="pitchPick = 'interested'">
-                    <span v-if="pitchMode === 'interested'" aria-hidden="true">✓</span>
-                    Interested <b>{{ interestedUpcoming.length }}</b>
-                  </button>
-                  <button type="button" class="pitch-chip" :class="{ on: pitchMode === 'all' }"
-                          :aria-pressed="pitchMode === 'all'" @click="pitchPick = 'all'">
-                    <span v-if="pitchMode === 'all'" aria-hidden="true">✓</span>
-                    All events <b>{{ upcomingEvents.length }}</b>
-                  </button>
-                </div>
+              <div class="filter-row" role="group" aria-label="Which events to show">
+                <button type="button" class="pitch-chip" :class="{ on: pitchMode === 'interested' }"
+                        :aria-pressed="pitchMode === 'interested'" @click="pitchPick = 'interested'">
+                  <span v-if="pitchMode === 'interested'" aria-hidden="true">✓</span>
+                  Interested <b>{{ interestedUpcoming.length }}</b>
+                </button>
+                <button type="button" class="pitch-chip" :class="{ on: pitchMode === 'all' }"
+                        :aria-pressed="pitchMode === 'all'" @click="pitchPick = 'all'">
+                  <span v-if="pitchMode === 'all'" aria-hidden="true">✓</span>
+                  All events <b>{{ upcomingEvents.length }}</b>
+                </button>
               </div>
 
               <div v-if="!pitchable.length" class="empty-note">
@@ -269,6 +268,7 @@
           <p>No events yet. Pitch one to your group.</p>
           <BaseButton v-if="isHost" class="theme-green" @click="goTo('register')">Choose event</BaseButton>
         </div>
+       </div>
       </div>
     </aside>
 
