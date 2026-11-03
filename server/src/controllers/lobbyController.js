@@ -114,19 +114,25 @@ exports.inviteUser = async (req, res) => {
     if (!lobby.participants.some(id => same(id, inviterId))) {
       return res.status(403).json({message: 'Only lobby members can invite'});
     }
+
+    // ONLY block if they are currently an active participant or pending invite.
+    // If they are in 'declined', we want to allow re-inviting them!
     if ([...lobby.participants, ...lobby.invited].some(id => same(id, userId))){
       return res.status(400).json({message: 'Already in this lobby or invited'});
     }
+
     if (!(await Friends.areFriends(inviterId, userId))) {
       return res.status(403).json({message: 'You can only invite friends'});
     }
-    const updated = await Lobby.inviteUser(lobbyId,userId);
-    await notificationController.notifyLobbyInvite(userId,updated,updated.host?.username || 'Someone');
+    
+    const updated = await Lobby.inviteUser(lobbyId, userId);
+    await notificationController.notifyLobbyInvite(userId, updated, updated.host?.username || 'Someone');
     res.json(updated);
   } catch (err) {
     res.status(500).json({error: err.message});
   }
 };
+
 exports.acceptInvite = async (req,res) =>{
     try{
         const {lobbyId, userId} = req.body;

@@ -60,6 +60,22 @@ function toLobby(raw) {
     memberIds: (h.memberIds || []).map(idOf),
     at: ts(h.registeredAt),
   }))
+
+  // Deduplicate members by ID to prevent duplicate entries
+  const memberMap = new Map()
+  ;(raw.members || []).forEach((m) => {
+    const id = String(m.id)
+    // If a member has multiple states, you can prioritize 'accepted' or latest, 
+    // here we ensure each ID only registers once:
+    memberMap.set(id, {
+      id,
+      name: m.name,
+      status: m.status,
+      color: colorFor(id),
+      avatar: m.avatar,
+    })
+  })
+
   return {
     id: String(raw._id),
     name: raw.name,
@@ -67,11 +83,8 @@ function toLobby(raw) {
     hostId: idOf(raw.host),
     createdAt: ts(raw.createdAt),
     lastActiveAt: ts(raw.lastActiveAt),
-    members: (raw.members || []).map((m) => ({
-      id: String(m.id), name: m.name, status: m.status, color: colorFor(m.id), avatar: m.avatar,
-    })),
+    members: Array.from(memberMap.values()),
     pitchedEventId,
-    // "registered" = the current event is already in the history
     registered: !!pitchedEventId && history.some((h) => h.eventId === pitchedEventId),
     history,
   }

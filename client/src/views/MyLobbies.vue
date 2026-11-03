@@ -54,7 +54,7 @@
 
             <span class="foot">
               <span class="stack" aria-hidden="true">
-                <i v-for="m in l.members.slice(0, 4)" :key="m.id"
+                <i v-for="m in activeMembers(l).slice(0, 4)" :key="m.id"
                   :style="{ background: m.color || 'var(--color-white)' }">{{
                     initials(m.name) }}
                   <AvatarPic :path="m.avatar" />
@@ -116,11 +116,6 @@ const eventOptions = computed(() => {
 const roleLabel = (l) => (store.needsReply(l) ? 'Needs Reply' : store.isHost(l) ? 'Host' : 'Member')
 const roleClass = (l) => (store.needsReply(l) ? 'pill-pending' : store.isHost(l) ? 'pill-host' : 'pill-member')
 
-function metaText(l) {
-  const n = `${l.members.length} ${l.members.length === 1 ? 'member' : 'members'}`
-  return store.isHost(l) ? `${n}, active ${timeAgo(l.lastActiveAt)}` : n
-}
-
 function eventLines(l) {
   const lines = []
   if (l.pitchedEventId && !l.registered) lines.push(`Pitched: ${eventTitle(l.pitchedEventId)}`)
@@ -132,12 +127,6 @@ function eventLines(l) {
   return lines
 }
 
-const chips = computed(() => [
-  { id: 'all', label: 'All', count: lobbies.length },
-  { id: 'hosting', label: 'Hosting', count: lobbies.filter(store.isHost).length },
-  { id: 'joined', label: 'Joined', count: lobbies.filter((l) => !store.isHost(l)).length },
-  { id: 'reply', label: 'Needs Reply', count: lobbies.filter(store.needsReply).length },
-])
 
 function matches(l) {
   if (filter.value === 'hosting' && !store.isHost(l)) return false
@@ -155,8 +144,40 @@ function matches(l) {
   return hay.includes(term)
 }
 
+// Added a helper to get unique, non-declined members for a lobby card
+function activeMembers(l) {
+  const map = new Map()
+  l.members
+    ?.filter(m => m.status !== 'declined')
+    .forEach(m => map.set(m.id, m))
+  return Array.from(map.values())
+}
+
+function metaText(l) {
+  const members = activeMembers(l)
+  const n = `${members.length} ${members.length === 1 ? 'member' : 'members'}`
+  return store.isHost(l) ? `${n}, active ${timeAgo(l.lastActiveAt)}` : n
+}
+
+const userLobbies = computed(() => {
+  return lobbies.filter((l) => {
+    if (store.isHost(l)) return true
+    const me = l.members.find((m) => m.id === store.meId())
+    // Hide lobby completely if user declined
+    return me && me.status !== 'declined'
+  })
+})
+
+const chips = computed(() => [
+  { id: 'all', label: 'All', count: userLobbies.value.length },
+  { id: 'hosting', label: 'Hosting', count: userLobbies.value.filter(store.isHost).length },
+  { id: 'joined', label: 'Joined', count: userLobbies.value.filter((l) => !store.isHost(l)).length },
+  { id: 'reply', label: 'Needs Reply', count: userLobbies.value.filter(store.needsReply).length },
+])
+
+
 const rows = computed(() =>
-  lobbies
+  userLobbies.value
     .filter(matches)
     .slice()
     .sort((a, b) => Number(store.needsReply(b)) - Number(store.needsReply(a)) || b.lastActiveAt - a.lastActiveAt)
