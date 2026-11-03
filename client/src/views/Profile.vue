@@ -246,7 +246,7 @@ async function saveProfile() {
     savedInterests.value = [...categories.value]
 
     profile.value = { ...profile.value, avatar: data.avatar, banner: data.banner }
-    setSession(data)   // the sidebar shows the new course, year and picture straight away
+    setSession(data || data.user )   // the sidebar shows the new course, year and picture straight away
     saveMessage.value = 'Changes saved!'
     showInterestDropdown.value = false
     showClubDropdown.value = false
