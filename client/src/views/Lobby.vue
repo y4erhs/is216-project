@@ -47,19 +47,6 @@
         <template #invite>
           <div class="pane">
             <section>
-<<<<<<< HEAD
-              <h3 class="section-title">Invite link</h3>
-              <p class="section-sub">Anyone with the link can join the lobby.</p>
-              <div class="link-box">
-                <input class="link-input" readonly :value="inviteLink" aria-label="Invite link"
-                  @focus="$event.target.select()" />
-                <BaseButton class="theme-purple" type="button" @click="copyLink">{{ copied ? 'Copied' : 'Copy' }}</BaseButton>
-              </div>
-            </section>
-
-            <section>
-=======
->>>>>>> 6cb8309a2533c74021678adf99bd55c6ab8a7bb7
               <h3 class="section-title">Invite friends</h3>
               <p v-if="!friends.length" class="section-sub">
                 No friends yet. <RouterLink to="/friends" style="color:#fff">Add some</RouterLink>

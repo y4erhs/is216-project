@@ -270,6 +270,20 @@ watch(() => props.modelValue, (newVal) => {
   overflow: hidden;
 }
 
+:deep(.folder-body) {
+  height: 520px !important; 
+  max-height: 520px !important;
+  min-height: 520px !important;
+  overflow: hidden !important;
+}
+
+:deep(.inner-folder) {
+  height: 100% !important;
+  max-height: 100% !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+
 /* =========================================
    INNER FOLDER
    Must NOT grow based on card contents

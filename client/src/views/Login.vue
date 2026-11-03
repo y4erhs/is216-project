@@ -140,6 +140,7 @@ const handleSendReset = async () => {
                   type="password"
                   placeholder="Password"
                   v-model="password"
+                  @keyup.enter="handleLogin"
                 />
 
                 <p v-if="errorMsg" style="color: #e63c25;">{{ errorMsg }}</p>
@@ -175,6 +176,7 @@ const handleSendReset = async () => {
                 placeholder="Enter Email"
                 v-model="resetEmail"
                 required
+                @keyup.enter="handleSendReset"
               />
 
               <!-- Feedback messages -->
