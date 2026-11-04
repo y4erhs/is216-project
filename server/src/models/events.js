@@ -48,6 +48,10 @@ const eventSchema = new mongoose.Schema({
         type: String,
         default: ''
     },
+    registrationUrl: {
+        type: String,
+        default: ''
+    },
     image: {
         type: String,
         default: ''

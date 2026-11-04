@@ -11,6 +11,18 @@ const client = new OpenAI({
 // (client/src/utils/interests.js), so the Discover tabs and recommendations line up with them.
 const ALLOWED_TAGS = ['tech', 'arts', 'culture', 'community-service', 'sports-outdoors', 'career', 'overseas', 'networking', 'workshops', 'food', 'wellness', 'talks'];
 
+// The AI's sign-up link as a full web address, or '' if it isn't one (e.g. "bit.ly/x" gets https://)
+function toWebLink(value) {
+    if (typeof value !== 'string' || !value.trim()) return '';
+    const text = value.trim();
+    try {
+        const url = new URL(/^[a-z][a-z0-9+.-]*:/i.test(text) ? text : `https://${text}`);
+        return ['http:', 'https:'].includes(url.protocol) ? url.href : '';
+    } catch {
+        return '';
+    }
+}
+
 exports.parseMessage = async (msgDoc) => {
     try {
         const prompt = `You extract campus event details from a Singapore university CCA's Telegram post.
@@ -26,7 +38,8 @@ Otherwise reply with ONLY a JSON object in this exact format:
 {
   "isEvent": true,
   "title": "<short event name>",
-  "description": "<2-3 sentence summary for students; include any sign-up link>",
+  "description": "<2-3 sentence summary for students>",
+  "registrationUrl": "<the sign-up or registration link exactly as written in the post, or null>",
   "organiser": "<organising CCA or club, or null>",
   "venue": "<venue, or null>",
   "sessions": [{"startTime": "<ISO 8601 with +08:00>", "endTime": "<ISO 8601 with +08:00, or null>"}],
@@ -76,6 +89,7 @@ All times are Singapore time. Never invent details; use null if something is not
             sourceLink: chatIdStr.startsWith('-100')
                 ? `https://t.me/c/${chatIdStr.slice(4)}/${msgDoc.messageId}`
                 : '',
+            registrationUrl: toWebLink(data.registrationUrl),
             status: 'published',
             image: msgDoc.image || ''
         };

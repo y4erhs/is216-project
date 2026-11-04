@@ -302,11 +302,6 @@ function handleCardClick(event) {
     showCardInfo.value = true
 }
 
-function handleRegister(url) {
-    if (url) {
-        window.open(url, '_blank', 'noopener,noreferrer')
-    }
-}
 </script>
 
 <template>
@@ -365,8 +360,7 @@ function handleRegister(url) {
                                 <CardInfo :event="selectedEvent"
                                     :is-attending="Object.values(activityMap[selectedEvent._id || selectedEvent.id]?.sessions || {}).includes('attending')"
                                     @close="showCardInfo = false"
-                                    @save-note="text => saveNote(selectedEvent._id || selectedEvent.id, text)"
-                                    @register="handleRegister" />
+                                    @save-note="text => saveNote(selectedEvent._id || selectedEvent.id, text)" />
                             </div>
 
                             <!-- EVENT GRID -->

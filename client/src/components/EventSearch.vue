@@ -166,10 +166,6 @@ watch(() => route.query.q, (q) => {
     searchFromTopBar()
 })
 
-function handleRegister(url) {
-    if (url) window.open(url, '_blank', 'noopener,noreferrer')
-}
-
 // Interests loading or changing only re-runs a search that's already showing
 watch(myInterests, () => {
     if (hasSearched.value) searchEvents()
@@ -221,7 +217,6 @@ watch(myInterests, () => {
             :event="selectedEvent"
             @close="selectedEvent = null"
             @save-note="text => saveNote(selectedEvent._id, text)"
-            @register="handleRegister"
         />
 
         <!-- Results (only after a search) -->

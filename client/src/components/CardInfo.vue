@@ -12,7 +12,7 @@ const props = defineProps({
   isAttending: { type: Boolean, default: false }
 })
 
-const emit = defineEmits(['close', 'save-note', 'register'])
+const emit = defineEmits(['close', 'save-note'])
 const noteText = ref(props.initialNote)
 const isSaved = ref(false)
 
@@ -29,8 +29,11 @@ function handleClear() {
   emit('save-note', '')
 }
 
+// The sign-up link, or the original post if the event doesn't have one
+const registerLink = computed(() => props.event.registrationUrl || props.event.sourceLink || '')
+
 function handleRegister() {
-  emit('register', props.event.registrationUrl)
+  window.open(registerLink.value, '_blank', 'noopener,noreferrer')
 }
 
 const { userId } = useAuth()
@@ -239,8 +242,8 @@ const displayTime = computed(() => {
             <div v-else class="poster-placeholder"></div>
           </div>
 
-          <BaseButton class="action-pill-btn btn-blue registration-btn" @click="handleRegister">
-            REGISTRATION LINK
+          <BaseButton v-if="registerLink" class="action-pill-btn btn-blue registration-btn" @click="handleRegister">
+            {{ event.registrationUrl ? 'REGISTRATION LINK' : 'VIEW ORIGINAL POST' }}
           </BaseButton>
 
         </div>
