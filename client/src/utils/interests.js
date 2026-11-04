@@ -2,18 +2,18 @@
 // Users and events store the id; the app shows the label.
 // Keep the ids in sync with ALLOWED_TAGS in server/src/services/telegramParserService.js
 export const INTERESTS = [
-    { id: 'tech', label: 'Tech' },
-    { id: 'arts', label: 'Arts' },
-    { id: 'culture', label: 'Cultural Clubs' },
-    { id: 'community-service', label: 'Community Service' },
-    { id: 'sports-outdoors', label: 'Sports and Outdoors' },
-    { id: 'career', label: 'Career' },
-    { id: 'overseas', label: 'Overseas Activities' },
-    { id: 'networking', label: 'Networking Event' },
-    { id: 'workshops', label: 'Skills Upgrading Workshop' },
-    { id: 'food', label: 'Food' },
-    { id: 'wellness', label: 'Wellness' },
-    { id: 'talks', label: 'Guest Lectures' }
+    { id: 'tech', label: 'Tech', image: '/tech.png' },
+    { id: 'arts', label: 'Arts', image: '/arts.png' },
+    { id: 'culture', label: 'Cultural Clubs', image: '/culture.png' },
+    { id: 'community-service', label: 'Community Service', image: '/cs.png' },
+    { id: 'sports-outdoors', label: 'Sports and Outdoors', image: '/sports.png' },
+    { id: 'career', label: 'Career', image: '/career.png' },
+    { id: 'overseas', label: 'Overseas Activities', image: '/overseas.png' },
+    { id: 'networking', label: 'Networking Event', image: '/networking.png' },
+    { id: 'workshops', label: 'Skills Upgrading Workshop', image: '/workshops.png' },
+    { id: 'food', label: 'Food', image: '/food.png' },
+    { id: 'wellness', label: 'Wellness', image: '/wellness.png' },
+    { id: 'talks', label: 'Guest Lectures', image: '/talks.png' }
 ]
 
 // The colour of an interest's Discover tab and pill
