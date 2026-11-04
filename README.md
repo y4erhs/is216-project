@@ -142,7 +142,7 @@ Open http://localhost:5173. The server address defaults to `http://localhost:800
 
 | Username | Password | Notes |
 |---|---|---|
-| `<TO FILL IN>` | `<TO FILL IN>` | Account with friends, lobbies and events set up |
+| Testuser | Testuser1234. | Account with friends, lobbies and events set up |
 | `<TO FILL IN>` | `<TO FILL IN>` | Second account, for testing invites between two people |
 
 You can also create a new account on the Sign Up page with any email ending in `@smu.edu.sg`.

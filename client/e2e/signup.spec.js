@@ -2,7 +2,6 @@ import { test, expect } from '@playwright/test';
 
 const PASSWORD = process.env.TEST_PASS ?? 'Testuser1234.';
 
-// Short + unique per run. If your backend limits username length, shorten further.
 function uniqueUser() {
   const username = `tu${Date.now().toString(36)}`;
   return { username, email: `${username}@smu.edu.sg` };
@@ -19,7 +18,6 @@ async function fillAccountStep(
   await page.getByRole('button', { name: 'REGISTER' }).click();
 }
 
-// BaseInput gets class="select-course" / "select-year", which fall through to its root element
 async function selectOption(page, selector, option) {
   await page.locator(selector).click();
   await page.getByText(option, { exact: true }).click();
@@ -49,7 +47,6 @@ test.describe('account step validation', () => {
 });
 
 test('Google sign-up skips the account step', async ({ page }) => {
-  // Fake the backend's reply so no real Google login is needed
   await page.route('**/auth/google/signin/signup-info**', route =>
     route.fulfill({
       json: { email: 'googleuser@smu.edu.sg', name: 'Google User' },
