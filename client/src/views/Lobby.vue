@@ -156,33 +156,38 @@
 
             <section v-else-if="!isHost">
               <h3 class="section-title">Pitched event</h3>
-              <br>
-              <div v-if="selectedEvent" class="event-body">
+              <div v-if="selectedEvent" class="event-body pitched-card">
                 <strong>{{ selectedEvent.title }}</strong>
                 <span>{{ selectedEvent.date }}</span>
                 <span>{{ selectedEvent.venue }}</span>
                 <span class="event-meta">{{ selectedEvent.limitsText }}</span>
               </div>
               <p v-else class="section-sub">{{ hostName }} hasn't picked an event yet.</p>
-              <br>
               <p class="section-sub">{{ hostName }} registers the group once enough people have accepted.</p>
             </section>
 
             <section v-else class="fill">
-              <h3 class="section-title">Pitch an event</h3>
-              <p class="section-sub">Friends can still accept or decline while you choose.</p>
+              <div class="pitch-head">
+                <div class="pitch-text">
+                  <h3 class="section-title">Pitch an event</h3>
+                  <p class="section-sub">Friends can still accept or decline while you choose.</p>
+                </div>
 
-              <div class="filter-row" role="group" aria-label="Which events to show">
-                <button type="button" class="pitch-chip" :class="{ on: pitchMode === 'interested' }"
-                        :aria-pressed="pitchMode === 'interested'" @click="pitchPick = 'interested'">
-                  <span v-if="pitchMode === 'interested'" aria-hidden="true">✓</span>
-                  Interested <b>{{ interestedUpcoming.length }}</b>
-                </button>
-                <button type="button" class="pitch-chip" :class="{ on: pitchMode === 'all' }"
-                        :aria-pressed="pitchMode === 'all'" @click="pitchPick = 'all'">
-                  <span v-if="pitchMode === 'all'" aria-hidden="true">✓</span>
-                  All events <b>{{ upcomingEvents.length }}</b>
-                </button>
+                <div class="filter-row" role="group" aria-label="Which events to show">
+                  <button type="button" class="pitch-chip" :class="{ on: pitchMode === 'interested' }"
+                          :aria-pressed="pitchMode === 'interested'" @click="pitchPick = 'interested'">
+                    <span v-if="pitchMode === 'interested'" aria-hidden="true">✓</span>
+                    Interested <b>{{ interestedUpcoming.length }}</b>
+                  </button>
+                  <button type="button" class="pitch-chip" :class="{ on: pitchMode === 'all' }"
+                          :aria-pressed="pitchMode === 'all'" @click="pitchPick = 'all'">
+                    <span v-if="pitchMode === 'all'" aria-hidden="true">✓</span>
+                    All events <b>{{ upcomingEvents.length }}</b>
+                  </button>
+                  <button v-if="selectedEvent" type="button" class="pitch-chip" @click="selectedEventId = null">
+                    ✕ Clear selection
+                  </button>
+                </div>
               </div>
 
               <div v-if="!pitchable.length" class="empty-note">
@@ -206,6 +211,7 @@
                       </span>
                       <span class="event-meta">{{ e.limitsText }}</span>
                       <span v-if="usedEventIds.has(e.id)" class="badge-pill pill-accepted">Already registered</span>
+                      <span v-if="e.slotsLeft === 0" class="badge-pill pill-danger">Full</span>
                     </span>
                   </label>
                 </div>
@@ -231,8 +237,8 @@
         </div>
         <p v-else class="hint">Choose an event to start.</p>
 
-        <BaseButton class="theme-green" type="button" :disabled="!canRegister" @click="registerGroup">Register
-          group</BaseButton>
+        <BaseButton class="theme-green" type="button" :disabled="!canRegister"
+          @click="confirmingRegister = true">Register group</BaseButton>
       </div>
     </main>
 
@@ -293,16 +299,6 @@
     </aside>
 
     <Transition name="fade">
-      <div v-if="viewingMember" class="overlay" v-auto-scrollbar role="dialog" aria-modal="true" aria-label="Invitation"
-        @click.self="viewingId = null">
-        <LobbyInvite :lobby-name="lobby.name" :description="lobby.description" :host-name="hostName"
-          :event="selectedEvent" :members="inviteeMembers" :via="viewingMember.via === 'link' ? 'link' : 'invitation'"
-          :my-status="viewingMember.status" :me-id="viewingMember.id" :locked="registered" @respond="onRespond"
-          @close="viewingId = null" />
-      </div>
-    </Transition>
-
-    <Transition name="fade">
       <div v-if="confirmingDelete" class="overlay" v-auto-scrollbar role="alertdialog" aria-modal="true" aria-labelledby="del-title"
         @click.self="confirmingDelete = false">
         <div class="dialog">
@@ -329,10 +325,33 @@
           @click.self="confirmingLeave = false">
         <div class="dialog">
           <h3 id="leave-title" class="dialog-title">Leave "{{ lobby.name }}"?</h3>
-          <p>You'll be marked as declined and won't be signed up for events. {{ hostName }} can invite you again.</p>
+          <p>You'll be removed from this lobby and won't be signed up for events. {{ hostName }} can invite you again.</p>
           <div class="dialog-actions">
             <BaseButton class="btn-ghost" type="button" @click="confirmingLeave = false">Stay</BaseButton>
             <BaseButton class="theme-red" type="button" @click="leaveLobby">Leave lobby</BaseButton>
+          </div>
+        </div>
+      </div>
+    </Transition>
+
+    <Transition name="fade">
+      <div v-if="confirmingRegister" class="overlay" v-auto-scrollbar role="alertdialog" aria-modal="true"
+        aria-labelledby="reg-title" @click.self="confirmingRegister = false">
+        <div class="dialog">
+          <h3 id="reg-title" class="dialog-title">Register your group?</h3>
+          <p>
+            Sign up <strong>{{ acceptedMembers.length }}</strong>
+            {{ acceptedMembers.length === 1 ? 'person' : 'people' }} for
+            <strong>{{ selectedEvent?.title }}</strong>
+            <template v-if="selectedEvent?.date"> on {{ selectedEvent.date }}</template>.
+          </p>
+          <p v-if="counts.pending">
+            {{ counts.pending }} still pending {{ counts.pending === 1 ? 'person' : 'people' }} will be left out.
+          </p>
+          <p>This can't be undone from here, so check the roster first.</p>
+          <div class="dialog-actions">
+            <BaseButton class="btn-ghost" type="button" @click="confirmingRegister = false">Go back</BaseButton>
+            <BaseButton class="theme-green" type="button" @click="confirmRegister">Yes, register</BaseButton>
           </div>
         </div>
       </div>
@@ -347,7 +366,6 @@ import LobbyCalendar from '../components/LobbyCalendar.vue'
 import PlanForm from '../components/PlanForm.vue'
 import BaseButton from '../components/BaseButton.vue'
 import AvatarPic from '../components/AvatarPic.vue'
-import LobbyInvite from '../views/LobbyInvite.vue'
 import { useAuth } from '../composables/useAuth'
 import { useLobbies, daysAgo, timeAgo, INACTIVE_DAYS } from '../composables/useLobbies'
 import { useActivities } from '../composables/useActivities'
@@ -391,14 +409,7 @@ const selectedDayLabel = computed(() => selectedDay.value &&
   new Date(`${selectedDay.value.date}T00:00`).toLocaleDateString('en-SG', { weekday: 'long', day: 'numeric', month: 'long' }))
 const showPlanForm = ref(false)
 const calendarEl = ref(null)
-const dayPanelEl = ref(null)
 
-// On narrow screens the panel sits under the calendar, so bring it into view
-function showDayPanel() {
-  if (window.matchMedia('(max-width: 900px)').matches) {
-    nextTick(() => dayPanelEl.value?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
-  }
-}
 const folderKey = ref(0)
 function goTo(id) {
   tab.value = id
@@ -431,7 +442,6 @@ function deleteLobby() {
 }
 
 const confirmingLeave = ref(false)
-
 async function leaveLobby() {
   confirmingLeave.value = false
   try {
@@ -442,8 +452,12 @@ async function leaveLobby() {
   emit('back')
 }
 
-const inviteLink = computed(() => `${window.location.origin}/lobby/${props.lobbyId}`)
-const copied = ref(false)
+const confirmingRegister = ref(false)
+function confirmRegister() {
+  confirmingRegister.value = false
+  registerGroup()
+}
+
 const flashIds = reactive(new Set())
 const removingId = ref(null)
 
@@ -532,15 +546,6 @@ const registerHint = computed(() => {
     : `Ready. All ${n} accepted members will be signed up.`
 })
 
-const viewingId = ref(null)
-const viewingMember = computed(() => members.value.find((m) => m.id === viewingId.value) || null)
-const inviteeMembers = computed(() => members.value.map((m) => ({ ...m, host: m.id === lobby.value.hostId })))
-function onRespond(status) {
-  if (!viewingMember.value || registered.value) return
-  store.setStatus(props.lobbyId, viewingMember.value.id, status)
-  emit('respond', { memberId: viewingMember.value.id, status })
-}
-
 const initials = (name) => name.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase()
 
 function invite(friend) {
@@ -550,13 +555,6 @@ function invite(friend) {
 function removeMember(id) {
   store.removeMember(props.lobbyId, id)
   emit('remove', id)
-}
-async function copyLink() {
-  try {
-    await navigator.clipboard.writeText(inviteLink.value)
-  } catch {}
-  copied.value = true
-  setTimeout(() => (copied.value = false), 1800)
 }
 function registerGroup() {
   if (!canRegister.value) return
@@ -584,9 +582,9 @@ watch(
 
 function onEsc(e) {
   if (e.key !== 'Escape') return
-  viewingId.value = null
   confirmingDelete.value = false
   confirmingLeave.value = false
+  confirmingRegister.value = false
 }
 
 onMounted(async () => {
@@ -650,25 +648,33 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onEsc))
   outline-color: #fff;
 }
 
-.pitch-header-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 15px;
-  flex-wrap: wrap;
-  margin-bottom: 12px;
-}
-
-.pitch-header-row .section-title,
-.pitch-header-row .section-sub {
-  margin-bottom: 0;
-}
-
 .filter-row {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 0; 
+  justify-content: flex-end;
+}
+
+.pitch-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  margin-bottom: 12px;
+}
+
+.pitch-text {
+  min-width: 0;
+}
+
+.pitch-head .section-sub {
+  margin-bottom: 0;
+}
+
+.pitch-head .filter-row {
+  margin-bottom: 0;
   justify-content: flex-end;
 }
 
@@ -975,25 +981,6 @@ button.badge-pill:disabled {
   animation: pulse 1.8s infinite;
 }
 
-
-.link-box {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.link-input {
-  flex: 1;
-  min-width: 0;
-  height: 35px;
-  padding: 3px 16px 0;
-  border: 0;
-  border-radius: 999px;
-  background-color: var(--color-white);
-  color: var(--color-black);
-  font: inherit;
-}
-
 .people {
   list-style: none;
   margin: 0;
@@ -1040,12 +1027,6 @@ button.badge-pill:disabled {
   text-overflow: ellipsis;
   white-space: nowrap;
   padding-top: 2px;
-}
-
-.via {
-  margin-left: 6px;
-  opacity: 0.7;
-  font-size: 13px;
 }
 
 .remove-x {
@@ -1130,46 +1111,41 @@ button.badge-pill:disabled {
   opacity: 0.6;
 }
 
+.event input:checked+.event-body {
+  border-color: var(--color-green);
+  background: #fff;
+}
+
 .event-body {
   display: flex;
   flex-direction: column;
-  gap: 10px; /* Spacing between title, date, venue, limits */
-  padding: 16px;
-  background-color: var(--color-white);
+  align-items: flex-start;
+  gap: 8px;
+  height: 100%;
+  padding: 14px;
+  border: 3px solid transparent;     /* reserves room so the card doesn't jump when selected */
   border-radius: 15px;
+  background-color: var(--color-white);
   color: var(--color-black);
-}
-
-.event-details {
-  gap: 10px;
-}
-
-.event-title {
-  font-size: 16px;
-  font-family: 'HeaderFont', sans-serif;
-  text-transform: uppercase;
-  margin-bottom: 4px; /* Extra separation below title */
-}
-
-.event-date,
-.event-venue,
-.event-meta {
   font-size: 13px;
   line-height: 1.3;
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
 
-.event-body strong {
-  font-size: 15px;
-  font-family: 'HeaderFont', sans-serif;
-  text-transform: uppercase;
-}
-
-.event-body>* {
+.event-body > * {
   min-width: 0;
 }
 
+.event-details {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
 .event-body strong {
-  font: 400 14px/1.2 'HeaderFont', sans-serif;
+  margin-bottom: 4px;
+  font: 400 15px/1.2 'HeaderFont', sans-serif;
   text-transform: uppercase;
 }
 
@@ -1182,15 +1158,31 @@ button.badge-pill:disabled {
   max-width: 100%;
 }
 
-.event input:checked+.event-body {
-  border-color: var(--color-green);
-  background: #fff;
+.event:hover:not(.used) .event-body {
+  border-color: var(--color-grey);
 }
 
-.event input:focus-visible+.event-body {
+/* selected: green border plus a soft shadow */
+.event input:checked + .event-body {
+  border-color: var(--color-green);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+}
+
+.event input:focus-visible + .event-body {
   outline: 3px solid #fff;
   outline-offset: 2px;
 }
+
+.pitched-card {
+  height: auto;
+  margin-bottom: 12px;
+}
+
+.pane:not(.pane-fill) {
+  align-content: start;
+}
+
+.pane > section > .section-title { margin-bottom: 12px; }
 
 .names {
   display: flex;

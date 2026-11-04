@@ -13,7 +13,6 @@ export const timeAgo = (ts) => {
   return d <= 0 ? 'today' : d === 1 ? 'yesterday' : `${d} days ago`
 }
 
-// Same person always gets the same colour
 const COLORS = ['#C9EB6C', '#D98BF5', '#F2B16B', '#9fd3ff', '#ffb3a7', '#fdebd0']
 export function colorFor(id) {
   let sum = 0
@@ -108,7 +107,6 @@ function toEvent(raw) {
   if (raw.minGroup && raw.maxGroup) limits.push(`Groups of ${raw.minGroup} to ${raw.maxGroup}.`)
   else if (raw.minGroup) limits.push(`Groups of at least ${raw.minGroup}.`)
   else if (raw.maxGroup) limits.push(`Up to ${raw.maxGroup} per group.`)
-  if (slotsLeft != null) limits.push(`${slotsLeft} slots left.`)
 
   return {
     id: String(raw._id),
