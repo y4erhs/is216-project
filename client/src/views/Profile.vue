@@ -46,7 +46,7 @@ async function loadProfile() {
     selectedYear.value = /^\d+$/.test(data.year) ? `Year ${data.year}` : data.year || ''
     selectedGrad.value = data.graduationYear || ''
     clubs.value = [...(data.ccas || [])]
-    
+
     // Mark as initialized so auto-save won't fire on initial load
     isInitialized.value = true
   } catch (error) {
@@ -111,7 +111,7 @@ async function saveAlertSetting(key, value) {
 }
 
 // Execute Logout action
-const executeLogout = () => {
+function executeLogout() {
   userStore.logout()
   confirmingLogout.value = false
   router.push('/login')
@@ -284,36 +284,17 @@ const executeDelete = async () => {
 
       <!-- PROFILE -->
       <div class="left-column">
-        <ProfileCard
-          :profile="profile"
-          :profileError="profileError"
-          :eventsAttended="eventsAttended"
-          :friendCount="friendCount"
-          v-model:selectedCourse="selectedCourse"
-          :courses="courses"
-          v-model:selectedYear="selectedYear"
-          :yearOptions="yearOptions"
-          v-model:selectedGrad="selectedGrad"
-          :gradOptions="gradOptions"
-          :clubs="clubs"
-          v-model:newClub="newClub"
-          v-model:showClubDropdown="showClubDropdown"
-          :categories="categories"
-          :allAvailableInterests="allAvailableInterests"
-          v-model:showInterestDropdown="showInterestDropdown"
-          :saveMessage="saveMessage"
-          :bannerPreview="bannerPreview"
-          v-model:bannerFailed="bannerFailed"
-          :avatarPreview="avatarPreview"
-          v-model:avatarFailed="avatarFailed"
-          @triggerBannerInput="triggerBannerInput"
-          @triggerAvatarInput="triggerAvatarInput"
-          @handleBannerSelection="handleBannerSelection"
-          @handleAvatarSelection="handleAvatarSelection"
-          @addClub="addClub"
-          @removeClub="removeClub"
-          @toggleInterest="toggleInterest"
-        />
+        <ProfileCard :profile="profile" :profileError="profileError" :eventsAttended="eventsAttended"
+          :friendCount="friendCount" v-model:selectedCourse="selectedCourse" :courses="courses"
+          v-model:selectedYear="selectedYear" :yearOptions="yearOptions" v-model:selectedGrad="selectedGrad"
+          :gradOptions="gradOptions" :clubs="clubs" v-model:newClub="newClub"
+          v-model:showClubDropdown="showClubDropdown" :categories="categories"
+          :allAvailableInterests="allAvailableInterests" v-model:showInterestDropdown="showInterestDropdown"
+          :saveMessage="saveMessage" :bannerPreview="bannerPreview" v-model:bannerFailed="bannerFailed"
+          :avatarPreview="avatarPreview" v-model:avatarFailed="avatarFailed" @triggerBannerInput="triggerBannerInput"
+          @triggerAvatarInput="triggerAvatarInput" @handleBannerSelection="handleBannerSelection"
+          @handleAvatarSelection="handleAvatarSelection" @addClub="addClub" @removeClub="removeClub"
+          @toggleInterest="toggleInterest" />
       </div>
 
 
@@ -361,14 +342,23 @@ const executeDelete = async () => {
 
     </div>
 
-    <!-- CUSTOM DELETE ACCOUNT CONFIRMATION -->
+    <!-- DELETE ACCOUNT CONFIRMATION -->
     <Transition name="fade">
-      <div v-if="confirmingDelete" class="overlay" role="alertdialog" aria-modal="true" aria-labelledby="del-title" @click.self="confirmingDelete = false">
+      <div v-if="confirmingDelete" class="overlay" role="alertdialog" aria-modal="true" aria-labelledby="del-title"
+        @click.self="confirmingDelete = false">
         <div class="dialog">
           <h3 id="del-title" class="dialog-title">Delete Account?</h3>
-          <p>Are you sure you want to delete your account? This action cannot be undone and you'll lose all your data and stats.</p>
+
+          <p>
+            Are you sure you want to delete your account?
+            This action cannot be undone and you'll lose all your data and stats.
+          </p>
+
           <div class="dialog-actions">
-            <BaseButton class="btn-ghost" type="button" @click="confirmingDelete = false">Cancel</BaseButton>
+            <BaseButton class="btn-ghost" type="button" @click="confirmingDelete = false">
+              Cancel
+            </BaseButton>
+
             <BaseButton class="theme-red" type="button" :disabled="deleting" @click="executeDelete">
               {{ deleting ? 'Deleting...' : 'Yes, Delete' }}
             </BaseButton>
@@ -377,20 +367,27 @@ const executeDelete = async () => {
       </div>
     </Transition>
 
-    <!-- CUSTOM LOGOUT CONFIRMATION -->
+    <!-- LOGOUT CONFIRMATION -->
     <Transition name="fade">
-      <div v-if="confirmingLogout" class="overlay" role="alertdialog" aria-modal="true" aria-labelledby="logout-title" @click.self="confirmingLogout = false">
+      <div v-if="confirmingLogout" class="overlay" role="alertdialog" aria-modal="true" aria-labelledby="logout-title"
+        @click.self="confirmingLogout = false">
         <div class="dialog">
           <h3 id="logout-title" class="dialog-title">Log Out?</h3>
+
           <p>Are you sure you want to log out of your account?</p>
+
           <div class="dialog-actions">
-            <BaseButton class="btn-ghost" type="button" @click="confirmingLogout = false">Cancel</BaseButton>
-            <BaseButton class="theme-green" type="button" @click="executeLogout">Yes, Log Out</BaseButton>
+            <BaseButton class="btn-ghost" type="button" @click="confirmingLogout = false">
+              Cancel
+            </BaseButton>
+
+            <BaseButton class="theme-green" type="button" @click="executeLogout">
+              Yes, Log Out
+            </BaseButton>
           </div>
         </div>
       </div>
     </Transition>
-
   </div>
 </template>
 
