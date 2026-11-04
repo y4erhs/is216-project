@@ -18,7 +18,8 @@
         </button>
 
         <div v-if="isHost && !editing" class="head-actions">
-          <BaseButton class="theme-green head-btn" type="button" aria-label="Edit lobby details" @click="startEdit">Edit</BaseButton>
+          <BaseButton class="theme-green head-btn" type="button" aria-label="Edit lobby details" @click="startEdit">Edit
+          </BaseButton>
           <BaseButton class="theme-orange head-btn" type="button" aria-label="Delete lobby"
             @click="confirmingDelete = true">Delete</BaseButton>
         </div>
@@ -80,7 +81,9 @@
               <div v-else class="scroll" v-auto-scrollbar>
                 <ul class="people">
                   <li v-for="f in friends" :key="f.id" class="person">
-                    <span class="avatar" :style="{ background: f.color }">{{ initials(f.name) }}<AvatarPic :path="f.avatar" /></span>
+                    <span class="avatar" :style="{ background: f.color }">{{ initials(f.name) }}
+                      <AvatarPic :path="f.avatar" />
+                    </span>
                     <span class="who">{{ f.name }}</span>
                     <span v-if="statusOf(f.id) && statusOf(f.id) !== 'declined'" class="badge-pill"
                       :class="`pill-${statusOf(f.id)}`">{{ statusLabel[statusOf(f.id)] }}</span>
@@ -103,7 +106,8 @@
                   <span class="live-text">Live Update</span>
                 </span>
               </div>
-              <p v-if="members.length === 1" class="section-sub">No one invited yet. Add friends from the Invite tab.</p>
+              <p v-if="members.length === 1" class="section-sub">No one invited yet. Add friends from the Invite tab.
+              </p>
 
               <div class="scroll" v-auto-scrollbar>
                 <TransitionGroup name="roster" tag="ul" class="people" aria-live="polite">
@@ -117,7 +121,10 @@
                     </template>
 
                     <template v-else>
-                      <span class="avatar" :style="{ background: m.color || 'var(--color-white)' }">{{ initials(m.name) }}<AvatarPic :path="m.avatar" /></span>
+                      <span class="avatar" :style="{ background: m.color || 'var(--color-white)' }">{{ initials(m.name)
+                      }}
+                        <AvatarPic :path="m.avatar" />
+                      </span>
                       <span class="who">
                         {{ m.name }}
                       </span>
@@ -125,8 +132,8 @@
                       <span v-else class="badge-pill" :class="`pill-${m.status}`">{{ statusLabel[m.status] }}</span>
 
                       <button v-if="isHost && m.id !== lobby.hostId && !registered" class="remove-x" type="button"
-                        :aria-label="`Remove ${m.name}`" :title="`Remove ${m.name}`"
-                        @click="removingId = m.id"><span class="x-text">X</span></button>
+                        :aria-label="`Remove ${m.name}`" :title="`Remove ${m.name}`" @click="removingId = m.id"><span
+                          class="x-text">X</span></button>
                     </template>
                   </li>
                 </TransitionGroup>
@@ -175,209 +182,211 @@
 
                 <div class="filter-row" role="group" aria-label="Which events to show">
                   <button type="button" class="pitch-chip" :class="{ on: pitchMode === 'interested' }"
-                          :aria-pressed="pitchMode === 'interested'" @click="pitchPick = 'interested'">
+                    :aria-pressed="pitchMode === 'interested'" @click="pitchPick = 'interested'">
                     <span v-if="pitchMode === 'interested'" aria-hidden="true">✓</span>
                     Interested <b>{{ interestedUpcoming.length }}</b>
                   </button>
                   <button type="button" class="pitch-chip" :class="{ on: pitchMode === 'recommended' }"
-                          :aria-pressed="pitchMode === 'recommended'" @click="pitchPick = 'recommended'">
+                    :aria-pressed="pitchMode === 'recommended'" @click="pitchPick = 'recommended'">
                     <span v-if="pitchMode === 'recommended'" aria-hidden="true">✓</span>
                     Recommended <b v-if="recs">{{ recs.recommendations.length }}</b>
                   </button>
                   <button type="button" class="pitch-chip" :class="{ on: pitchMode === 'all' }"
-                          :aria-pressed="pitchMode === 'all'" @click="pitchPick = 'all'">
+                    :aria-pressed="pitchMode === 'all'" @click="pitchPick = 'all'">
                     <span v-if="pitchMode === 'all'" aria-hidden="true">✓</span>
                     All events <b>{{ upcomingEvents.length }}</b>
                   </button>
-                  <button v-if="selectedEvent" type="button" class="pitch-chip" @click="selectedEventId = null">
-                    ✕ Clear selection
-                  </button>
                 </div>
               </div>
 
-              <div v-if="pitchMode === 'recommended' && recsLoading" class="empty-note" role="status">
+              <<<<<<< HEAD <div v-if="pitchMode === 'recommended' && recsLoading" class="empty-note" role="status">
                 <p>Finding events that suit your group...</p>
-              </div>
-
-              <div v-else-if="pitchMode === 'recommended' && recsError" class="empty-note">
-                <p role="alert">{{ recsError }}</p>
-                <BaseButton class="theme-green" type="button" @click="loadRecs">Try again</BaseButton>
-              </div>
-
-              <div v-else-if="!pitchable.length" class="empty-note">
-                <p v-if="pitchMode === 'recommended'">No upcoming events suit your group right now.</p>
-                <p v-else-if="pitchMode === 'interested'">
-                  None of your upcoming events are marked as interested. Mark some on the Discover page, or show all events.
-                </p>
-                <p v-else>No upcoming events to pitch right now.</p>
-                <BaseButton v-if="pitchMode === 'interested'" class="theme-green" type="button" @click="pitchPick = 'all'">Show all events</BaseButton>
-              </div>
-
-              <div v-else class="scroll" v-auto-scrollbar>
-                <div class="events" role="radiogroup" aria-label="Events">
-                  <label v-for="e in pitchable" :key="e.id" class="event" :class="{ used: usedEventIds.has(e.id) }">
-                    <input class="sr" type="radio" name="event" :value="e.id" v-model="selectedEventId"
-                          :disabled="usedEventIds.has(e.id)" />
-                    <span class="event-body">
-                      <span v-if="recFor(e)" class="match-tag" :class="matchClass(recFor(e).score)">
-                        {{ recFor(e).score }}% match
-                      </span>
-                      <span class="event-details">
-                        <strong>{{ e.title }}</strong>
-                        <span>{{ recFor(e) ? formatDate(recFor(e).sessionStart) : e.date }}</span>
-                        <span>{{ e.venue }}</span>
-                      </span>
-                      <span v-if="recFor(e)" class="match-reason">
-                        <b>{{ recFor(e).freeCount }} of {{ recs.memberCount }} free</b> · {{ recFor(e).reason }}
-                      </span>
-                      <span class="event-meta">{{ e.limitsText }}</span>
-                      <span v-if="usedEventIds.has(e.id)" class="badge-pill pill-accepted">Already registered</span>
-                      <span v-if="e.slotsLeft === 0" class="badge-pill pill-danger">Full</span>
-                    </span>
-                  </label>
-                </div>
-              </div>
-            </section>
-          </div>
-        </template>
-
-        <template #calendar>
-          <div class="pane calendar-pane section-wrapper">
-            <LobbyCalendar ref="calendarEl" :lobby-id="lobbyId" :user-id="userId" @select-day="selectedDay = $event" />
-          </div>
-        </template>
-      </FolderTabs>
-
-      <div v-if="tab === 'register' && !registered && isHost" class="register-bar">
-        <div class="progress" v-if="selectedEvent">
-          <div class="meter" role="progressbar" :aria-valuenow="acceptedMembers.length" aria-valuemin="0"
-            :aria-valuemax="selectedEvent.minGroup">
-            <i :style="{ width: progress + '%' }"></i>
-          </div>
-          <p class="hint">{{ registerHint }}</p>
-        </div>
-        <p v-else class="hint">Choose an event to start.</p>
-
-        <BaseButton class="theme-green" type="button" :disabled="!canRegister"
-          @click="confirmingRegister = true">Register group</BaseButton>
-      </div>
-    </main>
-
-    <aside v-if="tab === 'calendar'" class="panel-wrap" aria-label="Selected day">
-      <div class="side-panel day-panel" v-auto-scrollbar>
-        <PlanForm v-if="showPlanForm" :user-id="userId" :lobby-id="lobbyId" :date="selectedDay?.date || ''"
-          @close="showPlanForm = false" @created="calendarEl?.reload()" />
-
-        <template v-else>
-          <h3 class="panel-title">Selected day</h3>
-
-          <div class="ev">
-            <template v-if="selectedDay">
-              <span class="ev-title">{{ selectedDayLabel }}</span>
-              <ul v-if="selectedDay.chips.length" class="day-chips">
-                <li v-for="(chip, i) in selectedDay.chips" :key="i" class="chip" :class="{ 'chip-lobby': chip.lobby }"
-                  :style="chip.colour ? { background: chip.colour } : null">{{ chip.text }}</li>
-              </ul>
-              <p v-else class="ev-meta">Everyone's free</p>
-            </template>
-            <p v-else class="ev-meta">Pick a day on the calendar to see what's on.</p>
           </div>
 
-          <BaseButton class="theme-green add-plan" type="button" @click="showPlanForm = true">Add plan</BaseButton>
-        </template>
-      </div>
-    </aside>
+          <div v-else-if="pitchMode === 'recommended' && recsError" class="empty-note">
+            <p role="alert">{{ recsError }}</p>
+            <BaseButton class="theme-green" type="button" @click="loadRecs">Try again</BaseButton>
+          </div>
 
-    <aside v-else class="panel-wrap" aria-label="Registered events">
-      <div class="side-panel side-panel-split">
-        <h3 class="panel-title">Registered events</h3>
+          <div v-else-if="!pitchable.length" class="empty-note">
+            <p v-if="pitchMode === 'recommended'">No upcoming events suit your group right now.</p>
+            <p v-else-if="pitchMode === 'interested'">
+              None of your upcoming events are marked as interested. Mark some on the Discover page, or show all
+              events.
+            </p>
+            <p v-else>No upcoming events to pitch right now.</p>
+            <BaseButton v-if="pitchMode === 'interested'" class="theme-green" type="button" @click="pitchPick = 'all'">
+              Show all events</BaseButton>
+          </div>
 
-        <div class="side-scroll" v-auto-scrollbar>
-        <ul v-if="eventRows.length" class="evlist">
-          <li v-for="(r, i) in eventRows" :key="r.key" class="ev">
-            <button class="ev-head" type="button" :aria-expanded="isOpen(r, i)" :aria-controls="`ev-${r.key}`"
-              @click="toggleEvent(r, i)">
-              <span class="ev-title">{{ r.title }}</span>
-              <span class="chev" :class="{ open: isOpen(r, i) }" aria-hidden="true"></span>
-            </button>
-            <span v-if="r.pitched" class="badge-pill pill-grey ev-tag">Pitched, not registered yet</span>
-            <p class="ev-meta">{{ r.date }}<br />{{ r.venue }}</p>
-
-            <div v-show="isOpen(r, i)" :id="`ev-${r.key}`" class="stats">
-              <div class="stat stat-pending"><span>Pending</span><b>{{ r.pending }}</b></div>
-              <div class="stat stat-declined"><span>Declined</span><b>{{ r.declined }}</b></div>
-              <div class="stat stat-accepted"><span>Accepted</span><b>{{ r.accepted }}</b></div>
+          <div v-else class="scroll" v-auto-scrollbar>
+            <div class="events" role="radiogroup" aria-label="Events">
+              <label v-for="e in pitchable" :key="e.id" class="event" :class="{ used: usedEventIds.has(e.id) }"
+                @click.prevent="handleEventClick(e.id)">
+                <input class="sr" type="radio" name="event" :value="e.id" v-model="selectedEventId"
+                  :disabled="usedEventIds.has(e.id)" />
+                <span class="event-body">
+                  <span v-if="recFor(e)" class="match-tag" :class="matchClass(recFor(e).score)">
+                    {{ recFor(e).score }}% match
+                  </span>
+                  <span class="event-details">
+                    <strong>{{ e.title }}</strong>
+                    <span>{{ recFor(e) ? formatDate(recFor(e).sessionStart) : e.date }}</span>
+                    <span>{{ e.venue }}</span>
+                  </span>
+                  <span v-if="recFor(e)" class="match-reason">
+                    <b>{{ recFor(e).freeCount }} of {{ recs.memberCount }} free</b> · {{ recFor(e).reason }}
+                  </span>
+                  <span class="event-meta">{{ e.limitsText }}</span>
+                  <span v-if="usedEventIds.has(e.id)" class="badge-pill pill-accepted">Already registered</span>
+                  <span v-if="e.slotsLeft === 0" class="badge-pill pill-danger">Full</span>
+                </span>
+              </label>
             </div>
-          </li>
-        </ul>
-
-        <div v-else class="ev-empty">
-          <p>No events yet. Pitch one to your group.</p>
-          <BaseButton v-if="isHost" class="theme-green" @click="goTo('register')">Choose event</BaseButton>
-        </div>
-       </div>
-      </div>
-    </aside>
-
-    <Transition name="fade">
-      <div v-if="confirmingDelete" class="overlay" v-auto-scrollbar role="alertdialog" aria-modal="true" aria-labelledby="del-title"
-        @click.self="confirmingDelete = false">
-        <div class="dialog">
-          <h3 id="del-title" class="dialog-title">Delete "{{ lobby.name }}"?</h3>
-          <p v-if="inactive">Nothing has happened here for {{ daysIdle }} days, so it's safe to clear out.</p>
-          <p v-else>
-            This lobby is still active. If it's the same group of friends, keep it and plan another event instead.
-          </p>
-          <p>Deleting removes the lobby and its roster for everyone. Events you've already registered for are not
-            cancelled.
-          </p>
-          <div class="dialog-actions">
-            <BaseButton class="btn-ghost" type="button" @click="confirmingDelete = false">Keep lobby</BaseButton>
-            <BaseButton v-if="registered" class="theme-purple" type="button"
-              @click="confirmingDelete = false; planAnother()">Plan another event</BaseButton>
-            <BaseButton class="theme-red" type="button" @click="deleteLobby">Delete lobby</BaseButton>
           </div>
-        </div>
-      </div>
-    </Transition>
-
-    <Transition name="fade">
-      <div v-if="confirmingLeave" class="overlay" v-auto-scrollbar role="alertdialog" aria-modal="true" aria-labelledby="leave-title"
-          @click.self="confirmingLeave = false">
-        <div class="dialog">
-          <h3 id="leave-title" class="dialog-title">Leave "{{ lobby.name }}"?</h3>
-          <p>You'll be removed from this lobby and won't be signed up for events. {{ hostName }} can invite you again.</p>
-          <div class="dialog-actions">
-            <BaseButton class="btn-ghost" type="button" @click="confirmingLeave = false">Stay</BaseButton>
-            <BaseButton class="theme-red" type="button" @click="leaveLobby">Leave lobby</BaseButton>
-          </div>
-        </div>
-      </div>
-    </Transition>
-
-    <Transition name="fade">
-      <div v-if="confirmingRegister" class="overlay" v-auto-scrollbar role="alertdialog" aria-modal="true"
-        aria-labelledby="reg-title" @click.self="confirmingRegister = false">
-        <div class="dialog">
-          <h3 id="reg-title" class="dialog-title">Register your group?</h3>
-          <p>
-            Sign up <strong>{{ acceptedMembers.length }}</strong>
-            {{ acceptedMembers.length === 1 ? 'person' : 'people' }} for
-            <strong>{{ selectedEvent?.title }}</strong>
-            <template v-if="selectedEvent?.date"> on {{ selectedEvent.date }}</template>.
-          </p>
-          <p v-if="counts.pending">
-            {{ counts.pending }} still pending {{ counts.pending === 1 ? 'person' : 'people' }} will be left out.
-          </p>
-          <p>This can't be undone from here, so check the roster first.</p>
-          <div class="dialog-actions">
-            <BaseButton class="btn-ghost" type="button" @click="confirmingRegister = false">Go back</BaseButton>
-            <BaseButton class="theme-green" type="button" @click="confirmRegister">Yes, register</BaseButton>
-          </div>
-        </div>
-      </div>
-    </Transition>
+          </section>
   </div>
+</template>
+
+<template #calendar>
+  <div class="pane calendar-pane section-wrapper">
+    <LobbyCalendar ref="calendarEl" :lobby-id="lobbyId" :user-id="userId" @select-day="selectedDay = $event" />
+  </div>
+</template>
+</FolderTabs>
+
+<div v-if="tab === 'register' && !registered && isHost" class="register-bar">
+  <div class="progress" v-if="selectedEvent">
+    <div class="meter" role="progressbar" :aria-valuenow="acceptedMembers.length" aria-valuemin="0"
+      :aria-valuemax="selectedEvent.minGroup">
+      <i :style="{ width: progress + '%' }"></i>
+    </div>
+    <p class="hint">{{ registerHint }}</p>
+  </div>
+  <p v-else class="hint">Choose an event to start.</p>
+
+  <BaseButton class="theme-green" type="button" :disabled="!canRegister" @click="confirmingRegister = true">
+    Register
+    group</BaseButton>
+</div>
+</main>
+
+<aside v-if="tab === 'calendar'" class="panel-wrap" aria-label="Selected day">
+  <div class="side-panel day-panel" v-auto-scrollbar>
+    <PlanForm v-if="showPlanForm" :user-id="userId" :lobby-id="lobbyId" :date="selectedDay?.date || ''"
+      @close="showPlanForm = false" @created="calendarEl?.reload()" />
+
+    <template v-else>
+      <h3 class="panel-title">Selected day</h3>
+
+      <div class="ev">
+        <template v-if="selectedDay">
+          <span class="ev-title">{{ selectedDayLabel }}</span>
+          <ul v-if="selectedDay.chips.length" class="day-chips">
+            <li v-for="(chip, i) in selectedDay.chips" :key="i" class="chip" :class="{ 'chip-lobby': chip.lobby }"
+              :style="chip.colour ? { background: chip.colour } : null">{{ chip.text }}</li>
+          </ul>
+          <p v-else class="ev-meta">Everyone's free</p>
+        </template>
+        <p v-else class="ev-meta">Pick a day on the calendar to see what's on.</p>
+      </div>
+
+      <BaseButton class="theme-dark-green add-plan" type="button" @click="showPlanForm = true">Add plan</BaseButton>
+    </template>
+  </div>
+</aside>
+
+<aside v-else class="panel-wrap" aria-label="Registered events">
+  <div class="side-panel side-panel-split">
+    <h3 class="panel-title">Registered events</h3>
+
+    <div class="side-scroll" v-auto-scrollbar>
+      <ul v-if="eventRows.length" class="evlist">
+        <li v-for="(r, i) in eventRows" :key="r.key" class="ev">
+          <button class="ev-head" type="button" :aria-expanded="isOpen(r, i)" :aria-controls="`ev-${r.key}`"
+            @click="toggleEvent(r, i)">
+            <span class="ev-title">{{ r.title }}</span>
+            <span class="chev" :class="{ open: isOpen(r, i) }" aria-hidden="true"></span>
+          </button>
+          <span v-if="r.pitched" class="badge-pill pill-grey ev-tag">Pitched, not registered yet</span>
+          <p class="ev-meta">{{ r.date }}<br />{{ r.venue }}</p>
+
+          <div v-show="isOpen(r, i)" :id="`ev-${r.key}`" class="stats">
+            <div class="stat stat-pending"><span>Pending</span><b>{{ r.pending }}</b></div>
+            <div class="stat stat-declined"><span>Declined</span><b>{{ r.declined }}</b></div>
+            <div class="stat stat-accepted"><span>Accepted</span><b>{{ r.accepted }}</b></div>
+          </div>
+        </li>
+      </ul>
+
+      <div v-else class="ev-empty">
+        <p>No events yet. Pitch one to your group.</p>
+        <BaseButton v-if="isHost" class="theme-green" @click="goTo('register')">Choose event</BaseButton>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<Transition name="fade">
+  <div v-if="confirmingDelete" class="overlay" v-auto-scrollbar role="alertdialog" aria-modal="true"
+    aria-labelledby="del-title" @click.self="confirmingDelete = false">
+    <div class="dialog">
+      <h3 id="del-title" class="dialog-title">Delete "{{ lobby.name }}"?</h3>
+      <p v-if="inactive">Nothing has happened here for {{ daysIdle }} days, so it's safe to clear out.</p>
+      <p v-else>
+        This lobby is still active. If it's the same group of friends, keep it and plan another event instead.
+      </p>
+      <p>Deleting removes the lobby and its roster for everyone. Events you've already registered for are not
+        cancelled.
+      </p>
+      <div class="dialog-actions">
+        <BaseButton class="btn-ghost" type="button" @click="confirmingDelete = false">Keep lobby</BaseButton>
+        <BaseButton v-if="registered" class="theme-purple" type="button"
+          @click="confirmingDelete = false; planAnother()">Plan another event</BaseButton>
+        <BaseButton class="theme-red" type="button" @click="deleteLobby">Delete lobby</BaseButton>
+      </div>
+    </div>
+  </div>
+</Transition>
+
+<Transition name="fade">
+  <div v-if="confirmingLeave" class="overlay" v-auto-scrollbar role="alertdialog" aria-modal="true"
+    aria-labelledby="leave-title" @click.self="confirmingLeave = false">
+    <div class="dialog">
+      <h3 id="leave-title" class="dialog-title">Leave "{{ lobby.name }}"?</h3>
+      <p>You'll be removed from this lobby and won't be signed up for events. {{ hostName }} can invite you again.
+      </p>
+      <div class="dialog-actions">
+        <BaseButton class="btn-ghost" type="button" @click="confirmingLeave = false">Stay</BaseButton>
+        <BaseButton class="theme-red" type="button" @click="leaveLobby">Leave lobby</BaseButton>
+      </div>
+    </div>
+  </div>
+</Transition>
+
+<Transition name="fade">
+  <div v-if="confirmingRegister" class="overlay" v-auto-scrollbar role="alertdialog" aria-modal="true"
+    aria-labelledby="reg-title" @click.self="confirmingRegister = false">
+    <div class="dialog">
+      <h3 id="reg-title" class="dialog-title">Register your group?</h3>
+      <p>
+        Sign up <strong>{{ acceptedMembers.length }}</strong>
+        {{ acceptedMembers.length === 1 ? 'person' : 'people' }} for
+        <strong>{{ selectedEvent?.title }}</strong>
+        <template v-if="selectedEvent?.date"> on {{ selectedEvent.date }}</template>.
+      </p>
+      <p v-if="counts.pending">
+        {{ counts.pending }} still pending {{ counts.pending === 1 ? 'person' : 'people' }} will be left out.
+      </p>
+      <p>This can't be undone from here, so check the roster first.</p>
+      <div class="dialog-actions">
+        <BaseButton class="btn-ghost" type="button" @click="confirmingRegister = false">Go back</BaseButton>
+        <BaseButton class="theme-green" type="button" @click="confirmRegister">Yes, register</BaseButton>
+      </div>
+    </div>
+  </div>
+</Transition>
+</div>
 </template>
 
 <script setup>
@@ -646,6 +655,16 @@ function onEsc(e) {
   confirmingRegister.value = false
 }
 
+function handleEventClick(eventId) {
+  if (usedEventIds.value.has(eventId)) return
+
+  if (selectedEventId.value === eventId) {
+    selectedEventId.value = null
+  } else {
+    selectedEventId.value = eventId
+  }
+}
+
 onMounted(async () => {
   window.addEventListener('keydown', onEsc)
   try { await loadActivities() } catch { /* fall back to showing all events */ }
@@ -663,7 +682,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onEsc))
   max-height: calc(100vh - 30px);
   margin: 0 auto;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 280px;
+  grid-template-columns: minmax(0, 1fr) 250px;
   grid-template-areas:
     'head panel'
     'stage panel';
@@ -711,7 +730,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onEsc))
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-bottom: 0; 
+  margin-bottom: 0;
   justify-content: flex-end;
 }
 
@@ -719,12 +738,15 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onEsc))
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  /* title + chips stay on one row */
   gap: 12px 20px;
   margin-bottom: 12px;
 }
 
 .pitch-text {
+  flex: 1 1 0;
+  /* the text gives way first (wraps) before the chips do */
   min-width: 0;
 }
 
@@ -733,6 +755,8 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onEsc))
 }
 
 .pitch-head .filter-row {
+  flex: none;
+  flex-wrap: nowrap;
   margin-bottom: 0;
   justify-content: flex-end;
 }
@@ -793,6 +817,7 @@ button.badge-pill:disabled {
   background-color: var(--color-red);
   color: var(--color-white);
 }
+
 .head {
   grid-area: head;
   display: grid;
@@ -881,7 +906,8 @@ button.badge-pill:disabled {
 
 .page-title {
   margin: 0;
-  max-width: calc(100% - 32px); /* keeps long names clear of the arrow */
+  max-width: calc(100% - 32px);
+  /* keeps long names clear of the arrow */
   color: #fff;
   font: 400 25px/1.1 'HeaderFont', sans-serif;
   text-transform: uppercase;
@@ -934,7 +960,7 @@ button.badge-pill:disabled {
   gap: 8px;
 }
 
-.edit-actions > * {
+.edit-actions>* {
   flex: none;
   width: auto !important;
   min-width: 96px;
@@ -986,10 +1012,9 @@ button.badge-pill:disabled {
 
 .pane {
   display: grid;
-  grid-template-columns: minmax(0, 1fr); 
+  grid-template-columns: minmax(0, 1fr);
   gap: 20px;
   padding: 15px 0;
-  overflow-x: clip;                     
 }
 
 
@@ -1131,10 +1156,12 @@ button.badge-pill:disabled {
 }
 
 @keyframes flash {
+
   0%,
   60% {
     background: #fff;
   }
+
   100% {
     background-color: var(--color-white);
   }
@@ -1150,6 +1177,8 @@ button.badge-pill:disabled {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 10px;
+  padding-bottom: 15px;
+  /* padding, not margin: margins of overflowing content are not part of the scroll area */
 }
 
 .event {
@@ -1182,7 +1211,8 @@ button.badge-pill:disabled {
   gap: 8px;
   height: 100%;
   padding: 14px;
-  border: 3px solid transparent;     /* reserves room so the card doesn't jump when selected */
+  border: 3px solid transparent;
+  /* reserves room so the card doesn't jump when selected */
   border-radius: 15px;
   background-color: var(--color-white);
   color: var(--color-black);
@@ -1191,7 +1221,7 @@ button.badge-pill:disabled {
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 
-.event-body > * {
+.event-body>* {
   min-width: 0;
 }
 
@@ -1239,17 +1269,17 @@ button.badge-pill:disabled {
   max-width: 100%;
 }
 
-.event:hover:not(.used) .event-body {
+.event:hover:not(.used) input:not(:checked)+.event-body {
   border-color: var(--color-grey);
 }
 
 /* selected: green border plus a soft shadow */
-.event input:checked + .event-body {
+.event input:checked+.event-body {
   border-color: var(--color-green);
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
 }
 
-.event input:focus-visible + .event-body {
+.event input:focus-visible+.event-body {
   outline: 3px solid #fff;
   outline-offset: 2px;
 }
@@ -1263,7 +1293,9 @@ button.badge-pill:disabled {
   align-content: start;
 }
 
-.pane > section > .section-title { margin-bottom: 12px; }
+.pane>section>.section-title {
+  margin-bottom: 12px;
+}
 
 .names {
   display: flex;
@@ -1335,8 +1367,7 @@ button.badge-pill:disabled {
   position: absolute;
   inset: 0;
   overflow-y: auto;
-  padding: 15px;
-  padding-bottom: 0;
+  padding: 15px calc(15px - var(--sb-width, 0px)) 15px 15px;
   border-radius: 25px;
   background-color: var(--color-grey);
   color: var(--color-black);
@@ -1365,7 +1396,9 @@ button.badge-pill:disabled {
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  scrollbar-gutter: stable both-edges;
+  /* grow into the panel's right padding so the scrollbar sits there, and the list keeps the same width with or without it */
+  margin-right: -15px;
+  padding-right: calc(15px - var(--sb-width, 0px));
 }
 
 .evlist {
@@ -1479,6 +1512,7 @@ button.badge-pill:disabled {
   background-color: var(--color-dark-orange);
   color: var(--color-white);
 }
+
 .stat-accepted b {
   background-color: var(--color-dark-green);
   color: var(--color-white);
@@ -1513,6 +1547,11 @@ button.badge-pill:disabled {
   flex: 1 1 auto;
   min-height: 170px;
   max-height: none;
+  overflow-y: auto;
+  overflow-x: hidden;
+  /* scrollbar sits in the folder's right padding; the list keeps the same width with or without it */
+  margin-right: -15px;
+  padding-right: calc(15px - var(--sb-width, 0px));
 }
 
 .day-panel {
@@ -1527,7 +1566,6 @@ button.badge-pill:disabled {
 
 .add-plan {
   margin-top: auto;
-  margin-bottom: 15px;
   align-self: stretch;
 }
 
@@ -1643,6 +1681,11 @@ button.badge-pill:disabled {
   transition: background-color 0.15s, transform 0.15s;
 }
 
+.clear-selection {
+  background-color: var(--color-orange) !important;
+  color: var(--color-dark-orange) !important;
+}
+
 .filter-row .pitch-chip:hover {
   transform: translateY(-1px);
 }
@@ -1689,6 +1732,10 @@ button.badge-pill:disabled {
     grid-template-columns: minmax(0, 1fr);
     grid-template-areas: 'head' 'stage' 'panel';
     grid-template-rows: auto;
+    height: auto;
+    /* the light blue wrapper scrolls instead of clipping */
+    max-height: none;
+    overflow: visible;
   }
 
   .panel-wrap {
@@ -1701,7 +1748,26 @@ button.badge-pill:disabled {
   }
 
   .stage {
-    min-height: 640px;
+    height: 640px;
+    /* fixed folder height: it scrolls inside, and the panel below stays reachable */
+    min-height: 0;
+  }
+}
+
+@media (max-width: 900px) {
+
+  /* on narrow screens the chips drop under the title again */
+  .pitch-head {
+    flex-wrap: wrap;
+  }
+
+  .pitch-text {
+    flex-basis: 100%;
+  }
+
+  .pitch-head .filter-row {
+    flex-wrap: wrap;
+    justify-content: flex-start;
   }
 }
 
@@ -1716,6 +1782,7 @@ button.badge-pill:disabled {
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .live-dot,
   .flash {
     animation: none;

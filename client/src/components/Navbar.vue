@@ -74,8 +74,8 @@ const handleLogout = () => {
       <p class="mb-0 header-style">Singapore Management University</p>
     </div>
 
-    <div class="menu" @click="emit('close')">
-      <RouterLink to="/" class="tab-pill theme-grey" :title="isCollapsed ? 'Discover' : ''">
+    <div class="menu">
+      <RouterLink to="/" class="tab-pill theme-grey" :title="isCollapsed ? 'Discover' : ''" @click="emit('close')">
         <div class="pill-icon">
           <i class="bi bi-compass fs-5"></i>
         </div>
@@ -85,7 +85,7 @@ const handleLogout = () => {
         </div>
       </RouterLink>
 
-      <RouterLink to="/activity-tracking" class="tab-pill theme-grey" :title="isCollapsed ? 'Activity Tracking' : ''">
+      <RouterLink to="/activity-tracking" class="tab-pill theme-grey" :title="isCollapsed ? 'Activity Tracking' : ''" @click="emit('close')">
         <div class="pill-icon">
           <i class="bi bi-clipboard-check fs-5"></i>
         </div>
@@ -95,7 +95,7 @@ const handleLogout = () => {
         </div>
       </RouterLink>
 
-      <RouterLink to="/calendar" class="tab-pill theme-grey" :title="isCollapsed ? 'My Calendar' : ''">
+      <RouterLink to="/calendar" class="tab-pill theme-grey" :title="isCollapsed ? 'My Calendar' : ''" @click="emit('close')">
         <div class="pill-icon">
           <i class="bi bi-calendar-event fs-5"></i>
         </div>
@@ -105,7 +105,7 @@ const handleLogout = () => {
         </div>
       </RouterLink>
 
-      <RouterLink to="/lobby" class="tab-pill theme-grey" :title="isCollapsed ? 'My Lobbies' : ''">
+      <RouterLink to="/lobby" class="tab-pill theme-grey" :title="isCollapsed ? 'My Lobbies' : ''" @click="emit('close')">
         <div class="pill-icon">
           <i class="bi bi-people fs-5"></i>
         </div>
@@ -116,7 +116,7 @@ const handleLogout = () => {
       </RouterLink>
 
 
-      <RouterLink to="/friends" class="tab-pill theme-grey" :title="isCollapsed ? 'Friends' : ''">
+      <RouterLink to="/friends" class="tab-pill theme-grey" :title="isCollapsed ? 'Friends' : ''" @click="emit('close')">
         <div class="pill-icon position-relative">
           <i class="bi bi-person-plus fs-5"></i>
           <span v-if="reqs.state.incoming.length" class="req-badge" style="pointer-events: none">
@@ -510,7 +510,12 @@ aside.collapsed .user-profile {
     left: 12px;
     bottom: 12px;
     width: calc(100vw - 24px) !important;
-    height: calc(100vh - 24px) !important;
+    
+    height: 100% !important;
+    height: 100dvh !important;
+    max-height: calc(100vh - 24px);
+    max-height: calc(100dvh - 24px);
+
     margin: 0 !important;
     padding: 20px 16px;
     border-radius: 20px;

@@ -43,14 +43,14 @@
                 <span class="name">{{ l.name }}</span>
                 <span class="badge-pill" :class="roleClass(l)">{{ roleLabel(l) }}</span>
               </span>
-              <span v-if="store.needsReply(l)" class="badge-pill badge-reply">Reply needed. {{ store.hostName(l) }}
-                invited
-                you.</span>
               <span class="events">
                 <span v-for="line in eventLines(l)" :key="line" class="event-line">{{ line }}</span>
               </span>
               <span class="desc">{{ l.description || 'No description.' }}</span>
             </span>
+            <span v-if="store.needsReply(l)" class="badge-pill badge-reply">Reply needed. {{ store.hostName(l) }}
+              invited
+              you.</span>
 
             <span class="foot">
               <span class="stack" aria-hidden="true">
@@ -68,12 +68,12 @@
       </ul>
 
       <!-- Empty states -->
-      <div v-else-if="!lobbies.length" class="empty">
+      <div v-else-if="!lobbies.length" class="empty-lobby">
         <h3>You're not in any lobbies yet</h3>
         <p>Create one to plan events with your friends, or wait for an invite.</p>
         <BaseButton class="theme-green" @click="$emit('create')">+ Create lobby</BaseButton>
       </div>
-      <div v-else class="empty">
+      <div v-else class="empty-lobby">
         <h3>No lobbies match</h3>
         <p>Try a different search or clear the filters.</p>
         <BaseButton variant="outline-main" @click="clear">Clear filters</BaseButton>
@@ -262,6 +262,7 @@ function clear() {
   overflow-y: auto;
   overflow-x: hidden;
   padding-right: 4px;
+  margin-top: 15px;
   /* Sedikit spasi buat scrollbar */
 }
 
@@ -444,6 +445,8 @@ function clear() {
   color: #fff;
   white-space: normal;
   text-transform: none;
+  margin-top: 5px;
+  padding: 8px 12px 4px 12px !important;
 }
 
 .badge-warn {
@@ -454,7 +457,6 @@ function clear() {
 /* ── Cards Grid ── */
 .grid {
   list-style: none;
-  margin: 15px 0 20px 0;
   padding: 0;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -486,6 +488,7 @@ function clear() {
 
 .lobby:hover {
   transform: translateY(-2px);
+  z-index: 100;
 }
 
 .top {
@@ -510,7 +513,7 @@ function clear() {
 
 .event-line {
   font-size: 13px;
-  margin-bottom: 10px;
+  margin: 10px 0;
   font-weight: 600;
 }
 
@@ -580,7 +583,18 @@ function clear() {
   text-align: center;
 }
 
-.empty h3 {
+.empty-lobby {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 30px 15px;
+  border-radius: 25px;
+  background-color: var(--color-white);
+  color: var(--color-dark-grey);
+  text-align: center;
+}
+
+.empty-lobby h3 {
   margin: 0;
   font: 400 16px/1.2 'HeaderFont', sans-serif;
 }

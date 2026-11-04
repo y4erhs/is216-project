@@ -1,12 +1,11 @@
 <script setup>
-// "Your plans": upcoming plans you made (edit, delete) or were invited to (accept, decline)
 import { ref, watch, onMounted } from 'vue'
 import axios from 'axios'
 import { API_URL } from '../utils/api'
 
 const props = defineProps({
   userId: { type: String, required: true },
-  refreshKey: { type: Number, default: 0 }   // changes when a plan is created or synced
+  refreshKey: { type: Number, default: 0 }
 })
 const emit = defineEmits(['edit', 'changed', 'replied'])
 
@@ -16,7 +15,7 @@ const plans = ref([])
 const loading = ref(true)
 const error = ref('')
 const notice = ref('')
-const confirmingId = ref(null)   // the plan showing "Delete this plan?"
+const confirmingId = ref(null)
 const busyId = ref(null)
 
 async function loadPlans() {
@@ -60,7 +59,7 @@ async function respond(plan, response) {
   try {
     await axios.put(`${API_URL}/api/plans/${plan._id}/respond`, { userId: props.userId, response })
     await loadPlans()
-    emit('replied')   // a declined plan stops causing clash alerts
+    emit('replied')
   } catch (err) {
     notice.value = err.response?.data?.message || 'Could not save your reply.'
   } finally {
@@ -89,85 +88,103 @@ watch(() => [props.userId, props.refreshKey], loadPlans)
 </script>
 
 <template>
-  <section class="plans" aria-label="Your plans">
+  <div class="plans-container">
     <h2 class="plans-title">Your plans</h2>
 
-    <p v-if="loading" class="plans-note">Loading...</p>
-    <p v-else-if="error" class="plans-note" role="alert">{{ error }}</p>
-    <p v-else-if="plans.length === 0" class="plans-note">No upcoming plans yet.</p>
+    <div class="plans-scroll-area">
+      <section class="plans" aria-label="Your plans">
+        <p v-if="loading" class="plans-note">Loading...</p>
+        <p v-else-if="error" class="plans-note" role="alert">{{ error }}</p>
+        <p v-else-if="plans.length === 0" class="plans-note">No upcoming plans yet.</p>
 
-    <p v-if="notice" class="plans-notice" role="status">{{ notice }}</p>
+        <p v-if="notice" class="plans-notice" role="status">{{ notice }}</p>
 
-    <article v-for="plan in plans" :key="plan._id" class="plan-item">
-      <h3 class="plan-title">{{ plan.title }}</h3>
-      <p class="plan-meta">{{ formatWhen(plan) }}</p>
-      <p v-if="plan.location" class="plan-meta">{{ plan.location }}</p>
-      <p v-if="plan.lobby" class="plan-meta">Lobby: {{ plan.lobby.name }}</p>
+        <article v-for="plan in plans" :key="plan._id" class="plan-item">
+          <h3 class="plan-title">{{ plan.title }}</h3>
+          <p class="plan-meta">{{ formatWhen(plan) }}</p>
+          <p v-if="plan.location" class="plan-meta">{{ plan.location }}</p>
+          <p v-if="plan.lobby" class="plan-meta">Lobby: {{ plan.lobby.name }}</p>
 
-      <!-- Plans you made -->
-      <template v-if="isMine(plan)">
-        <p v-if="plan.invitees.length" class="plan-meta">{{ replySummary(plan) }}</p>
+          <template v-if="isMine(plan)">
+            <p v-if="plan.invitees.length" class="plan-meta">{{ replySummary(plan) }}</p>
 
-        <div v-if="confirmingId === plan._id" class="plan-actions">
-          <span class="plan-confirm">Delete this plan?</span>
-          <button type="button" class="plan-btn plan-btn-danger" :disabled="busyId === plan._id" @click="deletePlan(plan)">Yes, delete</button>
-          <button type="button" class="plan-btn" @click="confirmingId = null">Keep</button>
-        </div>
-        <div v-else class="plan-actions">
-          <button type="button" class="plan-btn" @click="emit('edit', plan)">Edit</button>
-          <button type="button" class="plan-btn" @click="confirmingId = plan._id">Delete</button>
-        </div>
-      </template>
+            <div v-if="confirmingId === plan._id" class="plan-actions">
+              <span class="plan-confirm">Delete this plan?</span>
+              <button type="button" class="plan-btn plan-btn-danger" :disabled="busyId === plan._id" @click="deletePlan(plan)">Yes, delete</button>
+              <button type="button" class="plan-btn" @click="confirmingId = null">Keep</button>
+            </div>
+            <div v-else class="plan-actions">
+              <button type="button" class="plan-btn" @click="emit('edit', plan)">Edit</button>
+              <button type="button" class="plan-btn" @click="confirmingId = plan._id">Delete</button>
+            </div>
+          </template>
 
-      <!-- Plans you were invited to -->
-      <template v-else>
-        <p class="plan-meta">From {{ plan.creator?.displayName || plan.creator?.username || 'a friend' }}</p>
-        <div class="plan-actions" role="group" :aria-label="`Reply to ${plan.title}`">
-          <button
-            type="button"
-            class="plan-btn"
-            :class="{ 'plan-btn-on': myReply(plan) === 'accepted' }"
-            :aria-pressed="myReply(plan) === 'accepted'"
-            :disabled="busyId === plan._id"
-            @click="respond(plan, 'accepted')"
-          >Accept</button>
-          <button
-            type="button"
-            class="plan-btn"
-            :class="{ 'plan-btn-off': myReply(plan) === 'declined' }"
-            :aria-pressed="myReply(plan) === 'declined'"
-            :disabled="busyId === plan._id"
-            @click="respond(plan, 'declined')"
-          >Decline</button>
-        </div>
-      </template>
-    </article>
-  </section>
+          <template v-else>
+            <p class="plan-meta">From {{ plan.creator?.displayName || plan.creator?.username || 'a friend' }}</p>
+            <div class="plan-actions" role="group" :aria-label="`Reply to ${plan.title}`">
+              <button
+                type="button"
+                class="plan-btn"
+                :class="{ 'plan-btn-on': myReply(plan) === 'accepted' }"
+                :aria-pressed="myReply(plan) === 'accepted'"
+                :disabled="busyId === plan._id"
+                @click="respond(plan, 'accepted')"
+              >Accept</button>
+              <button
+                type="button"
+                class="plan-btn"
+                :class="{ 'plan-btn-off': myReply(plan) === 'declined' }"
+                :aria-pressed="myReply(plan) === 'declined'"
+                :disabled="busyId === plan._id"
+                @click="respond(plan, 'declined')"
+              >Decline</button>
+            </div>
+          </template>
+        </article>
+      </section>
+    </div>
+  </div>
 </template>
 
 <style scoped>
+.plans-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.plans-title {
+  margin: 5px;
+  color: var(--color-black);
+  font-family: 'HeaderFont';
+  font-size: 20px;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.plans-scroll-area {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 4px;
+}
+
 .plans {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-.plans-title {
-  margin: 0;
-  color: var(--color-white);
-  font-family: 'HeaderFont';
-  font-size: 18px;
-  text-transform: uppercase;
-}
-
 .plans-note,
 .plans-notice {
   margin: 0;
-  padding: 14px 16px;
-  border-radius: 18px;
   background-color: var(--color-white);
-  color: #64748b;
+  border-radius: 18px;
+  padding: 14px 16px;
   font-size: 13px;
+  color: #64748b;
 }
 
 .plans-notice {

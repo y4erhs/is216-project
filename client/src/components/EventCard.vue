@@ -382,7 +382,7 @@ const imageSrc = computed(() =>
 
           <div class="btn-row">
             <BaseButton
-              class="action-pill-btn btn-red"
+              class="action-pill-btn"
               variant="outline-main"
               :disabled="attendedDisabled"
               :title="

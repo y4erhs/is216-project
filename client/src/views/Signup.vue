@@ -414,6 +414,7 @@ const handleSubmit = async () => {
 <style scoped>
 /* Container for all the Folder Tabs */
 .page-wrapper {
+  --folder-height: 600px;   /* one height for every tab, tune this single number */
   display: flex;
   justify-content: center;
   align-items: center;
@@ -425,16 +426,20 @@ const handleSubmit = async () => {
 .page-wrapper>* {
   width: 90%;
   max-width: 800px;
-  position: relative; /* anchor for the bottom-right footer buttons */
+  height: min(var(--folder-height), calc(100vh - 100px)); 
+  position: relative; 
 }
 
-/* Force FolderTabs and its internal card lists to respect the new wider size */
+:deep(.inner-folder) {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+
 :deep(.folder-tabs-container),
 :deep(.cards-list),
 :deep(.tab-content) {
   width: 100% !important;
   max-width: 100% !important;
-  min-height: 100% !important;
 }
 
 :deep(.cards-list) {
@@ -442,10 +447,10 @@ const handleSubmit = async () => {
   min-height: 0;
 }
 
-/* stops title margins from collapsing, so titles sit at the same height on every tab */
 .cards-list {
   display: flow-root;
   position: relative;
+  margin: 15px 0;
 }
 
 
@@ -828,32 +833,29 @@ input:focus {
 }
 
 
-/* interests Folder tab: title / scroll area / footer as a column */
 .interest-list {
   display: flex !important;
   flex-direction: column !important;
 }
 
 .folder-scroll-container {
-  flex: 0 1 auto;
+  flex: 1 1 auto;          
   min-height: 0;
-  max-height: 400px;       
   overflow-y: auto;
   padding-right: 8px;
-  margin: 16px 0;          
+  margin: 16px 0;
 }
 
-/* real footer row (in the flow, no more floating button) */
 .interest-footer {
-  margin-top: auto;        /* sticks to the bottom of the folder */
+  margin-top: auto;        
   display: flex;
-  align-items: center;     /* error text and button share one row */
+  align-items: center;    
   gap: 16px;
   padding: 0 10px 10px 0;
 }
 
 .interest-footer .form-error {
-  flex: 1;                 /* error takes the space on the left */
+  flex: 1;                 
   min-width: 0;
   text-align: left;
 }
@@ -863,7 +865,7 @@ input:focus {
   min-width: 150px;
   max-width: none;
   flex-shrink: 0;
-  margin-left: auto;       /* button stays on the right, even with no error */
+  margin-left: auto;       
 }
 
 .interest-grid {
@@ -880,12 +882,10 @@ input:focus {
 }
 
 .interest-card-img {
-  /* height: 65px; */
   object-fit: cover;
   border-radius: 15px 15px 0 0;
 }
 
-/* rounded-square checkbox: dark purple + white check when selected */
 .interest-card input[type="checkbox"] {
   appearance: none;
   -webkit-appearance: none;
@@ -928,6 +928,7 @@ input:focus {
 
   .page-wrapper>* {
     width: 100%;
+    height: auto;          /* phones: let the content decide, no fixed folder height */
   }
 
   .section-title {

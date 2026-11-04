@@ -166,7 +166,7 @@ onBeforeUnmount(() => {
 }
 
 .input-label {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--color-black);
   margin-left: 4px;

@@ -61,7 +61,7 @@ defineEmits(['click'])
   height: 35px;
   gap: 8px;
   padding: 0px 15px 3px 15px;
-  font-size: 10px;
+  font-size: 11px;
   border-radius: 25px;
 }
 
