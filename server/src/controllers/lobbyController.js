@@ -245,7 +245,7 @@ exports.pitchEvent = async (req, res) => {
         await lobby.save();
         if (event) {
             const hostId = String(lobby.host);
-            const memberIds = [...lobby.participants, ...lobby.invited].filter(id => String(id) !== hostId);
+            const memberIds = lobby.participants.filter(id =>String(id) !== hostId);
             const host = await User.findById(lobby.host).select('username');
             await notificationController.notifyEventPitched(
                 memberIds, lobby, host?.username || 'The host', event
