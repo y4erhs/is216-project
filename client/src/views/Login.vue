@@ -180,8 +180,8 @@ const handleSendReset = async () => {
               />
 
               <!-- Feedback messages -->
-              <p v-if="resetError" style="color: #fc5d5d; font-size: 14px; margin-top: 5px;">{{ resetError }}</p>
-              <p v-if="resetMessage" style="color: #51cf66; font-size: 14px; margin-top: 5px;">{{ resetMessage }}</p>
+              <p v-if="resetError" style="color: #fc5d5d; font-size: 13px; margin-top: 5px;">{{ resetError }}</p>
+              <p v-if="resetMessage" style="color: #51cf66; font-size: 13px; margin-top: 5px;">{{ resetMessage }}</p>
 
               <BaseButton type="submit" class="w-100 pwd-link-btn">
                 {{ isSent ? 'RESEND LINK' : 'SEND PASSWORD RESET LINK' }}
@@ -197,9 +197,9 @@ const handleSendReset = async () => {
 
 <style scoped>
 .page-wrapper {
+  --edge-gap: 10px;    
   position: fixed;
   inset: 0;
-  width: 100vw;
   height: 100vh;
   height: 100dvh;
   background-color: var(--color-white);
@@ -215,8 +215,8 @@ const handleSendReset = async () => {
 }
 
 .rotated-folder {
-  transform: translateX(140px) rotate(-90deg);
-  transform-origin: center center;
+  transform: translate(calc(-1 * var(--edge-gap)), -50%) rotate(-90deg) translateX(50%);
+  transform-origin: 100% 100%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -229,6 +229,7 @@ const handleSendReset = async () => {
   
 }
 .log-in {
+  font-size: 13px;          
   transform-origin: center center;
   color: var(--color-white);
   padding: 36px 24px; 
@@ -247,17 +248,11 @@ h1 {
   text-align: center;
 }
 
-/* 
-  Since 'form' is rotated 90deg inside a -90deg folder:
-  - Form's 'width' dictates its visually rendered 'height'.
-  - Form's 'height' (or max-width) dictates its visually rendered 'width'.
-*/
 form {
   display: flex;
   flex-direction: column;
   gap: 1px;
   
-  /* Set explicit width to fit inside the folder tab height limit */
   width: 280px; 
   max-width: 100%;
 
@@ -275,7 +270,8 @@ input {
   padding: 6px 0;
   color: var(--color-white);
   width: 100%;
-  font-size: 15px;
+  font-size: 13px;
+  font-weight: 600;
   box-sizing: border-box;
   transition: border-color 0.2s ease;
 
@@ -304,6 +300,11 @@ input:focus {
 .pwd-link-btn {
   margin-top: 8px;
   color: var(--color-white);
+}
+
+.log-in .login-btn,
+.log-in .pwd-link-btn {
+  font-size: 13px;
 }
 .pwd-reset {
   text-align: right;
@@ -368,15 +369,6 @@ input:focus {
   opacity: 0.75;
 }
 
-/* .log-in a {
-  color: var(--color-green);
-}
-.log-in a:hover {
-  color: var(--color-green);
-  opacity: 0.75;
-} */
-
-/* Phones and tablets: no artwork, and the folder sits upright */
 @media (max-width: 991px) {
   .page-wrapper {
     justify-content: center;
