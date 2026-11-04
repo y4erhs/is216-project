@@ -6,7 +6,7 @@
   * `border-radius: 15px`(inner)
   * `padding: 15px`
 * Page title: `font-size: 25px`
-* Default text `font-size: 11px`
+* Default text `font-size: 13px`
 
 ---
 

@@ -22,8 +22,8 @@
               <h3 class="section-title">Your friends</h3>
               <p class="section-sub">{{ friendsLine }}</p>
 
-              <div v-if="!friends.length" class="empty">
-                <p>No friends yet. Search for a classmate by username.</p>
+              <div v-if="!friends.length" class="empty-friends">
+                <span class="empty-text">No friends yet. Search for a classmate by username.</span>
                 <button class="btn btn-lime btn-small" type="button" @click="tab = 'add'">Find friends</button>
               </div>
 
@@ -36,7 +36,9 @@
                       <button class="badge-pill pill-grey" type="button" @click="removingId = null">Cancel</button>
                     </template>
                     <template v-else>
-                      <span class="avatar" :style="{ background: f.color }">{{ initials(f.name) }}<AvatarPic :path="f.avatar" /></span>
+                      <span class="avatar" :style="{ background: f.color }">{{ initials(f.name) }}
+                        <AvatarPic :path="f.avatar" />
+                      </span>
                       <span class="who">{{ f.name }}</span>
                       <button class="remove-x" type="button" :aria-label="`Remove ${f.name}`"
                         :title="`Remove ${f.name}`" @click="removingId = f.id">✕</button>
@@ -55,15 +57,17 @@
               <h3 class="section-title">Friend requests</h3>
               <p class="section-sub">{{ requestsLine }}</p>
 
-              <div v-if="!incoming.length" class="empty">
-                <p>You're all caught up. New requests show up here.</p>
+              <div v-if="!incoming.length" class="empty-request">
+                <span class="empty-text">You're all caught up. New requests show up here.</span>
               </div>
 
               <div v-else class="scroll">
                 <ul class="people">
                   <li v-for="r in incoming" :key="r._id" class="person">
                     <span class="avatar" :style="{ background: colorFor(r.requester._id) }">{{
-                      initials(r.requester.username) }}<AvatarPic :path="r.requester.avatar" /></span>
+                      initials(r.requester.username) }}
+                      <AvatarPic :path="r.requester.avatar" />
+                    </span>
                     <span class="who">{{ r.requester.username }}</span>
                     <button class="badge-pill pill-invite" type="button" :disabled="busyId === r._id"
                       @click="accept(r)">Accept</button>
@@ -78,15 +82,17 @@
               <h3 class="section-title">Sent by you</h3>
               <p class="section-sub">{{ sentLine }}</p>
 
-              <div v-if="!outgoing.length" class="empty">
-                <p>No pending requests. Find people on the Add tab.</p>
+              <div v-if="!outgoing.length" class="empty-request">
+                <span class="empty-text">No pending requests. Find people on the Add tab.</span>
               </div>
 
               <div v-else class="scroll">
                 <ul class="people">
                   <li v-for="r in outgoing" :key="r._id" class="person">
                     <span class="avatar" :style="{ background: colorFor(r.receiver._id) }">{{
-                      initials(r.receiver.username) }}<AvatarPic :path="r.receiver.avatar" /></span>
+                      initials(r.receiver.username) }}
+                      <AvatarPic :path="r.receiver.avatar" />
+                    </span>
                     <span class="who">{{ r.receiver.username }}</span>
                     <span class="badge-pill pill-pending">Sent</span>
                     <button class="badge-pill pill-grey" type="button" :disabled="busyId === r._id"
@@ -107,7 +113,7 @@
 
               <label class="search">
                 <span class="sr">Search users</span>
-                <span class="at" aria-hidden="true">@</span>
+                <span class="at-symbol" aria-hidden="true">@</span>
                 <input v-model="query" type="search" placeholder="Type at least 2 letters" autocomplete="off" />
               </label>
 
@@ -121,7 +127,9 @@
               <div v-if="results.length" class="scroll">
                 <ul class="people">
                   <li v-for="u in results" :key="u._id" class="person">
-                    <span class="avatar" :style="{ background: colorFor(u._id) }">{{ initials(u.username) }}<AvatarPic :path="u.avatar" /></span>
+                    <span class="avatar" :style="{ background: colorFor(u._id) }">{{ initials(u.username) }}
+                      <AvatarPic :path="u.avatar" />
+                    </span>
                     <span class="who">{{ u.username }}</span>
                     <span v-if="isFriend(u._id)" class="badge-pill pill-accepted">Friends</span>
                     <span v-else-if="isSent(u._id)" class="badge-pill pill-pending">Sent</span>
@@ -297,7 +305,7 @@ onBeforeUnmount(() => {
   height: 100dvh;
   text-align: left;
   font-family: 'TextFont', sans-serif;
-  font-size: 11px;
+  font-size: 13px;
   box-sizing: border-box;
   border-radius: 25px;
 }
@@ -395,7 +403,7 @@ onBeforeUnmount(() => {
   background-color: var(--grey);
   padding: 5px 12px 8px 12px;
   color: var(--ink);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -468,19 +476,28 @@ button.badge-pill:disabled {
   scrollbar-color: rgba(255, 255, 255, 0.6) transparent;
 }
 
-.empty {
+.empty-request {
   display: grid;
   justify-items: start;
   gap: 10px;
-  padding: 15px;
+  padding: 14px 14px 10px 14px;
   border-radius: 15px;
   background: var(--color-dark-red);
   color: var(--color-white);
 }
 
-.empty p {
+.empty-friends {
+  display: grid;
+  justify-items: start;
+  gap: 10px;
+  padding: 15px;
+  border-radius: 15px;
+  background: #4e5920;
+  color: var(--color-white);
+}
+
+.empty-text {
   margin: 0;
-  line-height: 1.4;
 }
 
 .error {
@@ -493,23 +510,37 @@ button.badge-pill:disabled {
 }
 
 /* search box, same look as the lobby link box */
-.search { display: block; position: relative; }
-.search .at { position: absolute; left: 16px; top: 0; line-height: 35px; color: var(--ink); font-size: 11px; font-weight: 700; pointer-events: none; }
+.search {
+  display: block;
+  position: relative;
+}
+
+.at-symbol {
+  position: absolute;
+  left: 16px;
+  top: 0;
+  line-height: 35px;
+  color: var(--color-dark-grey);
+  font-size: 15px;
+  padding-top: 3px;
+  font-weight: 700;
+  pointer-events: none;
+}
+
 .search input {
   width: 100%;
   height: 35px;
   padding: 3px 16px 0 29px;
-  border: 1px solid transparent;
+  border: none;
   border-radius: 999px;
   background: var(--card);
-  color: var(--ink);
-  font-size: 11px;
+  color: var(--color-dark-grey);
+  font-size: 13px;
   font-weight: 600;
-  letter-spacing: -0.93;
 }
 
 .search input::placeholder {
-  color: var(--ink);
+  color: var(--color-dark-grey);
   opacity: 0.6;
 }
 
@@ -553,8 +584,9 @@ button.badge-pill:disabled {
   flex: none;
   border-radius: 50%;
   font-weight: 700;
-  font-size: 11px;
-  padding-top: 2px; position: relative;
+  font-size: 13px;
+  padding-top: 2px;
+  position: relative;
 }
 
 .who {

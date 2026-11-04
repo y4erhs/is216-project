@@ -7,6 +7,7 @@ import SideUpcoming from '../components/SideUpcoming.vue'
 import BaseButton from '../components/BaseButton.vue'
 import { useActivities } from '../composables/useActivities'
 import { useAuth } from '../composables/useAuth'
+import { vAutoScrollbar } from '../directives/autoScrollbar'
 
 const isNavbarCollapsed = inject('isNavbarCollapsed')
 
@@ -181,7 +182,7 @@ onMounted(async () => {
                 </div>
 
                 <!-- EVENT CARDS -->
-                <div v-else class="folder-cards-scroll-area">
+                <div v-else class="folder-cards-scroll-area" v-auto-scrollbar>
                   <div class="folder-cards-grid" :class="{
                     'navbar-collapsed': isNavbarCollapsed
                   }">
@@ -311,24 +312,7 @@ onMounted(async () => {
   flex-direction: column;
   overflow-y: auto !important;
   overflow-x: hidden !important;
-  padding-right: 15px;
-
-  /* Sleek thin scrollbar */
-  scrollbar-width: thin;
-  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
-}
-
-.folder-wrapper :deep(.inner-folder)::-webkit-scrollbar {
-  width: 6px;
-}
-
-.folder-wrapper :deep(.inner-folder)::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.folder-wrapper :deep(.inner-folder)::-webkit-scrollbar-thumb {
-  background-color: rgba(0, 0, 0, 0.2);
-  border-radius: 10px;
+  padding: 0 6px;
 }
 
 /* FOLDER CONTENT */
@@ -345,8 +329,9 @@ onMounted(async () => {
 .folder-cards-scroll-area {
   flex: 1;
   min-height: 0;
-  overflow-y: visible;
+  overflow-y: auto;
   overflow-x: hidden;
+  scrollbar-gutter: stable both-edges;
 }
 
 /* EVENT GRID */

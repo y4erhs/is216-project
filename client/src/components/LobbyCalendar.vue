@@ -31,7 +31,7 @@
     </div>
 
     <!-- grid -->
-    <div class="grid-scroll-container">
+    <div class="grid-scroll-container" v-auto-scrollbar>
       <div class="grid">
         <span v-for="d in WEEKDAYS" :key="d" class="weekday">{{ d }}</span>
 
@@ -55,6 +55,7 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
 import { API_URL } from '../utils/api'
+import { vAutoScrollbar } from '../directives/autoScrollbar'
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 // same palette as the lobby avatars, handed out in member order
@@ -228,7 +229,6 @@ watch(
   margin: 0;
   color: var(--color-black);
   font: 400 20px/1.1 'HeaderFont', sans-serif;
-  letter-spacing: 0.03em;
   text-transform: uppercase;
 }
 
@@ -264,7 +264,6 @@ watch(
 .loading {
   color: var(--color-white);
   font-weight: 700;
-  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
@@ -285,13 +284,15 @@ watch(
   gap: 8px;
   margin-left: 5px;
   flex-shrink: 0;
+  position: relative;
+  z-index: 50;
 }
 
 .member {
   display: grid;
   place-items: center;
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   padding: 2px 0 0;
   border: 0;
   border-radius: 50%;
@@ -305,6 +306,7 @@ watch(
 
 .member:hover {
   transform: translateY(-1px);
+  z-index: 100;
 }
 
 .member.hidden {
@@ -316,25 +318,27 @@ watch(
   position: absolute;
   top: calc(100% + 6px);
   left: 0;
-  z-index: 5;
+  z-index: 100;
   padding: 5px 12px 4px;
   border-radius: 999px;
   background: var(--ink);
   color: var(--color-white);
   font-weight: 700;
   font-size: 11px;
-  letter-spacing: 0.08em;
   text-transform: uppercase;
   white-space: nowrap;
+  
   opacity: 0;
+  visibility: hidden;
   pointer-events: none;
-  transform: translateY(-4px);
-  transition: opacity 0.15s, transform 0.15s;
+  transform: translateY(-2px);
+  transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease;
 }
 
 .member:hover .name-pill,
 .member:focus-visible .name-pill {
   opacity: 1;
+  visibility: visible;
   transform: translateY(0);
 }
 
@@ -343,8 +347,6 @@ watch(
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(31, 42, 68, 0.35) transparent;
   padding-right: 4px;
 }
 
@@ -357,7 +359,6 @@ watch(
 .weekday {
   color: var(--color-dark-grey);
   font-weight: 700;
-  letter-spacing: 0.08em;
   text-transform: uppercase;
   text-align: center;
   position: sticky;
@@ -372,8 +373,8 @@ watch(
   flex-direction: column;
   align-items: stretch;
   gap: 3px;
-  min-height: 78px;
-  min-width: 0;
+  min-height: 70px;
+  aspect-ratio: 1/1;
   padding: 6px;
   border: 2px solid var(--color-grey);
   border-radius: 15px;

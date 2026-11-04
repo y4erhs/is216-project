@@ -13,6 +13,7 @@ import { useActivities } from '../composables/useActivities'
 import { useAuth } from '../composables/useAuth'
 import { INTERESTS, interestTheme } from '../utils/interests'
 import { API_URL } from '../utils/api'
+import { vAutoScrollbar } from '../directives/autoScrollbar'
 
 const {
     activityMap,
@@ -381,7 +382,8 @@ function handleRegister(url) {
                                     </p>
                                 </div>
 
-                                <div v-else class="folder-cards-scroll-area" :class="{ updating: updating }">
+                                <div v-else class="folder-cards-scroll-area auto-scrollbar" v-auto-scrollbar
+                                    :class="{ updating: updating }">
 
                                     <div class="folder-cards-grid">
 
@@ -464,7 +466,6 @@ function handleRegister(url) {
     padding-left: 8px;
     color: #fff;
     font: 400 25px/1.1 'HeaderFont', sans-serif;
-    letter-spacing: 0.02em;
     text-transform: uppercase;
 }
 
@@ -581,7 +582,8 @@ function handleRegister(url) {
     flex-direction: column;
     overflow-y: auto !important;
     overflow-x: hidden !important;
-    padding-right: 15px;
+    padding: 0 6px;
+
 }
 
 /* =========================================
@@ -641,9 +643,10 @@ function handleRegister(url) {
     min-height: 0;
     min-width: 0;
     overflow-y: visible;
-    /* Biar scroll utamanya di-handle sama inner-folder */
     overflow-x: hidden;
     transition: opacity .2s ease;
+    scrollbar-gutter: stable both-edges;
+
 }
 
 .folder-cards-scroll-area.updating {

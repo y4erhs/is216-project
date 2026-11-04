@@ -15,22 +15,14 @@ body {
   font-family: 'TextFont', sans-serif;
 }
 
-* {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(26, 26, 26, 0.269) transparent;
+/* ---------- scrollbar ---------- */
+@property --sb-alpha {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 0;
 }
 
 ::-webkit-scrollbar {
-  width: 12px; 
-  height: 6px;  
-}
-
-::-webkit-scrollbar-button {
-  display: block;
-  background-color: transparent; 
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: 6px 6px;
   width: 10px;
   height: 10px;
 }
@@ -38,14 +30,42 @@ body {
 
 ::-webkit-scrollbar-track {
   background: transparent;
-  margin: 0 16px;
+  margin: 4px 0;
 }
 
+::-webkit-scrollbar-button {
+  display: none;
+}
 
 ::-webkit-scrollbar-thumb {
-  border-radius: 9999px;
+  background-color: rgba(26, 26, 26, 0.098);
+  border: 2px solid transparent;
+  background-clip: padding-box;   
+  border-radius: 9999px;          
 }
 
-::-webkit-scrollbar-thumb:hover {
-  filter: brightness(0.85);
+.auto-scrollbar {
+  transition: --sb-alpha 0.4s ease;   
 }
+
+.auto-scrollbar.is-scrolling {
+  --sb-alpha: 1;
+}
+
+.auto-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(26, 26, 26, calc(0.35 * var(--sb-alpha)));
+}
+
+/* Firefox */
+@supports not selector(::-webkit-scrollbar) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(26, 26, 26, 0.098) transparent;
+  }
+
+  .auto-scrollbar {
+    scrollbar-color: rgba(26, 26, 26, calc(0.35 * var(--sb-alpha))) transparent;
+  }
+}
+
+

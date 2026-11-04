@@ -7,7 +7,8 @@
 <template>
   <div v-if="lobby" class="app">
     <header class="head">
-      <div class="head-main">
+      <!-- row 1: back link + actions -->
+      <div class="head-bar">
         <button class="back-link" type="button" @click="$emit('back')">
           <svg width="18" height="12" viewBox="0 0 18 12" aria-hidden="true">
             <path d="M17 6H2M6 1 1 6l5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
@@ -16,6 +17,19 @@
           <span>My lobbies</span>
         </button>
 
+        <div v-if="isHost && !editing" class="head-actions">
+          <BaseButton class="theme-green head-btn" type="button" aria-label="Edit lobby details" @click="startEdit">Edit</BaseButton>
+          <BaseButton class="theme-orange head-btn" type="button" aria-label="Delete lobby"
+            @click="confirmingDelete = true">Delete</BaseButton>
+        </div>
+        <div v-if="!isHost && !registered" class="head-actions">
+          <BaseButton class="theme-orange head-btn" type="button" aria-label="Leave lobby"
+            @click="confirmingLeave = true">Leave lobby</BaseButton>
+        </div>
+      </div>
+
+      <!-- row 2: name / description / status (collapsed by default) -->
+      <div class="head-info">
         <form v-if="editing" class="edit" @submit.prevent="saveEdit">
           <label class="field">
             <span>Lobby name</span>
@@ -32,23 +46,25 @@
         </form>
 
         <template v-else>
-          <h2 class="page-title">{{ lobby.name }}</h2>
-          <p class="lobby-desc">{{ lobby.description || 'No description yet.' }}</p>
-          <p class="lobby-meta">
-            {{ isHost ? 'Hosted by you.' : `Hosted by ${hostName}.` }} Active {{ timeAgo(lobby.lastActiveAt) }}.
-            <span v-if="inactive && isHost" class="badge-pill pill-warn">Inactive</span>
-          </p>
-        </template>
-      </div>
+          <button class="info-toggle" :class="{ open: infoOpen }" type="button" :aria-expanded="infoOpen"
+            aria-controls="lobby-info-more" :aria-label="infoOpen ? 'Hide lobby details' : 'Show lobby details'"
+            @click="infoOpen = !infoOpen">
+            <svg class="info-chev" width="12" height="8" viewBox="0 0 12 8" aria-hidden="true">
+              <path d="M1 1.5 6 6.5l5-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                stroke-linejoin="round" />
+            </svg>
+          </button>
 
-      <div v-if="isHost && !editing" class="head-actions">
-        <BaseButton class="theme-green head-btn" type="button" aria-label="Edit lobby details" @click="startEdit">Edit</BaseButton>
-        <BaseButton class="theme-orange head-btn" type="button" aria-label="Delete lobby"
-          @click="confirmingDelete = true">Delete</BaseButton>
-      </div>
-      <div v-if="!isHost && !registered" class="head-actions">
-          <BaseButton class="theme-orange head-btn" type="button" aria-label="Leave lobby"
-            @click="confirmingLeave = true">Leave lobby</BaseButton>
+          <h2 class="page-title">{{ lobby.name }}</h2>
+
+          <div v-show="infoOpen" id="lobby-info-more" class="info-more">
+            <p class="lobby-desc">{{ lobby.description || 'No description yet.' }}</p>
+            <p class="lobby-meta">
+              {{ isHost ? 'Hosted by you.' : `Hosted by ${hostName}.` }} Active {{ timeAgo(lobby.lastActiveAt) }}.
+              <span v-if="inactive && isHost" class="badge-pill pill-warn">Inactive</span>
+            </p>
+          </div>
+        </template>
       </div>
     </header>
 
@@ -61,7 +77,7 @@
               <p v-if="!friends.length" class="section-sub">
                 No friends yet. <RouterLink to="/friends" style="color:#fff">Add some</RouterLink>
               </p>
-              <div v-else class="scroll">
+              <div v-else class="scroll" v-auto-scrollbar>
                 <ul class="people">
                   <li v-for="f in friends" :key="f.id" class="person">
                     <span class="avatar" :style="{ background: f.color }">{{ initials(f.name) }}<AvatarPic :path="f.avatar" /></span>
@@ -89,7 +105,7 @@
               </div>
               <p v-if="members.length === 1" class="section-sub">No one invited yet. Add friends from the Invite tab.</p>
 
-              <div class="scroll">
+              <div class="scroll" v-auto-scrollbar>
                 <TransitionGroup name="roster" tag="ul" class="people" aria-live="polite">
                   <li v-for="m in uniqueMembers" :key="m.id" class="person"
                     :class="{ flash: flashIds.has(m.id), asking: removingId === m.id }">
@@ -177,15 +193,17 @@
                 <BaseButton v-if="pitchMode === 'interested'" class="theme-green" type="button" @click="pitchPick = 'all'">Show all events</BaseButton>
               </div>
 
-              <div v-else class="scroll">
+              <div v-else class="scroll" v-auto-scrollbar>
                 <div class="events" role="radiogroup" aria-label="Events">
                   <label v-for="e in pitchable" :key="e.id" class="event" :class="{ used: usedEventIds.has(e.id) }">
                     <input class="sr" type="radio" name="event" :value="e.id" v-model="selectedEventId"
                           :disabled="usedEventIds.has(e.id)" />
                     <span class="event-body">
-                      <strong>{{ e.title }}</strong>
-                      <span>{{ e.date }}</span>
-                      <span>{{ e.venue }}</span>
+                      <span class="event-details">
+                        <strong>{{ e.title }}</strong>
+                        <span>{{ e.date }}</span>
+                        <span>{{ e.venue }}</span>
+                      </span>
                       <span class="event-meta">{{ e.limitsText }}</span>
                       <span v-if="usedEventIds.has(e.id)" class="badge-pill pill-accepted">Already registered</span>
                     </span>
@@ -219,7 +237,7 @@
     </main>
 
     <aside v-if="tab === 'calendar'" class="panel-wrap" aria-label="Selected day">
-      <div class="side-panel day-panel">
+      <div class="side-panel day-panel" v-auto-scrollbar>
         <PlanForm v-if="showPlanForm" :user-id="userId" :lobby-id="lobbyId" :date="selectedDay?.date || ''"
           @close="showPlanForm = false" @created="calendarEl?.reload()" />
 
@@ -247,7 +265,7 @@
       <div class="side-panel side-panel-split">
         <h3 class="panel-title">Registered events</h3>
 
-        <div class="side-scroll">
+        <div class="side-scroll" v-auto-scrollbar>
         <ul v-if="eventRows.length" class="evlist">
           <li v-for="(r, i) in eventRows" :key="r.key" class="ev">
             <button class="ev-head" type="button" :aria-expanded="isOpen(r, i)" :aria-controls="`ev-${r.key}`"
@@ -275,7 +293,7 @@
     </aside>
 
     <Transition name="fade">
-      <div v-if="viewingMember" class="overlay" role="dialog" aria-modal="true" aria-label="Invitation"
+      <div v-if="viewingMember" class="overlay" v-auto-scrollbar role="dialog" aria-modal="true" aria-label="Invitation"
         @click.self="viewingId = null">
         <LobbyInvite :lobby-name="lobby.name" :description="lobby.description" :host-name="hostName"
           :event="selectedEvent" :members="inviteeMembers" :via="viewingMember.via === 'link' ? 'link' : 'invitation'"
@@ -285,7 +303,7 @@
     </Transition>
 
     <Transition name="fade">
-      <div v-if="confirmingDelete" class="overlay" role="alertdialog" aria-modal="true" aria-labelledby="del-title"
+      <div v-if="confirmingDelete" class="overlay" v-auto-scrollbar role="alertdialog" aria-modal="true" aria-labelledby="del-title"
         @click.self="confirmingDelete = false">
         <div class="dialog">
           <h3 id="del-title" class="dialog-title">Delete "{{ lobby.name }}"?</h3>
@@ -307,7 +325,7 @@
     </Transition>
 
     <Transition name="fade">
-      <div v-if="confirmingLeave" class="overlay" role="alertdialog" aria-modal="true" aria-labelledby="leave-title"
+      <div v-if="confirmingLeave" class="overlay" v-auto-scrollbar role="alertdialog" aria-modal="true" aria-labelledby="leave-title"
           @click.self="confirmingLeave = false">
         <div class="dialog">
           <h3 id="leave-title" class="dialog-title">Leave "{{ lobby.name }}"?</h3>
@@ -333,6 +351,7 @@ import LobbyInvite from '../views/LobbyInvite.vue'
 import { useAuth } from '../composables/useAuth'
 import { useLobbies, daysAgo, timeAgo, INACTIVE_DAYS } from '../composables/useLobbies'
 import { useActivities } from '../composables/useActivities'
+import { vAutoScrollbar } from '../directives/autoScrollbar'
 
 const props = defineProps({
   lobbyId: { type: String, required: true },
@@ -389,6 +408,7 @@ function goTo(id) {
 const statusLabel = { pending: 'Pending', accepted: 'Accepted', declined: 'Declined' }
 
 const editing = ref(false)
+const infoOpen = ref(false) // name stays visible, description + status are collapsed by default
 const draft = reactive({ name: '', description: '' })
 function startEdit() {
   draft.name = lobby.value.name
@@ -595,7 +615,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onEsc))
   overflow: hidden;
   text-align: left;
   font-family: 'TextFont', sans-serif;
-  font-size: 11px;
+  font-size: 13px;
   box-sizing: border-box;
 }
 
@@ -710,19 +730,19 @@ button.badge-pill:disabled {
 }
 .head {
   grid-area: head;
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 15px;
+  display: grid;
+  gap: 12px;
+  min-width: 0;
   flex-shrink: 0;
 }
 
-.head-main {
-  display: grid;
-  justify-items: start;
-  gap: 8px;
-  min-width: 0;
-  flex: 1;
+/* row 1: back link + actions */
+.head-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  flex-wrap: wrap;
   padding: 8px 0 0 8px;
 }
 
@@ -730,6 +750,50 @@ button.badge-pill:disabled {
   display: flex;
   gap: 8px;
   flex: none;
+}
+
+/* row 2: name / description / status, collapsible */
+.head-info {
+  position: relative;
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+  min-width: 0;
+  padding: 0 0 0 8px;
+}
+
+.info-more {
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+}
+
+.info-toggle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: #fff;
+  cursor: pointer;
+}
+
+.info-toggle:hover {
+  background-color: rgba(255, 255, 255, 0.18);
+}
+
+.info-chev {
+  transition: transform 0.2s ease;
+}
+
+.info-toggle.open .info-chev {
+  transform: rotate(180deg);
 }
 
 .back-link {
@@ -752,7 +816,7 @@ button.badge-pill:disabled {
 
 .page-title {
   margin: 0;
-  margin-top: 10px;
+  max-width: calc(100% - 32px); /* keeps long names clear of the arrow */
   color: #fff;
   font: 400 25px/1.1 'HeaderFont', sans-serif;
   text-transform: uppercase;
@@ -760,7 +824,7 @@ button.badge-pill:disabled {
 }
 
 .lobby-desc {
-  margin-top: 10px;
+  margin-top: 0;
   margin-bottom: 0;
   max-width: 70ch;
 }
@@ -792,7 +856,7 @@ button.badge-pill:disabled {
   border-radius: 15px;
   background-color: var(--color-white);
   color: var(--color-black);
-  font-size: 11px;
+  font-size: 13px;
   text-transform: none;
   font-weight: 400;
   resize: vertical;
@@ -822,7 +886,7 @@ button.badge-pill:disabled {
   overflow: hidden;
 }
 
-.stage > :deep(.folder-container) {
+.stage :deep(.folder-container) {
   height: 100% !important;
   min-height: 0;
   max-height: 100% !important;
@@ -831,7 +895,7 @@ button.badge-pill:disabled {
   overflow: hidden;
 }
 
-.stage > :deep(.folder-body) {
+.stage :deep(.folder-body) {
   flex: 1 !important;
   height: 0 !important;
   min-height: 0 !important;
@@ -840,7 +904,7 @@ button.badge-pill:disabled {
   flex-direction: column;
 }
 
-.stage > :deep(.inner-folder) {
+.stage :deep(.inner-folder) {
   flex: 1 !important;
   height: 100% !important;
   min-height: 0;
@@ -857,13 +921,13 @@ button.badge-pill:disabled {
 
 .pane {
   display: grid;
+  grid-template-columns: minmax(0, 1fr); 
   gap: 20px;
-  padding-top: 15px;
+  padding: 15px 0;
+  overflow-x: clip;                     
 }
 
-.section-wrapper {
-  margin-top: 15px;
-}
+
 
 .section-head {
   display: flex;
@@ -911,14 +975,6 @@ button.badge-pill:disabled {
   animation: pulse 1.8s infinite;
 }
 
-.scroll {
-  max-height: clamp(170px, 34vh, 300px);
-  overflow-y: auto;
-  margin: -3px;
-  padding: 3px 11px 3px 3px;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.6) transparent;
-}
 
 .link-box {
   display: flex;
@@ -971,7 +1027,7 @@ button.badge-pill:disabled {
   flex: none;
   border-radius: 50%;
   font-weight: 700;
-  font-size: 11px;
+  font-size: 13px;
   padding-top: 4px;
   position: relative;
 }
@@ -989,7 +1045,7 @@ button.badge-pill:disabled {
 .via {
   margin-left: 6px;
   opacity: 0.7;
-  font-size: 11px;
+  font-size: 13px;
 }
 
 .remove-x {
@@ -1003,7 +1059,7 @@ button.badge-pill:disabled {
   border-radius: 50%;
   background: rgba(31, 42, 68, 0.1);
   color: var(--color-black);
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1;
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
@@ -1084,6 +1140,10 @@ button.badge-pill:disabled {
   color: var(--color-black);
 }
 
+.event-details {
+  gap: 10px;
+}
+
 .event-title {
   font-size: 16px;
   font-family: 'HeaderFont', sans-serif;
@@ -1094,7 +1154,7 @@ button.badge-pill:disabled {
 .event-date,
 .event-venue,
 .event-meta {
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1.3;
 }
 
@@ -1202,13 +1262,11 @@ button.badge-pill:disabled {
   position: absolute;
   inset: 0;
   overflow-y: auto;
-  padding: 15px 5px 2px 15px;
-  padding-right: px;
+  padding: 15px;
+  padding-bottom: 0;
   border-radius: 25px;
   background-color: var(--color-grey);
   color: var(--color-black);
-  scrollbar-width: thin;
-  scrollbar-color: rgba(31, 42, 68, 0.35) transparent;
 }
 
 .panel-title {
@@ -1234,29 +1292,7 @@ button.badge-pill:disabled {
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  padding-right: 3px;
-
-  /* Firefox */
-  scrollbar-width: thin;
-  scrollbar-color: rgba(0, 0, 0, 0.25) transparent;
-}
-
-/* Chrome, Edge, Safari */
-.side-scroll::-webkit-scrollbar {
-  width: 4px;
-}
-
-.side-scroll::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.side-scroll::-webkit-scrollbar-thumb {
-  background-color: rgba(0, 0, 0, 0.25);
-  border-radius: 10px;
-}
-
-.side-scroll::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(0, 0, 0, 0.4);
+  scrollbar-gutter: stable both-edges;
 }
 
 .evlist {
@@ -1418,6 +1454,7 @@ button.badge-pill:disabled {
 
 .add-plan {
   margin-top: auto;
+  margin-bottom: 15px;
   align-self: stretch;
 }
 
@@ -1435,7 +1472,7 @@ button.badge-pill:disabled {
   border-radius: 999px;
   background-color: var(--color-white);
   color: var(--color-black);
-  font-size: 11px;
+  font-size: 13px;
   overflow-wrap: anywhere;
 }
 
@@ -1600,8 +1637,8 @@ button.badge-pill:disabled {
     grid-template-columns: 1fr;
   }
 
-  .head {
-    flex-direction: column;
+  .head-bar {
+    gap: 10px;
   }
 }
 

@@ -244,7 +244,6 @@ h1 {
   font-family: 'HeaderFont', sans-serif !important;
   font-size: 28px;
   margin: 0 0 16px 0;
-  letter-spacing: 0.5px;
   text-align: center;
 }
 

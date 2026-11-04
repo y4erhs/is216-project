@@ -237,7 +237,6 @@ function clear() {
   flex-shrink: 0;
   display: grid;
   gap: 15px;
-  margin-bottom: 15px;
 }
 
 .heading {
@@ -290,6 +289,7 @@ function clear() {
   background-color: var(--color-grey);
   color: var(--color-black);
   font-size: 11px;
+  font-weight: 600;
 }
 
 .search input::placeholder {
@@ -454,7 +454,7 @@ function clear() {
 /* ── Cards Grid ── */
 .grid {
   list-style: none;
-  margin: 0 0 20px 0;
+  margin: 15px 0 20px 0;
   padding: 0;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -511,6 +511,7 @@ function clear() {
 .event-line {
   font-size: 13px;
   margin-bottom: 10px;
+  font-weight: 600;
 }
 
 .desc {
@@ -524,6 +525,8 @@ function clear() {
   line-height: 1.4;
   min-height: 2.8em;
   opacity: 0.85;
+  font-weight: 600;
+
 }
 
 .foot {
@@ -535,6 +538,8 @@ function clear() {
   margin-top: auto;
   padding-top: 12px;
   border-top: 2px dashed rgba(31, 42, 68, 0.2);
+  font-weight: 600;
+
 }
 
 .stack {

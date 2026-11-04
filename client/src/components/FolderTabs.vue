@@ -1,6 +1,6 @@
-
 <script setup>
 import { ref, nextTick, watch } from 'vue'
+import { vAutoScrollbar } from '../directives/autoScrollbar'
 
 const props = defineProps({
   tabs: {
@@ -92,7 +92,7 @@ watch(() => props.modelValue, (newVal) => {
         v-show="activeTab === tab.id"
         :class="['folder-body', tab.theme]"
       >
-        <div class="inner-folder">
+        <div class="inner-folder" v-auto-scrollbar>
           <slot :name="tab.id">
             <slot></slot>
           </slot>
@@ -337,7 +337,6 @@ watch(() => props.modelValue, (newVal) => {
   text-align: center;
 
   user-select: none;
-  letter-spacing: 1px;
 
   font-family: 'HeaderFont';
 }
@@ -388,7 +387,7 @@ watch(() => props.modelValue, (newVal) => {
     min-width: 0;
     max-width: none;
     margin: 0;
-    padding: 0 0 0 20px;   /* clear of the previous tab's curved edge */
+    padding: 0 0 0 20px;   
   }
 
   .folder-tab:first-child {
@@ -398,7 +397,6 @@ watch(() => props.modelValue, (newVal) => {
   .folder-tab-text {
     padding-left: 0;
     font-size: 10.5px;
-    letter-spacing: 0;
   }
 }
 </style>

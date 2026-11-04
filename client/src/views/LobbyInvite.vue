@@ -44,22 +44,24 @@
           <div class="choices">
             <div class="choice">
               <button class="answer answer-accept" :class="{ chosen: myStatus === 'accepted' }" type="button"
-                      :aria-pressed="myStatus === 'accepted'" @click="$emit('respond', 'accepted')">
+                :aria-pressed="myStatus === 'accepted'" @click="$emit('respond', 'accepted')">
                 {{ myStatus === 'accepted' ? '✓ Accepted' : 'Accept' }}
               </button>
               <p>You're in! If {{ hostName }} registers the group, you're signed up automatically.</p>
             </div>
             <div class="choice">
               <button class="answer answer-decline" :class="{ chosen: myStatus === 'declined' }" type="button"
-                      :aria-pressed="myStatus === 'declined'" @click="$emit('respond', 'declined')">
+                :aria-pressed="myStatus === 'declined'" @click="$emit('respond', 'declined')">
                 {{ myStatus === 'declined' ? '✕ Declined' : 'Decline' }}
               </button>
-              <p>You're skipping this one! No bookings will be made for you, but we hope to catch you at the next event.</p>
+              <p>You're skipping this one! No bookings will be made for you, but we hope to catch you at the next event.
+              </p>
             </div>
           </div>
 
           <p class="reply-line" aria-live="polite">
-            <template v-if="myStatus === 'pending'">No reply yet. You can change your answer any time before registration.</template>
+            <template v-if="myStatus === 'pending'">No reply yet. You can change your answer any time before
+              registration.</template>
             <template v-else>
               You replied <strong>{{ statusLabel[myStatus] }}</strong>.
               You can change this until {{ hostName }} registers the group.
@@ -77,7 +79,9 @@
         <div class="scroll">
           <ul class="people">
             <li v-for="m in members" :key="m.id" class="person">
-              <span class="avatar" :style="{ background: m.color || '#fdebd0' }">{{ initials(m.name) }}<AvatarPic :path="m.avatar" /></span>
+              <span class="avatar" :style="{ background: m.color || '#fdebd0' }">{{ initials(m.name) }}
+                <AvatarPic :path="m.avatar" />
+              </span>
               <span class="who">{{ m.name }}</span>
               <span v-if="m.host" class="badge-pill pill-host">Host</span>
               <span v-else-if="m.id === meId" class="badge-pill pill-grey">You</span>
@@ -139,14 +143,25 @@ const initials = (name) => name.split(' ').map((w) => w[0]).slice(0, 2).join('')
   overflow: hidden;
 }
 
-.invite *, .invite *::before, .invite *::after { box-sizing: border-box; }
-.invite :focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
-.card :focus-visible { outline-color: var(--ink); }
+.invite *,
+.invite *::before,
+.invite *::after {
+  box-sizing: border-box;
+}
 
-.inner { 
-  display: flex; 
-  flex-direction: column; 
-  gap: 15px; 
+.invite :focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 2px;
+}
+
+.card :focus-visible {
+  outline-color: var(--ink);
+}
+
+.inner {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
   overflow-y: auto;
   min-height: 0;
   flex: 1;
@@ -154,66 +169,230 @@ const initials = (name) => name.split(' ').map((w) => w[0]).slice(0, 2).join('')
 }
 
 .close {
-  position: absolute; top: 12px; right: 12px; z-index: 1;
-  display: grid; place-items: center; width: 28px; height: 28px; padding: 2px 0 0;
-  border: 0; border-radius: 50%; background: var(--card); color: var(--ink);
-  cursor: pointer; font: inherit; line-height: 1;
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 2px 0 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--card);
+  color: var(--ink);
+  cursor: pointer;
+  font: inherit;
+  line-height: 1;
 }
 
-.lobby-head { display: grid; gap: 2px; padding-right: 40px; color: #fff; line-height: 1.5; }
-.lobby-name { font: 400 14px/1.2 'HeaderFont', sans-serif; letter-spacing: 0.06em; text-transform: uppercase; opacity: 0.9; }
-.title { margin: 0; padding-right: 40px; color: #fff; font: 400 25px/1.1 'HeaderFont', sans-serif; letter-spacing: 0.02em; text-transform: uppercase; }
-.lead { margin: -4px 0 0; color: #fff; line-height: 1.4; }
-.section-title { margin: 0 0 6px; color: #fff; font: 400 18px/1.1 'HeaderFont', sans-serif; letter-spacing: 0.03em; text-transform: uppercase; }
+.lobby-head {
+  display: grid;
+  gap: 2px;
+  padding-right: 40px;
+  color: #fff;
+  line-height: 1.5;
+}
 
-.card { display: grid; gap: 4px; padding: 12px 15px; border-radius: 15px; background: var(--card); color: var(--ink); }
-.event-title { font: 400 15px/1.15 'HeaderFont', sans-serif; letter-spacing: 0.03em; text-transform: uppercase; }
-.plain { margin: 0; line-height: 1.4; }
+.lobby-name {
+  font: 400 14px/1.2 'HeaderFont', sans-serif;
+  text-transform: uppercase;
+  opacity: 0.9;
+}
+
+.title {
+  margin: 0;
+  padding-right: 40px;
+  color: #fff;
+  font: 400 25px/1.1 'HeaderFont', sans-serif;
+  text-transform: uppercase;
+}
+
+.lead {
+  margin: -4px 0 0;
+  color: #fff;
+  line-height: 1.4;
+}
+
+.section-title {
+  margin: 0 0 6px;
+  color: #fff;
+  font: 400 18px/1.1 'HeaderFont', sans-serif;
+  text-transform: uppercase;
+}
+
+.card {
+  display: grid;
+  gap: 4px;
+  padding: 12px 15px;
+  border-radius: 15px;
+  background: var(--card);
+  color: var(--ink);
+}
+
+.event-title {
+  font: 400 15px/1.15 'HeaderFont', sans-serif;
+  text-transform: uppercase;
+}
+
+.plain {
+  margin: 0;
+  line-height: 1.4;
+}
 
 /* accept / decline */
-.choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-.choice { display: grid; align-content: start; gap: 8px; }
-.choice p { margin: 0; line-height: 1.35; }
+.choices {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.choice {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+}
+
+.choice p {
+  margin: 0;
+  line-height: 1.35;
+}
+
 .answer {
   --nudge: 2px;
-  display: block; width: 100%;
+  display: block;
+  width: 100%;
   padding: calc(12px + var(--nudge)) 16px calc(12px - var(--nudge));
-  border: 0; border-radius: 999px; cursor: pointer;
-  color: var(--ink); font: 700 11px/1 'TextFont', sans-serif; letter-spacing: 0.14em; text-transform: uppercase;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  color: var(--ink);
+  font: 700 11px/1 'TextFont', sans-serif;
+  text-transform: uppercase;
   transition: transform 0.15s;
 }
-.answer:hover { transform: translateY(-1px); }
-.answer-accept { background: var(--lime); }
-.answer-decline { background: var(--orange); }
-.chosen { box-shadow: inset 0 0 0 3px var(--ink); }
-.reply-line { margin: 8px 0 0; padding-top: 8px; border-top: 2px dashed rgba(31, 42, 68, 0.2); line-height: 1.4; }
+
+.answer:hover {
+  transform: translateY(-1px);
+}
+
+.answer-accept {
+  background: var(--lime);
+}
+
+.answer-decline {
+  background: var(--orange);
+}
+
+.chosen {
+  box-shadow: inset 0 0 0 3px var(--ink);
+}
+
+.reply-line {
+  margin: 8px 0 0;
+  padding-top: 8px;
+  border-top: 2px dashed rgba(31, 42, 68, 0.2);
+  line-height: 1.4;
+}
 
 /* who's in: same cards as the roster */
 .scroll {
-  max-height: 160px; overflow-y: auto; margin: -3px; padding: 3px 11px 3px 3px;
-  scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.6) transparent;
+  max-height: 160px;
+  overflow-y: auto;
+  margin: -3px;
+  padding: 3px 11px 3px 3px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.6) transparent;
 }
 
-.people { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
-.person { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 8px 12px; border-radius: 15px; background: var(--card); color: var(--ink); }
-.avatar { display: grid; place-items: center; width: 32px; height: 32px; flex: none; border-radius: 50%; font-weight: 700; font-size: 11px; position: relative; }
+.people {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
 
-.who { flex: 1; min-width: 0; font-size: 13px; letter-spacing: 0.04em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.person {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 8px 12px;
+  border-radius: 15px;
+  background: var(--card);
+  color: var(--ink);
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex: none;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 11px;
+  position: relative;
+}
+
+.who {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 /* pills */
 .badge-pill {
-  display: inline-block; flex: none; height: 22px; border-radius: 9999px; background-color: var(--grey);
-  padding: 5px 12px 8px 12px; color: var(--ink);
-  font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap;
+  display: inline-block;
+  flex: none;
+  height: 22px;
+  border-radius: 9999px;
+  background-color: var(--grey);
+  padding: 5px 12px 8px 12px;
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
-.pill-pending { background: var(--orange); color: #fff; }
-.pill-accepted { background: var(--lime); }
-.pill-declined, .pill-grey { background: var(--grey); }
-.pill-host { background: var(--dark-blue); color: #fff; }
+
+.pill-pending {
+  background: var(--orange);
+  color: #fff;
+}
+
+.pill-accepted {
+  background: var(--lime);
+}
+
+.pill-declined,
+.pill-grey {
+  background: var(--grey);
+}
+
+.pill-host {
+  background: var(--dark-blue);
+  color: #fff;
+}
 
 @media (max-width: 560px) {
-  .choices { grid-template-columns: 1fr; }
-  .title { font-size: 22px; }
+  .choices {
+    grid-template-columns: 1fr;
+  }
+
+  .title {
+    font-size: 22px;
+  }
 }
-@media (prefers-reduced-motion: reduce) { .answer { transition: none; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .answer {
+    transition: none;
+  }
+}
 </style>

@@ -68,7 +68,6 @@ const upcoming = computed(() => {
   margin: 8px 0 15px;
   text-align: center;
   font: 400 20px/1.1 'HeaderFont', sans-serif;
-  letter-spacing: 0.03em;
   text-transform: uppercase;
   flex-shrink: 0;     
 }
@@ -78,30 +77,10 @@ const upcoming = computed(() => {
   min-height: 0;
   overflow-y: auto !important;
   overflow-x: hidden;
-  padding-right: 3px; /* Jarak dikit biar thumb scrollbar gak nempel banget ke border luar */
-  
-  /* Firefox modern sleek scrollbar */
-  scrollbar-width: thin;
-  scrollbar-color: rgba(0, 0, 0, 0.25) transparent;
+  padding-right: 3px;
+
 }
 
-/* WebKit (Chrome, Edge, Safari) modern sleek scrollbar */
-.side-scroll-container::-webkit-scrollbar {
-  width: 4px; /* Tipis banget persis kayak referensi */
-}
-
-.side-scroll-container::-webkit-scrollbar-track {
-  background: transparent; /* Track transparan */
-}
-
-.side-scroll-container::-webkit-scrollbar-thumb {
-  background-color: rgba(0, 0, 0, 0.25); /* Warna gelap soft */
-  border-radius: 10px; /* Bentuk pil rounded */
-}
-
-.side-scroll-container::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(0, 0, 0, 0.4);
-}
 
 .side-list {
   display: grid;
@@ -126,7 +105,6 @@ const upcoming = computed(() => {
 
 .side-item-title {
   font: 400 16px/1.15 'HeaderFont', sans-serif;
-  letter-spacing: 0.03em;
   text-transform: uppercase;
   overflow-wrap: anywhere;
 }
