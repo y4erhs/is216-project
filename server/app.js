@@ -40,7 +40,9 @@ server.use(cors({
     
     if (!origin) return callback(null, true);
 
-    if (allowedLocalhost.test(origin) || allowed127.test(origin)) {
+    // the live site's address comes from CLIENT_URL
+    const liveSite = (process.env.CLIENT_URL || '').replace(/\/$/, '');
+    if (allowedLocalhost.test(origin) || allowed127.test(origin) || origin === liveSite) {
       return callback(null, true);
     }
     return callback(new Error("Not allowed by CORS"));
@@ -81,8 +83,9 @@ async function connectDB() {
 }
 
 function startServer() {
-  const hostname = "localhost"; 
-  const port = 8000;
+  // Hosts like Render set PORT and need the server reachable from outside
+  const hostname = process.env.PORT ? "0.0.0.0" : "localhost";
+  const port = process.env.PORT || 8000;
  
   server.listen(port, hostname, () => {
     console.log(`Server running at http://${hostname}:${port}/`);
