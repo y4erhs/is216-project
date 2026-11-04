@@ -25,6 +25,7 @@
         :class="{ hidden: hiddenIds.includes(m.id) }" :style="{ background: colourFor(m.id) }" :aria-label="m.username"
         :aria-pressed="!hiddenIds.includes(m.id)" @click="toggleMember(m.id)">
         {{ initial(m.id) }}
+        <AvatarPic :path="m.avatar" />
         <!-- name pill shown on hover/focus -->
         <span class="name-pill" aria-hidden="true">{{ m.username }}</span>
       </button>
@@ -56,6 +57,7 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { API_URL } from '../utils/api'
 import { vAutoScrollbar } from '../directives/autoScrollbar'
+import AvatarPic from './AvatarPic.vue'
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 // same palette as the lobby avatars, handed out in member order

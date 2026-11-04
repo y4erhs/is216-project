@@ -30,16 +30,16 @@ async function getLobbyCalendar(lobbyId, userId, month) {
     }
 
     const lobby = await Lobby.findById(lobbyId)
-        .populate('host', 'username')
-        .populate('participants', 'username');
+        .populate('host', 'username avatar')
+        .populate('participants', 'username avatar');
 
     if (!lobby) throw makeError(404, 'Lobby not found');
 
-    // Members = host + participants (id -> username)
+    // Members = host + participants (id -> user)
     const memberMap = new Map();
-    if (lobby.host) memberMap.set(lobby.host._id.toString(), lobby.host.username);
+    if (lobby.host) memberMap.set(lobby.host._id.toString(), lobby.host);
     lobby.participants.forEach(p => {
-        if (p) memberMap.set(p._id.toString(), p.username);
+        if (p) memberMap.set(p._id.toString(), p);
     });
 
     if (!memberMap.has(String(userId))) {
@@ -181,7 +181,7 @@ async function getLobbyCalendar(lobbyId, userId, month) {
     return {
         lobbyId: lobby._id,
         month,
-        members: memberIds.map(id => ({ id, username: memberMap.get(id) })),
+        members: memberIds.map(id => ({ id, username: memberMap.get(id).username, avatar: memberMap.get(id).avatar })),
         items
     };
 }
