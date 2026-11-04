@@ -360,6 +360,7 @@ function handleCardClick(event) {
                                 <CardInfo :event="selectedEvent"
                                     :is-attending="Object.values(activityMap[selectedEvent._id || selectedEvent.id]?.sessions || {}).includes('attending')"
                                     @close="showCardInfo = false"
+                                    :initial-note="activityMap[selectedEvent._id || selectedEvent.id]?.note || ''"
                                     @save-note="text => saveNote(selectedEvent._id || selectedEvent.id, text)" />
                             </div>
 

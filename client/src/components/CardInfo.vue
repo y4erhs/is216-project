@@ -11,7 +11,7 @@ const props = defineProps({
   initialNote: { type: String, default: '' },
   isAttending: { type: Boolean, default: false }
 })
-
+watch(() => props.initialNote, (val) => { noteText.value = val })
 const emit = defineEmits(['close', 'save-note'])
 const noteText = ref(props.initialNote)
 const isSaved = ref(false)
@@ -32,10 +32,6 @@ function handleClear() {
 // The sign-up link, or the original post if the event doesn't have one
 const registerLink = computed(() => props.event.registrationUrl || props.event.sourceLink || '')
 
-function handleRegister() {
-  window.open(registerLink.value, '_blank', 'noopener,noreferrer')
-}
-
 const { userId } = useAuth()
 
 // Reminder state
@@ -47,6 +43,23 @@ const savingReminder = ref(false)
 const hasUpcomingSession = computed(() =>
   (props.event.sessions || []).some(session => new Date(session.startTime) > new Date())
 )
+const hasEnded = computed(() => {
+  const sessions = props.event.sessions || []
+  if (!sessions.length) return false
+  const latestEnd = Math.max(
+    ...sessions.map(s => new Date(s.endTime || s.startTime).getTime())
+  )
+  return latestEnd < Date.now()
+})
+
+const registrationClosed = computed(() =>
+  !!props.event.registrationUrl && hasEnded.value
+)
+
+function handleRegister() {
+  if (registrationClosed.value || !registerLink.value) return
+  window.open(registerLink.value, '_blank', 'noopener,noreferrer')
+}
 
 const showReminderSection = computed(() => props.isAttending && hasUpcomingSession.value)
 
@@ -242,9 +255,20 @@ const displayTime = computed(() => {
             <div v-else class="poster-placeholder"></div>
           </div>
 
-          <BaseButton v-if="registerLink" class="action-pill-btn btn-blue registration-btn" @click="handleRegister">
-            {{ event.registrationUrl ? 'REGISTRATION LINK' : 'VIEW ORIGINAL POST' }}
-          </BaseButton>
+<BaseButton
+  v-if="registerLink"
+  class="action-pill-btn btn-blue registration-btn"
+  :disabled="registrationClosed"
+  @click="handleRegister"
+>
+  {{
+    registrationClosed
+      ? 'REGISTRATION CLOSED'
+      : event.registrationUrl
+        ? 'REGISTRATION LINK'
+        : 'VIEW ORIGINAL POST'
+  }}
+</BaseButton>
 
         </div>
 
@@ -562,7 +586,13 @@ const displayTime = computed(() => {
   background-color: var(--color-blue) !important;
   color: var(--color-white) !important;
 }
-
+.registration-btn:disabled,
+.registration-btn[disabled] {
+  background-color: var(--color-grey, #e2e8f0) !important;
+  color: var(--color-dark-grey, #64748b) !important;
+  cursor: not-allowed;
+  opacity: 0.8;
+}
 /* MOBILE RESPONSIVE */
 @media (max-width: 639.98px) {
   .event-detail-box {

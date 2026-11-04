@@ -10,14 +10,15 @@ export function useActivities() {
     const { userId } = useAuth()
 
     // { [eventId]: { interested, sessions: { [startTimeMs]: 'attending' | 'attended' } } }
-    const activityMap = computed(() => Object.fromEntries(
-        activities.value.filter(a => a.event).map(a => [a.event._id, {
-            interested: a.interested,
-            sessions: Object.fromEntries(
-                (a.sessions || []).map(s => [new Date(s.startTime).getTime(), s.going])
-            )
-        }])
-    ))
+const activityMap = computed(() => Object.fromEntries(
+    activities.value.filter(a => a.event).map(a => [a.event._id, {
+        interested: a.interested,
+        note: a.note || '',
+        sessions: Object.fromEntries(
+            (a.sessions || []).map(s => [new Date(s.startTime).getTime(), s.going])
+        )
+    }])
+))
 
     async function loadActivities() {
         const id = unref(userId)
