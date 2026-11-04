@@ -11,10 +11,14 @@ const props = defineProps({
   initialNote: { type: String, default: '' },
   isAttending: { type: Boolean, default: false }
 })
-watch(() => props.initialNote, (val) => { noteText.value = val })
+
 const emit = defineEmits(['close', 'save-note'])
 const noteText = ref(props.initialNote)
 const isSaved = ref(false)
+
+watch(() => props.initialNote, (val) => {
+  noteText.value = val
+})
 
 function handleSave() {
   emit('save-note', noteText.value)
@@ -29,8 +33,9 @@ function handleClear() {
   emit('save-note', '')
 }
 
-// The sign-up link, or the original post if the event doesn't have one
-const registerLink = computed(() => props.event.registrationUrl || props.event.sourceLink || '')
+const registerLink = computed(() =>
+  props.event.registrationUrl || props.event.sourceLink || ''
+)
 
 const { userId } = useAuth()
 
@@ -209,14 +214,8 @@ const displayTime = computed(() => {
           <div class="column-box">
             <BaseInput type="textarea" label="My Notes" v-model="noteText" placeholder="Type your notes here..."
               class="notes-input-flex" />
-            
-            <button 
-              v-if="noteText" 
-              type="button" 
-              class="internal-clear-btn" 
-              @click="handleClear"
-              title="Clear note"
-            >
+
+            <button v-if="noteText" type="button" class="internal-clear-btn" @click="handleClear" title="Clear note">
               ✕
             </button>
           </div>
@@ -255,20 +254,16 @@ const displayTime = computed(() => {
             <div v-else class="poster-placeholder"></div>
           </div>
 
-<BaseButton
-  v-if="registerLink"
-  class="action-pill-btn btn-blue registration-btn"
-  :disabled="registrationClosed"
-  @click="handleRegister"
->
-  {{
-    registrationClosed
-      ? 'REGISTRATION CLOSED'
-      : event.registrationUrl
-        ? 'REGISTRATION LINK'
-        : 'VIEW ORIGINAL POST'
-  }}
-</BaseButton>
+          <BaseButton v-if="registerLink" class="action-pill-btn btn-blue registration-btn"
+            :disabled="registrationClosed" @click="handleRegister">
+            {{
+              registrationClosed
+                ? 'REGISTRATION CLOSED'
+                : event.registrationUrl
+                  ? 'REGISTRATION LINK'
+                  : 'VIEW ORIGINAL POST'
+            }}
+          </BaseButton>
 
         </div>
 
@@ -331,12 +326,12 @@ const displayTime = computed(() => {
 .detail-left {
   display: flex;
   flex-direction: column;
-  justify-content: flex-start; 
-  gap: 8px;                   
+  justify-content: flex-start;
+  gap: 8px;
   margin: 10px;
-  padding-right: 4px;          
+  padding-right: 4px;
 
-  height: 100%;                
+  height: 100%;
   min-height: 0;
   min-width: 0;
   overflow-x: hidden;
@@ -586,6 +581,7 @@ const displayTime = computed(() => {
   background-color: var(--color-blue) !important;
   color: var(--color-white) !important;
 }
+
 .registration-btn:disabled,
 .registration-btn[disabled] {
   background-color: var(--color-grey, #e2e8f0) !important;
@@ -593,6 +589,7 @@ const displayTime = computed(() => {
   cursor: not-allowed;
   opacity: 0.8;
 }
+
 /* MOBILE RESPONSIVE */
 @media (max-width: 639.98px) {
   .event-detail-box {
