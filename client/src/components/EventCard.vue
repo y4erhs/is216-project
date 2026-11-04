@@ -286,7 +286,7 @@ const imageSrc = computed(() =>
                 :disabled="attendingDisabled"
                 @click="handleAddBtnClick"
               >
-                {{ going === 'attending' ? '✓ ADDED' : '+ ADD TO CALENDAR' }}
+                {{ going === 'attending' ? '✓ ADDED' : hasEnded?"SESSION HAS ENDED":"+ ADD TO CALENDAR" }}
 
                 <span
                   v-if="event.sessions && event.sessions.length > 1"
@@ -382,7 +382,7 @@ const imageSrc = computed(() =>
 
           <div class="btn-row">
             <BaseButton
-              class="action-pill-btn"
+              class="action-pill-btn btn-red"
               variant="outline-main"
               :disabled="attendedDisabled"
               :title="
@@ -392,7 +392,7 @@ const imageSrc = computed(() =>
               "
               @click="toggleGoing('attended')"
             >
-              MARK AS ATTENDED
+              {{ going === 'attended' ? '✓ ATTENDED' : hasStarted ? "MARK AS ATTENDED" : "SESSION HAS NOT STARTED"}}
             </BaseButton>
 
             <BaseButton
@@ -415,7 +415,7 @@ const imageSrc = computed(() =>
                 :disabled="attendingDisabled"
                 @click="handleAddBtnClick"
               >
-                {{ going === 'attending' ? '✓ ADDED' : 'ADD TO CALENDAR' }}
+                {{ going === 'attending' ? '✓ ADDED' : hasEnded?"SESSION HAS ENDED":"+ ADD TO CALENDAR" }}
 
                 <span
                   v-if="event.sessions && event.sessions.length > 1"
@@ -480,9 +480,11 @@ const imageSrc = computed(() =>
           <div class="btn-row">
             <BaseButton
               class="action-pill-btn btn-purple"
+              :disabled="hasEnded"
+  :title="hasEnded ? 'This session has already ended' : ''"
               @click="toggleGoing('attending')"
             >
-              UNMARK
+              {{hasEnded? "SESSION HAS ENDED" : "UNMARK"}}
             </BaseButton>
 
             <BaseButton
@@ -721,6 +723,11 @@ const imageSrc = computed(() =>
 .btn-green {
   background-color: var(--color-green) !important;
   color: var(--color-dark-green) !important;
+}
+
+.btn-red{
+  background-color: var(--color-red) !important;
+  color: var(--color-dark-red) !important;
 }
 
 .btn-purple {
