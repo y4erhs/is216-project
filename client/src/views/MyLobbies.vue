@@ -148,7 +148,7 @@ function matches(l) {
 function activeMembers(l) {
   const map = new Map()
   l.members
-    ?.filter(m => m.status !== 'declined')
+    ?.filter(m => m.status === 'accepted')
     .forEach(m => map.set(m.id, m))
   return Array.from(map.values())
 }
