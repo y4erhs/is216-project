@@ -508,7 +508,7 @@ exports.notifyEventPitched = async (memberIds, lobby, hostName, event) => {
         userId,
         type: "lobby_event_pitched",
         title: "Event pitched",
-        message: `${hostName} pitched ${eventLabel(event)} to ${lobby.name}. Accept or decline before the host registers the group.`,
+        message: `${hostName} pitched ${eventLabel(event)} to ${lobby.name}. Leave the lobby if you don't want to be included when the group registers.`,
         lobbyId: lobby._id,
         eventId: event._id || event.id,
       })
