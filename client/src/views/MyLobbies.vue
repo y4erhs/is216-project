@@ -465,21 +465,18 @@ function clear() {
 }
 
 .lobby {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 10px;
-  width: 100%;
-  height: 100%;
-  padding: 15px;
-  border: 0;
-  border-radius: 25px;
-  background-color: var(--color-white);
-  color: var(--color-black);
-  text-align: left;
-  cursor: pointer;
-  font-size: 11px;
-  transition: transform 0.15s;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  background: var(--color-white) !important;
+  border: 0 !important;
+  outline: none;
+  box-shadow: none !important;
+}
+
+.lobby::before,
+.lobby::after {
+  content: none !important;
+  display: none !important;
 }
 
 .lobby-info {

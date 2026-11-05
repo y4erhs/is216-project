@@ -449,6 +449,10 @@ watch(
   text-overflow: ellipsis;
 }
 
+.event-bar-lobby .event-text {
+  color: var(--color-white);
+}
+
 .event-bar-lobby {
   background-color: var(--color-blue);
 }

@@ -1807,6 +1807,12 @@ button.badge-pill:disabled {
   line-height: 1.4;
 }
 
+@media (min-width: 1000px) {
+  .registered-mobile-toggle {
+    display: none !important;
+  }
+}
+
 @media (max-width: 1100px) {
   .app {
     grid-template-columns: minmax(0, 1fr);
@@ -1832,6 +1838,8 @@ button.badge-pill:disabled {
     /* fixed folder height: it scrolls inside, and the panel below stays reachable */
     min-height: 0;
   }
+
+  
 }
 
 @media (max-width: 900px) {
@@ -1881,6 +1889,8 @@ button.badge-pill:disabled {
 .selected-day-mobile-toggle {
   display: none;
 }
+
+
 
 /* =========================================
    TABLET / MOBILE LAYOUT
@@ -2006,6 +2016,7 @@ button.badge-pill:disabled {
     overflow-y: auto;
     overflow-x: hidden;
   }
+  
 
 
   /* =================================
