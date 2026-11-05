@@ -146,4 +146,11 @@ vite.config.ts.timestamp-*
 # macOS
 .DS_Store
 **/.DS_Store
+
+# Playwright
+client/e2e/.auth/
+client/test-results/
+client/playwright-report/
+client/blob-report/
+client/playwright/.cache/
 client/playwright-report/index.html

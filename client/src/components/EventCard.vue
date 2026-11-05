@@ -725,11 +725,6 @@ const imageSrc = computed(() =>
   color: var(--color-dark-green) !important;
 }
 
-.btn-red{
-  background-color: var(--color-red) !important;
-  color: var(--color-dark-red) !important;
-}
-
 .btn-purple {
   background-color: var(--color-purple) !important;
   color: var(--color-dark-purple) !important;

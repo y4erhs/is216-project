@@ -226,6 +226,7 @@ const handleSendReset = async () => {
   display: flex;
   justify-content: center;
   color: var(--color-orange);
+  margin-bottom: 30px;
   
 }
 .log-in {
@@ -383,44 +384,69 @@ input:focus {
 
     padding: 16px;
     box-sizing: border-box;
-    overflow-y: auto;
+    overflow: hidden;
   }
 
   .main-page-art {
     display: none;
   }
 
+  /* FIXED FOLDER HEIGHT */
   .rotated-folder {
     transform: none;
+    display: flex;
+    align-items: stretch;
+
     width: 100%;
     max-width: 480px;
-    min-height: 550px;
-    margin: auto;
+    height: 80dvh;
+    max-height: 700px;
+    min-height: 0;
+
+    margin: 0;
     flex: 0 0 auto;
   }
 
+  /* Make FolderTabs fill the fixed height */
   .rotated-folder :deep(.folder-container) {
-    height: auto;
-    min-height: 550px;
-    flex: none;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    flex: 1 1 auto;
   }
 
+  /* Folder body fills remaining space */
   .rotated-folder :deep(.folder-body) {
-    height: auto !important;
-    min-height: 500px;
-    flex: 1 1 auto !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    flex: 1 1 0 !important;
   }
 
+  /* Login content must not force folder to grow */
   .log-in {
     width: 100%;
-    height: auto;
-    min-height: 500px;
+    height: 100%;
+    min-height: 0;
     padding: 24px 16px;
+    box-sizing: border-box;
   }
 
   form {
-    width: 70%;
+    width: 100%;
+    max-width: 280px;
     transform: none;
+  }
+
+  .tabs-header {
+    gap: 0;
+  }
+
+  .folder-tab {
+    flex: 0 1 110px;
+    max-width: 120px;
+    min-width: 75px;
+    margin-right: -10px;
+    padding: 0 8px 0 25px;
   }
 }
 </style>

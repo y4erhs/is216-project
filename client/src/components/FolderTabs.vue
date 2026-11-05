@@ -15,6 +15,10 @@ const props = defineProps({
   defaultActive: {
     type: String,
     default: ''
+  },
+  showMobilePills: {
+    type: Boolean,
+    default: false
   }
 })
 
@@ -63,7 +67,10 @@ watch(() => props.modelValue, (newVal) => {
   <div class="folder-container">
 
     <!-- 1. FOLDER TABS -->
-    <div class="tabs-header" :class="{ 'overflow-mode': tabs.length > 4 }">
+    <div class="tabs-header" :class="{
+      'overflow-mode': tabs.length > 4,
+      'hide-on-mobile': showMobilePills
+    }">
       <button v-for="(tab, index) in tabs" :key="tab.id" type="button" :class="[
         'folder-tab',
         tab.theme,
@@ -78,7 +85,7 @@ watch(() => props.modelValue, (newVal) => {
     </div>
 
     <!-- MOBILE CATEGORY PILLS -->
-    <div class="mobile-category-nav">
+    <div v-if="showMobilePills" class="mobile-category-nav">
       <Button v-for="tab in tabs" :key="tab.id" :variant="activeTab === tab.id ? 'primary' : 'outline-main'" :class="[
         'category-pill',
         tab.theme,
@@ -374,7 +381,7 @@ watch(() => props.modelValue, (newVal) => {
     align-items: center;
 
     width: 100%;
-    min-height: 100dvh;
+    min-height: 80%;
     height: 100dvh;
     box-sizing: border-box;
 
@@ -387,25 +394,29 @@ watch(() => props.modelValue, (newVal) => {
   }
 
   .rotated-folder {
-    transform: none;
-    width: 100%;
-    max-width: 480px;
-    min-height: 550px;
-    margin: auto;
-    flex: 0 0 auto;
-  }
+  transform: none;
+  width: 100%;
+  max-width: 480px;
 
-  .rotated-folder :deep(.folder-container) {
-    height: auto;
-    min-height: 550px;
-    flex: none;
-  }
+  height: 80dvh;
+  min-height: 0;
+  max-height: 700px;
 
-  .rotated-folder :deep(.folder-body) {
-    height: auto !important;
-    min-height: 500px;
-    flex: 1 1 auto !important;
-  }
+  margin: auto;
+  flex: 0 0 auto;
+}
+
+.rotated-folder :deep(.folder-container) {
+  height: 100%;
+  min-height: 0;
+  flex: 1;
+}
+
+.rotated-folder :deep(.folder-body) {
+  height: 100% !important;
+  min-height: 0;
+  flex: 1 1 auto !important;
+}
 
   .log-in {
     width: 100%;
@@ -429,6 +440,43 @@ watch(() => props.modelValue, (newVal) => {
     min-width: 75px;
     margin-right: -10px;
     padding: 0 8px 0 25px;
+  }
+
+  .mobile-category-nav {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    width: 100%;
+    padding: 8px 4px 0;
+
+    overflow-x: auto;
+    overflow-y: hidden;
+
+    flex: 0 0 auto;
+    white-space: nowrap;
+
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .mobile-category-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .category-pill {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    font-size: 11px;
+  }
+
+  .category-pill.btn-outline-main {
+    border: 1px solid white !important;
+    color: var(--color-white);
+  }
+
+  .tabs-header.hide-on-mobile {
+    display: none !important;
   }
 }
 </style>
