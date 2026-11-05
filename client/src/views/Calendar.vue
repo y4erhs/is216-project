@@ -1,3 +1,4 @@
+
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useAuth } from '../composables/useAuth'
@@ -52,54 +53,103 @@ onMounted(loadStatus)
 
 <template>
   <div class="calendar-page">
-    <h2 class="page-title">MY CALENDAR</h2>
-    <div class="calendar-main">
-      <p v-if="loading" class="text-muted">Loading calendar...</p>
-      <p v-else-if="message" class="text-muted">{{ message }}</p>
-      <iframe v-else-if="connected && googleEmail" :key="calendarKey" :src="embedUrl"
-        style="border: 0; width: 100%; height: 100%; border-radius: 20px;"></iframe>
-      <p v-else class="text-muted">
-        Google Calendar isn't linked yet. <router-link to="/profile">Link it in Profile & Settings</router-link>.
-      </p>
+
+    <!-- Header row -->
+    <div class="calendar-header">
+      <h2 class="page-title">MY CALENDAR</h2>
+
+      <div class="action-buttons-row" v-if="!showPlanForm">
+        <BaseButton type="button" class="theme-green action-btn" @click="openPlanForm()">
+          Make your own plan!
+        </BaseButton>
+
+        <router-link to="/profile" class="base-btn-wrapper">
+          <BaseButton type="button" class="theme-purple action-btn" title="Link/Manage Calendar">
+            Link Calendar
+          </BaseButton>
+        </router-link>
+      </div>
     </div>
 
-    <aside class="calendar-side">
-      <template v-if="!showPlanForm">
-        <div class="action-buttons-row">
-          <BaseButton type="button" class="theme-green action-btn" @click="openPlanForm()">
-            Make your own plan!
-          </BaseButton>
-          <router-link to="/profile" class="base-btn-wrapper">
-            <BaseButton type="button" class="theme-purple action-btn" title="Link/Manage Calendar">
-              Link Calendar
-            </BaseButton>
-          </router-link>
-        </div>
+    <!-- Main content row -->
+    <div class="calendar-content">
 
-        <!-- Tambahin class :class="{ 'is-collapsed': isAlertsCollapsed }" -->
-        <div class="half-section collapsible-section" :class="{ 'is-collapsed': isAlertsCollapsed }">
-          <ScheduleAlerts class="side-alerts" :user-id="userId" :refresh-key="alertsKey"
-            @collapse="isAlertsCollapsed = $event" />
-        </div>
-        <div class="half-section">
-          <PlansList :user-id="userId" :refresh-key="alertsKey" @edit="openPlanForm" @changed="refreshAll"
-            @replied="alertsKey++" />
-        </div>
-      </template>
+      <div class="calendar-main">
+        <p v-if="loading" class="text-muted">Loading calendar...</p>
 
-      <PlanForm v-else :user-id="userId" :plan="editingPlan" @close="showPlanForm = false" @created="refreshAll" />
-    </aside>
+        <p v-else-if="message" class="text-muted">{{ message }}</p>
+
+        <iframe
+          v-else-if="connected && googleEmail"
+          :key="calendarKey"
+          :src="embedUrl"
+          style="border: 0; width: 100%; height: 100%; border-radius: 20px;"
+        ></iframe>
+
+        <p v-else class="text-muted">
+          Google Calendar isn't linked yet.
+          <router-link to="/profile">Link it in Profile & Settings</router-link>.
+        </p>
+      </div>
+
+      <aside class="calendar-side">
+        <template v-if="!showPlanForm">
+
+          <div
+            class="half-section collapsible-section"
+            :class="{ 'is-collapsed': isAlertsCollapsed }"
+          >
+            <ScheduleAlerts
+              class="side-alerts"
+              :user-id="userId"
+              :refresh-key="alertsKey"
+              @collapse="isAlertsCollapsed = $event"
+            />
+          </div>
+
+          <div class="half-section">
+            <PlansList
+              :user-id="userId"
+              :refresh-key="alertsKey"
+              @edit="openPlanForm"
+              @changed="refreshAll"
+              @replied="alertsKey++"
+            />
+          </div>
+
+        </template>
+
+        <PlanForm
+          v-else
+          :user-id="userId"
+          :plan="editingPlan"
+          @close="showPlanForm = false"
+          @created="refreshAll"
+        />
+      </aside>
+
+    </div>
   </div>
 </template>
 
 <style scoped>
 .calendar-page {
   display: flex;
-  gap: 16px;
+  flex-direction: column;
+  gap: 12px;
   height: calc(100vh - 120px);
   max-height: calc(100vh - 120px);
   box-sizing: border-box;
   overflow: hidden;
+}
+
+/* Header: title + action buttons */
+.calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-shrink: 0;
 }
 
 .page-title {
@@ -109,11 +159,22 @@ onMounted(loadStatus)
   margin: 0;
   letter-spacing: 1px;
   padding-top: 0 !important;
+  white-space: nowrap;
+}
+
+/* Calendar and sidebar stay side by side */
+.calendar-content {
+  display: flex;
+  gap: 16px;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .calendar-main {
   flex: 1;
   min-width: 0;
+  min-height: 0;
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -175,20 +236,37 @@ onMounted(loadStatus)
   overflow-y: auto;
 }
 
+/* Mobile layout */
 @media (max-width: 768px) {
   .page-title {
     font-size: 22px;
   }
+
   .calendar-page {
-    flex-direction: column;
     height: auto;
     max-height: none;
     overflow: visible;
     gap: 10px;
   }
 
+  .calendar-header {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .action-buttons-row {
+    width: 100%;
+  }
+
+  .calendar-content {
+    flex-direction: column;
+    overflow: visible;
+  }
+
   .calendar-main {
     min-height: 400px;
+    max-height: 600px;
+    flex: none;
   }
 
   .calendar-side {
