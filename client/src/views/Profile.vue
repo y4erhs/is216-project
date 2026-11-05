@@ -1,5 +1,6 @@
+
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import axios from 'axios'
 import '../assets/theme.css'
 
@@ -27,95 +28,13 @@ const profileError = ref('')
 const avatarFailed = ref(false)
 const bannerFailed = ref(false)
 
-const bannerInputFile = ref(null)
-const avatarInputFile = ref(null)
-
+// Image upload state
+// File input refs are handled inside ProfileCard.vue
 const newBannerFile = ref(null)
 const newAvatarFile = ref(null)
 
 const bannerPreview = ref(null)
 const avatarPreview = ref(null)
-
-async function loadProfile() {
-  try {
-    const { data } = await axios.get(`${API_URL}/api/users/${userId.value}`)
-    profile.value = data
-
-    const major = data.major || ''
-    selectedCourse.value = courses.find(course => course === major || course.startsWith(`${major} (`)) || major
-    selectedYear.value = /^\d+$/.test(data.year) ? `Year ${data.year}` : data.year || ''
-    selectedGrad.value = data.graduationYear || ''
-    clubs.value = [...(data.ccas || [])]
-
-    // Mark as initialized so auto-save won't fire on initial load
-    isInitialized.value = true
-  } catch (error) {
-    profileError.value = 'Could not load your profile. Please refresh and try again.'
-    console.log('There was an error: ' + error.message)
-  }
-}
-
-async function loadStats() {
-  try {
-    const { data } = await axios.get(`${API_URL}/api/activities/${userId.value}`)
-    eventsAttended.value = data.filter(activity =>
-      activity.sessions.some(session => session.going === 'attended')).length
-  } catch (error) {
-    console.log('There was an error: ' + error.message)
-  }
-
-  try {
-    const { data } = await axios.get(`${API_URL}/api/friends/${userId.value}/accepted`)
-    friendCount.value = data.length
-  } catch (error) {
-    if (error.response?.status !== 404) console.log('There was an error: ' + error.message)
-  }
-}
-
-onMounted(() => {
-  loadProfile()
-  loadStats()
-  loadInterests()
-  loadAlertSettings()
-})
-
-const ALERT_ROWS = [
-  { key: 'upcomingEvents', title: 'Upcoming events', desc: 'Events you\'re attending in the next 24 hours' },
-  { key: 'lobbyActivity', title: 'Lobby activity', desc: 'Invites, replies, pitched events and group registration' },
-  { key: 'plans', title: 'Plans', desc: 'Plan invites, replies, changes and cancellations' }
-]
-const alertSettings = ref({ upcomingEvents: true, lobbyActivity: true, plans: true, remindMinutesBefore: 15 })
-const alertMessage = ref('')
-
-async function loadAlertSettings() {
-  try {
-    const { data } = await axios.get(`${API_URL}/api/notifications/preferences?userId=${userId.value}`)
-    alertSettings.value = data
-  } catch (error) {
-    console.log('There was an error: ' + error.message)
-  }
-}
-
-async function saveAlertSetting(key, value) {
-  const previous = alertSettings.value[key]
-  alertSettings.value[key] = value
-  alertMessage.value = ''
-  try {
-    await axios.put(`${API_URL}/api/notifications/preferences?userId=${userId.value}`, { [key]: value })
-    alertMessage.value = 'Settings saved!'
-  } catch (error) {
-    alertSettings.value[key] = previous
-    alertMessage.value = 'Could not save setting.'
-    console.log('There was an error: ' + error.message)
-  }
-}
-
-// Execute Logout action
-function executeLogout() {
-  userStore.logout()
-  confirmingLogout.value = false
-  router.push('/login')
-}
 
 const selectedCourse = ref('')
 const selectedYear = ref('')
@@ -124,6 +43,7 @@ const selectedGrad = ref('')
 const courses = COURSES
 const yearOptions = ['Year 1', 'Year 2', 'Year 3', 'Year 4', 'Year 5']
 const gradOptions = ['2027', '2028', '2029', '2030']
+
 const clubs = ref([])
 const newClub = ref('')
 const showClubDropdown = ref(false)
@@ -137,9 +57,129 @@ const isInitialized = ref(false)
 
 const allAvailableInterests = INTERESTS
 
+async function loadProfile() {
+  try {
+    const { data } = await axios.get(`${API_URL}/api/users/${userId.value}`)
+    profile.value = data
+
+    const major = data.major || ''
+    selectedCourse.value =
+      courses.find(course => course === major || course.startsWith(`${major} (`)) || major
+
+    selectedYear.value = /^\d+$/.test(data.year)
+      ? `Year ${data.year}`
+      : data.year || ''
+
+    selectedGrad.value = data.graduationYear || ''
+    clubs.value = [...(data.ccas || [])]
+
+    isInitialized.value = true
+  } catch (error) {
+    profileError.value = 'Could not load your profile. Please refresh and try again.'
+    console.log('There was an error: ' + error.message)
+  }
+}
+
+async function loadStats() {
+  try {
+    const { data } = await axios.get(`${API_URL}/api/activities/${userId.value}`)
+
+    eventsAttended.value = data.filter(activity =>
+      activity.sessions.some(session => session.going === 'attended')
+    ).length
+  } catch (error) {
+    console.log('There was an error: ' + error.message)
+  }
+
+  try {
+    const { data } = await axios.get(`${API_URL}/api/friends/${userId.value}/accepted`)
+    friendCount.value = data.length
+  } catch (error) {
+    if (error.response?.status !== 404) {
+      console.log('There was an error: ' + error.message)
+    }
+  }
+}
+
+onMounted(() => {
+  loadProfile()
+  loadStats()
+  loadInterests()
+  loadAlertSettings()
+})
+
+// ALERT SETTINGS
+const ALERT_ROWS = [
+  {
+    key: 'upcomingEvents',
+    title: 'Upcoming events',
+    desc: "Events you're attending in the next 24 hours"
+  },
+  {
+    key: 'lobbyActivity',
+    title: 'Lobby activity',
+    desc: 'Invites, replies, pitched events and group registration'
+  },
+  {
+    key: 'plans',
+    title: 'Plans',
+    desc: 'Plan invites, replies, changes and cancellations'
+  }
+]
+
+const alertSettings = ref({
+  upcomingEvents: true,
+  lobbyActivity: true,
+  plans: true,
+  remindMinutesBefore: 15
+})
+
+const alertMessage = ref('')
+
+async function loadAlertSettings() {
+  try {
+    const { data } = await axios.get(
+      `${API_URL}/api/notifications/preferences?userId=${userId.value}`
+    )
+    alertSettings.value = data
+  } catch (error) {
+    console.log('There was an error: ' + error.message)
+  }
+}
+
+async function saveAlertSetting(key, value) {
+  const previous = alertSettings.value[key]
+  alertSettings.value[key] = value
+  alertMessage.value = ''
+
+  try {
+    await axios.put(
+      `${API_URL}/api/notifications/preferences?userId=${userId.value}`,
+      { [key]: value }
+    )
+
+    alertMessage.value = 'Settings saved!'
+  } catch (error) {
+    alertSettings.value[key] = previous
+    alertMessage.value = 'Could not save setting.'
+    console.log('There was an error: ' + error.message)
+  }
+}
+
+// LOGOUT
+function executeLogout() {
+  userStore.logout()
+  confirmingLogout.value = false
+  router.push('/login')
+}
+
+// INTERESTS
 async function loadInterests() {
   try {
-    const response = await axios.get(`${API_URL}/api/users/${userId.value}/preferences`)
+    const response = await axios.get(
+      `${API_URL}/api/users/${userId.value}/preferences`
+    )
+
     categories.value = response.data
     savedInterests.value = [...response.data]
   } catch (error) {
@@ -149,7 +189,11 @@ async function loadInterests() {
 
 function addClub() {
   const name = newClub.value.trim()
-  if (name && !clubs.value.some(club => club.toLowerCase() === name.toLowerCase())) {
+
+  if (
+    name &&
+    !clubs.value.some(club => club.toLowerCase() === name.toLowerCase())
+  ) {
     clubs.value.push(name)
     newClub.value = ''
     triggerAutoSave()
@@ -163,6 +207,7 @@ function removeClub(name) {
 
 function toggleInterest(cat) {
   saveMessage.value = ''
+
   if (categories.value.includes(cat)) {
     categories.value = categories.value.filter(item => item !== cat)
   } else if (categories.value.length >= MAX_INTERESTS) {
@@ -171,25 +216,38 @@ function toggleInterest(cat) {
   } else {
     categories.value.push(cat)
   }
+
   triggerAutoSave()
 }
 
-const triggerBannerInput = () => bannerInputFile.value.click()
-const triggerAvatarInput = () => avatarInputFile.value.click()
+// IMAGE SELECTION
+// These functions receive the selected files from ProfileCard.vue
 
-const handleBannerSelection = (event) => {
-  const file = event.target.files[0]
+function handleBannerSelection(event) {
+  const file = event.target.files?.[0]
+
   if (file) {
     newBannerFile.value = file
+
+    if (bannerPreview.value) {
+      URL.revokeObjectURL(bannerPreview.value)
+    }
+
     bannerPreview.value = URL.createObjectURL(file)
     triggerAutoSave()
   }
 }
 
-const handleAvatarSelection = (event) => {
-  const file = event.target.files[0]
+function handleAvatarSelection(event) {
+  const file = event.target.files?.[0]
+
   if (file) {
     newAvatarFile.value = file
+
+    if (avatarPreview.value) {
+      URL.revokeObjectURL(avatarPreview.value)
+    }
+
     avatarPreview.value = URL.createObjectURL(file)
     triggerAutoSave()
   }
@@ -199,68 +257,110 @@ const saveImages = async () => {
   if (!newBannerFile.value && !newAvatarFile.value) return
 
   const formData = new FormData()
-  if (newBannerFile.value) formData.append('bannerImage', newBannerFile.value)
-  if (newAvatarFile.value) formData.append('profileImage', newAvatarFile.value)
+
+  if (newBannerFile.value) {
+    formData.append('bannerImage', newBannerFile.value)
+  }
+
+  if (newAvatarFile.value) {
+    formData.append('profileImage', newAvatarFile.value)
+  }
 
   await userStore.updateProfileImages(userId.value, formData)
+
   newBannerFile.value = null
   newAvatarFile.value = null
 }
 
-// Auto-save debouncer / watcher execution
+// AUTO-SAVE
 let saveTimeout = null
+
 function triggerAutoSave() {
   if (!isInitialized.value) return
+
   clearTimeout(saveTimeout)
+
   saveTimeout = setTimeout(async () => {
     saving.value = true
     saveMessage.value = 'Saving...'
+
     try {
       await saveImages()
-      const { data } = await axios.put(`${API_URL}/api/users/${userId.value}`, {
-        major: selectedCourse.value,
-        year: selectedYear.value,
-        graduationYear: selectedGrad.value,
-        ccas: clubs.value,
-        interests: categories.value
-      })
 
-      const interestsChanged = [...categories.value].sort().join() !== [...savedInterests.value].sort().join()
-      if (interestsChanged) localStorage.setItem('interestsChanged', 'true')
+      const { data } = await axios.put(
+        `${API_URL}/api/users/${userId.value}`,
+        {
+          major: selectedCourse.value,
+          year: selectedYear.value,
+          graduationYear: selectedGrad.value,
+          ccas: clubs.value,
+          interests: categories.value
+        }
+      )
+
+      const interestsChanged =
+        [...categories.value].sort().join() !==
+        [...savedInterests.value].sort().join()
+
+      if (interestsChanged) {
+        localStorage.setItem('interestsChanged', 'true')
+      }
+
       savedInterests.value = [...categories.value]
 
-      profile.value = { ...profile.value, avatar: data.avatar, banner: data.banner }
+      profile.value = {
+        ...profile.value,
+        avatar: data.avatar ?? profile.value.avatar,
+        banner: data.banner ?? profile.value.banner
+      }
+
       setSession(data || data.user)
+
       saveMessage.value = 'All changes saved automatically!'
-      setTimeout(() => { saveMessage.value = '' }, 2500)
+
+      setTimeout(() => {
+        saveMessage.value = ''
+      }, 2500)
+
     } catch (error) {
-      saveMessage.value = `Could not save: ${error.response?.data?.message || error.message}`
+      saveMessage.value =
+        `Could not save: ${error.response?.data?.message || error.message}`
+
       console.log('There was an error: ' + error.message)
+
     } finally {
       saving.value = false
     }
   }, 500)
 }
 
-// Watch dropdown fields to trigger auto-save instantly on change
-watch([selectedCourse, selectedYear, selectedGrad], () => {
-  triggerAutoSave()
-})
+watch(
+  [selectedCourse, selectedYear, selectedGrad],
+  () => {
+    triggerAutoSave()
+  }
+)
 
+// ACCOUNT ACTIONS
 const confirmingDelete = ref(false)
 const confirmingLogout = ref(false)
 const deleting = ref(false)
 
 const executeDelete = async () => {
   deleting.value = true
+
   try {
-    const userId = userStore.currentUser?.id || userStore.currentUser?._id
-    await userStore.deleteUser(userId)
+    const id = userStore.currentUser?.id || userStore.currentUser?._id
+
+    await userStore.deleteUser(id)
+
     confirmingDelete.value = false
     router.push('/login')
+
   } catch (err) {
     console.error('Failed to delete account:', err)
     alert(err.message || 'Something went wrong while deleting your account.')
+
   } finally {
     deleting.value = false
   }
@@ -272,10 +372,23 @@ const executeDelete = async () => {
 
     <div class="top-bar">
       <h1 class="page-title">PROFILE & ALERTS</h1>
+
       <div class="top-actions">
-        <BaseButton class="theme-red" @click="confirmingDelete = true">DELETE ACCOUNT</BaseButton>
-        <BaseButton class="logout-btn" variant="outline-main" @click="confirmingLogout = true">LOG OUT</BaseButton>
-        <span v-if="saving" class="auto-save-indicator">Saving...</span>
+        <BaseButton class="theme-red" @click="confirmingDelete = true">
+          DELETE ACCOUNT
+        </BaseButton>
+
+        <BaseButton
+          class="logout-btn"
+          variant="outline-main"
+          @click="confirmingLogout = true"
+        >
+          LOG OUT
+        </BaseButton>
+
+        <span v-if="saving" class="auto-save-indicator">
+          Saving...
+        </span>
       </div>
     </div>
 
@@ -284,38 +397,77 @@ const executeDelete = async () => {
 
       <!-- PROFILE -->
       <div class="left-column">
-        <ProfileCard :profile="profile" :profileError="profileError" :eventsAttended="eventsAttended"
-          :friendCount="friendCount" v-model:selectedCourse="selectedCourse" :courses="courses"
-          v-model:selectedYear="selectedYear" :yearOptions="yearOptions" v-model:selectedGrad="selectedGrad"
-          :gradOptions="gradOptions" :clubs="clubs" v-model:newClub="newClub"
-          v-model:showClubDropdown="showClubDropdown" :categories="categories"
-          :allAvailableInterests="allAvailableInterests" v-model:showInterestDropdown="showInterestDropdown"
-          :saveMessage="saveMessage" :bannerPreview="bannerPreview" v-model:bannerFailed="bannerFailed"
-          :avatarPreview="avatarPreview" v-model:avatarFailed="avatarFailed" @triggerBannerInput="triggerBannerInput"
-          @triggerAvatarInput="triggerAvatarInput" @handleBannerSelection="handleBannerSelection"
-          @handleAvatarSelection="handleAvatarSelection" @addClub="addClub" @removeClub="removeClub"
-          @toggleInterest="toggleInterest" />
-      </div>
+        <ProfileCard
+          :profile="profile"
+          :profileError="profileError"
+          :eventsAttended="eventsAttended"
+          :friendCount="friendCount"
 
+          v-model:selectedCourse="selectedCourse"
+          :courses="courses"
+
+          v-model:selectedYear="selectedYear"
+          :yearOptions="yearOptions"
+
+          v-model:selectedGrad="selectedGrad"
+          :gradOptions="gradOptions"
+
+          :clubs="clubs"
+          v-model:newClub="newClub"
+          v-model:showClubDropdown="showClubDropdown"
+
+          :categories="categories"
+          :allAvailableInterests="allAvailableInterests"
+          v-model:showInterestDropdown="showInterestDropdown"
+
+          :saveMessage="saveMessage"
+
+          :bannerPreview="bannerPreview"
+          v-model:bannerFailed="bannerFailed"
+
+          :avatarPreview="avatarPreview"
+          v-model:avatarFailed="avatarFailed"
+
+          @handleBannerSelection="handleBannerSelection"
+          @handleAvatarSelection="handleAvatarSelection"
+
+          @addClub="addClub"
+          @removeClub="removeClub"
+          @toggleInterest="toggleInterest"
+        />
+      </div>
 
       <!-- SETTINGS -->
       <div class="right-column">
+
         <div class="settings-card">
+
           <div class="settings-header-row">
             <span class="header-col-title">ALERT TYPE</span>
+
             <div class="header-col-switches">
               <span>IN-APP</span>
             </div>
           </div>
-          <div v-for="row in ALERT_ROWS" :key="row.key" class="settings-item-row">
+
+          <div
+            v-for="row in ALERT_ROWS"
+            :key="row.key"
+            class="settings-item-row"
+          >
             <div class="setting-info">
               <p class="setting-title">{{ row.title }}</p>
               <p class="setting-desc">{{ row.desc }}</p>
             </div>
+
             <div class="setting-switches">
               <label class="toggle-switch">
-                <input type="checkbox" :checked="alertSettings[row.key]" :aria-label="row.title"
-                  @change="saveAlertSetting(row.key, $event.target.checked)" />
+                <input
+                  type="checkbox"
+                  :checked="alertSettings[row.key]"
+                  :aria-label="row.title"
+                  @change="saveAlertSetting(row.key, $event.target.checked)"
+                />
                 <span class="slider"></span>
               </label>
             </div>
@@ -324,28 +476,44 @@ const executeDelete = async () => {
           <div class="settings-reminder-row">
             <div class="setting-info">
               <p class="setting-title">Default reminder time</p>
-              <p class="setting-desc">What Remind Me starts on. Reminders you set always go off.</p>
+              <p class="setting-desc">
+                What Remind Me starts on. Reminders you set always go off.
+              </p>
             </div>
+
             <div class="setting-reminder-input">
-              <BaseInput type="select" :modelValue="alertSettings.remindMinutesBefore" :options="REMINDER_OPTIONS"
-                @update:modelValue="saveAlertSetting('remindMinutesBefore', $event)" />
+              <BaseInput
+                type="select"
+                :modelValue="alertSettings.remindMinutesBefore"
+                :options="REMINDER_OPTIONS"
+                @update:modelValue="saveAlertSetting('remindMinutesBefore', $event)"
+              />
             </div>
           </div>
 
-          <p v-if="alertMessage" class="save-message" role="status">{{ alertMessage }}</p>
+          <p v-if="alertMessage" class="save-message" role="status">
+            {{ alertMessage }}
+          </p>
+
         </div>
 
         <div>
           <GoogleCalendarCard />
         </div>
-      </div>
 
+      </div>
     </div>
 
     <!-- DELETE ACCOUNT CONFIRMATION -->
     <Transition name="fade">
-      <div v-if="confirmingDelete" class="overlay" role="alertdialog" aria-modal="true" aria-labelledby="del-title"
-        @click.self="confirmingDelete = false">
+      <div
+        v-if="confirmingDelete"
+        class="overlay"
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="del-title"
+        @click.self="confirmingDelete = false"
+      >
         <div class="dialog">
           <h3 id="del-title" class="dialog-title">Delete Account?</h3>
 
@@ -355,11 +523,20 @@ const executeDelete = async () => {
           </p>
 
           <div class="dialog-actions">
-            <BaseButton class="btn-ghost" type="button" @click="confirmingDelete = false">
+            <BaseButton
+              class="btn-ghost"
+              type="button"
+              @click="confirmingDelete = false"
+            >
               Cancel
             </BaseButton>
 
-            <BaseButton class="theme-red" type="button" :disabled="deleting" @click="executeDelete">
+            <BaseButton
+              class="theme-red"
+              type="button"
+              :disabled="deleting"
+              @click="executeDelete"
+            >
               {{ deleting ? 'Deleting...' : 'Yes, Delete' }}
             </BaseButton>
           </div>
@@ -369,25 +546,40 @@ const executeDelete = async () => {
 
     <!-- LOGOUT CONFIRMATION -->
     <Transition name="fade">
-      <div v-if="confirmingLogout" class="overlay" role="alertdialog" aria-modal="true" aria-labelledby="logout-title"
-        @click.self="confirmingLogout = false">
+      <div
+        v-if="confirmingLogout"
+        class="overlay"
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="logout-title"
+        @click.self="confirmingLogout = false"
+      >
         <div class="dialog">
           <h3 id="logout-title" class="dialog-title">Log Out?</h3>
 
           <p>Are you sure you want to log out of your account?</p>
 
           <div class="dialog-actions">
-            <BaseButton class="btn-ghost" type="button" @click="confirmingLogout = false">
+            <BaseButton
+              class="btn-ghost"
+              type="button"
+              @click="confirmingLogout = false"
+            >
               Cancel
             </BaseButton>
 
-            <BaseButton class="theme-green" type="button" @click="executeLogout">
+            <BaseButton
+              class="theme-green"
+              type="button"
+              @click="executeLogout"
+            >
               Yes, Log Out
             </BaseButton>
           </div>
         </div>
       </div>
     </Transition>
+
   </div>
 </template>
 
@@ -570,15 +762,15 @@ const executeDelete = async () => {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
-.toggle-switch input:checked+.slider {
+.toggle-switch input:checked + .slider {
   background-color: var(--color-orange);
 }
 
-.toggle-switch input:checked+.slider::before {
+.toggle-switch input:checked + .slider::before {
   transform: translateX(20px);
 }
 
-/* CUSTOM MODAL OVERLAY STYLING */
+/* MODAL */
 .overlay {
   position: fixed;
   inset: 0;
