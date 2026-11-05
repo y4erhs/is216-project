@@ -2,7 +2,8 @@
 
 Campus Compass helps SMU students find campus events and plan them with friends. SMU events are announced across many Telegram channels and tracked separately from personal calendars, so students miss events and struggle to find a time that suits everyone. Campus Compass puts events, recommendations, group planning and calendars in one place.
 
-- **Git repository:** https://github.com/y4erhs/is216-project
+- **Git repository:** https://github.com/harshitha904/is216-project
+- **Live site:** https://is216-project-zeta.vercel.app
 - **Running locally:** http://localhost:5173
 
 ## Team
@@ -28,15 +29,17 @@ Campus Compass helps SMU students find campus events and plan them with friends.
 - **Google Calendar:** connect your account to sync plans and events you're attending.
 - **Friends:** send and accept friend requests.
 - **Accounts:** sign up with an @smu.edu.sg email, or use Continue with Google with an SMU account.
+- **Password reset:** get a reset link by email, which expires after an hour.
 - **Telegram event import:** a bot reads posts in Telegram channels and uses AI to turn them into events.
 - **Responsive design:** works on phone, tablet and desktop.
 
 ## Tech stack
 
 - **Frontend:** Vue 3, Vite, Pinia, Vue Router, Bootstrap
-- **Backend:** Node.js, Express, Mongoose, node-cron, Multer
+- **Backend:** Node.js, Express, Mongoose, node-cron, Multer, JWT, bcryptjs
 - **Database:** MongoDB Atlas
-- **External services:** Google Sign-In and Calendar, an OpenAI-compatible AI API, Telegram Bot API (grammY)
+- **External services:** Google Sign-In and Calendar, an OpenAI-compatible AI API, Telegram Bot API (grammY), EmailJS
+- **Hosting:** Vercel (client), Render (server)
 - **Testing:** Playwright
 
 ## Project structure
@@ -48,13 +51,13 @@ client/                 Vue app
   src/stores/           Pinia stores
   src/composables/      Shared logic
   src/utils/            Helpers, including the server address (api.js)
-  tests/                Playwright tests
+  e2e/                  Playwright tests
 server/                 Express API
   app.js                Starts the server and scheduled jobs
   telegramBot.js        Telegram bot
   src/routes/           API routes
   src/controllers/      Request handlers
-  src/services/         Calendar, plans, recommendations and Telegram parsing
+  src/services/         Calendar, plans, recommendations, Telegram parsing and email
   src/models/           MongoDB models
   uploads/              Default picture and Telegram event images (profile pictures are in the database)
 ```
@@ -66,7 +69,7 @@ You need **Node.js 22 or newer** (tested on 24) and **npm**.
 ### 1. Get the code
 
 ```bash
-git clone https://github.com/y4erhs/is216-project.git
+git clone https://github.com/harshitha904/is216-project.git
 ```
 
 ```bash
@@ -98,6 +101,7 @@ GOOGLE_CLIENT_ID=<Google OAuth client ID>
 GOOGLE_CLIENT_SECRET=<Google OAuth client secret>
 GOOGLE_REDIRECT_URI=http://localhost:8000/auth/google/callback
 CLIENT_URL=http://localhost:5173
+JWT_SECRET=<long random text>
 TELEGRAM_BOT_TOKEN=<Telegram bot token>
 EMAILJS_SERVICE_ID=<EmailJS service ID>
 EMAILJS_TEMPLATE_ID=<EmailJS template ID>
@@ -158,6 +162,10 @@ You can also create a new account on the Sign Up page with any email ending in `
 
 ### Automated tests
 
+The Playwright tests are in `client/e2e`. They cover sign up, log in, Discover, activity tracking, calendar, lobbies, friends, notifications and Profile.
+
+Start the server and client first, because the tests don't start them. The tests log in as `Testuser2` and `testuser`.
+
 ```bash
 cd client && npx playwright install
 ```
@@ -170,7 +178,7 @@ cd client && npx playwright test
 cd client && npx playwright show-report
 ```
 
-`client/tests/example.spec.js` is currently Playwright's starter example and does not test this app yet.
+`client/e2e/example.spec.js` is Playwright's starter example. It opens playwright.dev and does not test this app.
 
 ### Manual test cases
 
@@ -193,6 +201,7 @@ Start the server and client first, then log in with a test account.
 | 13 | Plans | Create a plan that overlaps an event you're attending | A schedule overlap alert appears on My Calendar |
 | 14 | Google Calendar | Connect Google and press Sync now | Attending events and plans appear in Google Calendar |
 | 15 | Responsive | Open each page at phone width | The menu works and nothing scrolls sideways |
+| 16 | Password reset | On the Log In page, open Password Reset, enter the account's email, then open the emailed link and set a new password | You can log in with the new password |
 
 ## AI use declaration
 
