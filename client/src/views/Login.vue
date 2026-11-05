@@ -220,8 +220,8 @@ const handleSendReset = async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-
 }
+
 .cc-logo {
   display: flex;
   justify-content: center;
@@ -371,9 +371,18 @@ input:focus {
 
 @media (max-width: 991px) {
   .page-wrapper {
+    display: flex;
+    flex-direction: column;
     justify-content: center;
-    align-items: flex-start;
+    align-items: center;
+
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100dvh;
+
     padding: 16px;
+    box-sizing: border-box;
     overflow-y: auto;
   }
 
@@ -385,17 +394,32 @@ input:focus {
     transform: none;
     width: 100%;
     max-width: 480px;
-    margin: 0 auto;
+    min-height: 550px;
+    margin: auto;
+    flex: 0 0 auto;
+  }
+
+  .rotated-folder :deep(.folder-container) {
+    height: auto;
+    min-height: 550px;
+    flex: none;
+  }
+
+  .rotated-folder :deep(.folder-body) {
+    height: auto !important;
+    min-height: 500px;
+    flex: 1 1 auto !important;
   }
 
   .log-in {
     width: 100%;
     height: auto;
+    min-height: 500px;
     padding: 24px 16px;
   }
 
   form {
-    width: 100%;
+    width: 70%;
     transform: none;
   }
 }

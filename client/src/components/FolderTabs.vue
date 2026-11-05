@@ -366,81 +366,69 @@ watch(() => props.modelValue, (newVal) => {
    MOBILE: HORIZONTAL CATEGORY PILLS
 ========================================= */
 
-@media (max-width: 991.98px) {
-
-  /* Main layout becomes vertical */
-  .folder-container {
+@media (max-width: 991px) {
+  .page-wrapper {
     display: flex;
-    flex-direction: column !important;
-    align-items: stretch;
-    gap: 10px;
-    overflow: hidden;
-  }
-
-  /* Hide desktop folder tabs */
-  .tabs-header {
-    display: none !important;
-  }
-
-  /* Show horizontal category pills */
-  .mobile-category-nav {
-    display: flex;
-    flex-direction: row;
+    flex-direction: column;
+    justify-content: center;
     align-items: center;
-    gap: 8px;
+
     width: 100%;
-    flex-shrink: 0;
-    overflow-x: auto;
-    overflow-y: hidden;
-    padding: 4px 2px 8px;
+    min-height: 100dvh;
+    height: 100dvh;
     box-sizing: border-box;
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
+
+    padding: 16px;
+    overflow-y: auto;
   }
 
-  /* Hide scrollbar */
-  .mobile-category-nav::-webkit-scrollbar {
+  .main-page-art {
     display: none;
   }
 
-  /* Prevent buttons from shrinking */
-  .mobile-category-nav :deep(.btn-custom) {
+  .rotated-folder {
+    transform: none;
+    width: 100%;
+    max-width: 480px;
+    min-height: 550px;
+    margin: auto;
     flex: 0 0 auto;
-    white-space: nowrap;
   }
 
-  /* Keep folder body visible */
-  .folder-body {
-    flex: 1 1 0 !important;
+  .rotated-folder :deep(.folder-container) {
+    height: auto;
+    min-height: 550px;
+    flex: none;
+  }
+
+  .rotated-folder :deep(.folder-body) {
+    height: auto !important;
+    min-height: 500px;
+    flex: 1 1 auto !important;
+  }
+
+  .log-in {
     width: 100%;
-    height: 0 !important;
-    min-height: 0;
-    border-radius: 25px !important;
-}
+    height: auto;
+    min-height: 500px;
+    padding: 24px 16px;
+  }
 
-  /* Keep inner folder sizing */
-  .inner-folder {
+  form {
     width: 100%;
-    height: 100%;
-    min-width: 0;
-    min-height: 0;
-    overflow: hidden;
+    transform: none;
   }
 
-  /* Inactive outline pills */
-  .mobile-category-nav :deep(.category-pill:not(.active)) {
-    background: transparent !important;
-    border: 1.5px solid var(--color-white) !important;
-    color: var(--color-white) !important;
-    opacity: 0.8;
+  .tabs-header {
+    gap: 0;
   }
 
-  /* Active pill */
-  .mobile-category-nav :deep(.category-pill.active) {
-    background: var(--bg) !important;
-    border: 1.5px solid var(--bg) !important;
-    color: var(--text) !important;
-    opacity: 1;
+  .folder-tab {
+    flex: 0 1 110px;
+    max-width: 120px;
+    min-width: 75px;
+    margin-right: -10px;
+    padding: 0 8px 0 25px;
   }
 }
 </style>

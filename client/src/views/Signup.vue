@@ -918,21 +918,71 @@ input:focus {
   cursor: not-allowed;
 }
 
+/* Center Create Account content */
+@media (max-width: 991px) {
+  :deep(.folder-body.theme-green .inner-folder) {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  :deep(.folder-body.theme-green .cards-list) {
+    width: 100%;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+
+  :deep(.folder-body.theme-green .cards-list > div) {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  :deep(.folder-body.theme-green form) {
+    width: 80%;
+    max-width: 400px;
+    margin: 16px auto;
+  }
+
+  :deep(.folder-body.theme-green input),
+  :deep(.folder-body.theme-green .auth-btn) {
+    width: 100%;
+  }
+}
 
 /* Tablets and phones: one column that fills the screen */
 @media (max-width: 767px) {
-  .page-wrapper {
-    align-items: flex-start;
+   .page-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    width: 100%;
+    height: 100dvh;
+    min-height: 0;
     padding: 16px;
+    box-sizing: border-box;
+    overflow: hidden;
   }
 
-  .page-wrapper>* {
+  .page-wrapper > * {
     width: 100%;
-    height: auto;          /* phones: let the content decide, no fixed folder height */
+    max-width: 800px;
+    height: 100%;
+    min-height: 0;
+    max-height: 100%;
+    flex: 1 1 auto;
+    position: relative;
   }
 
   .section-title {
     font-size: 1.6rem;
+    margin-left: -12px;
+    margin-top: 10px;
   }
 
   form {
@@ -986,6 +1036,21 @@ input:focus {
 
   .interest-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  :deep(.folder-body) {
+    padding: 10px !important;
+  }
+
+  :deep(.inner-folder) {
+    padding: 3px 5px 3px 15px !important;
+    box-sizing: border-box;
+  }
+
+  :deep(.cards-list) {
+    margin-left: 0;
+    margin-right: 0;
+    width: 100%;
   }
 }
 </style>
