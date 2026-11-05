@@ -1,6 +1,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, inject } from 'vue'
+import { useRouter } from 'vue-router'
 import FolderTabs from '../components/FolderTabs.vue'
 import EventCard from '../components/EventCard.vue'
 import CardInfo from '../components/CardInfo.vue'
@@ -10,6 +11,7 @@ import { useActivities } from '../composables/useActivities'
 import { useAuth } from '../composables/useAuth'
 import { vAutoScrollbar } from '../directives/autoScrollbar'
 
+const router = useRouter()
 const isNavbarCollapsed = inject('isNavbarCollapsed')
 const showUpcomingMobile = ref(false)
 
@@ -148,6 +150,7 @@ const isSelectedEventAttending = computed(() => {
 
 function onInviteFriends(id) {
   console.log('Invite friends for event:', id)
+  router.push('/lobby')
 }
 
 function handleTabChange() {
