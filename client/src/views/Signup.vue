@@ -386,7 +386,7 @@ const handleSubmit = async () => {
           <div class="folder-scroll-container">
             <div class="interest-grid">
               <div v-for="interest in availableInterests" :key="interest.id" class="card interest-card">
-                <img src="/test-img.jpeg" class="card-img-top interest-card-img" alt="...">
+                <img :src="interest.image" class="card-img-top interest-card-img" alt="...">
                 <div class="card-body p-2">
                   <p class="card-text mb-0">
                     <label class="w-100 d-flex align-items-center gap-2 mb-0">
