@@ -442,33 +442,38 @@ watch(() => props.modelValue, (newVal) => {
     padding: 0 8px 0 25px;
   }
 
-  .mobile-category-nav {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+.mobile-category-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
 
-    width: 100%;
-    padding: 8px 4px 0;
+  width: 100%;
+  box-sizing: border-box;
 
-    overflow-x: auto;
-    overflow-y: hidden;
+  margin-bottom: 12px;
+  padding: 8px 0 0;
 
-    flex: 0 0 auto;
-    white-space: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
 
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
-  }
+  flex: 0 0 auto;
+  white-space: nowrap;
+
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
 
   .mobile-category-nav::-webkit-scrollbar {
     display: none;
   }
 
-  .category-pill {
-    flex: 0 0 auto;
-    white-space: nowrap;
-    font-size: 11px;
-  }
+.category-pill {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  font-size: 11px;
+}
 
   .category-pill.btn-outline-main {
     border: 1px solid white !important;
@@ -478,5 +483,6 @@ watch(() => props.modelValue, (newVal) => {
   .tabs-header.hide-on-mobile {
     display: none !important;
   }
+
 }
 </style>

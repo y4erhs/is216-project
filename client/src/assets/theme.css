@@ -44,8 +44,8 @@
   --bg-dark: var(--color-grey);
   --text: var(--color-black);
 
-  --button-bg: var(--color-blue);
-  --button-text: var(--color-white);
+  --button-bg: var(--color-grey);
+  --button-text: var(--color-black);
 }
 
 .theme-grey {

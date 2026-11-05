@@ -12,8 +12,10 @@
       <h3 class="section-title">{{ monthLabel }}</h3>
       <div class="month-nav">
         <span v-if="loading" class="loading">Loading…</span>
-        <button class="nav-btn" type="button" aria-label="Previous month" @click="changeMonth(-1)"><span class="nav-btn-text">‹</span></button>
-        <button class="nav-btn" type="button" aria-label="Next month" @click="changeMonth(1)"><span class="nav-btn-text">›</span></button>
+        <button class="nav-btn" type="button" aria-label="Previous month" @click="changeMonth(-1)"><span
+            class="nav-btn-text">‹</span></button>
+        <button class="nav-btn" type="button" aria-label="Next month" @click="changeMonth(1)"><span
+            class="nav-btn-text">›</span></button>
       </div>
     </div>
 
@@ -43,10 +45,13 @@
           @click="selectDay(day.key)">
           <span class="day-num">{{ day.num }}</span>
 
-          <span v-for="(chip, i) in day.chips.slice(0, 2)" :key="i" class="chip" :class="{ 'chip-lobby': chip.lobby }"
-            :style="chip.colour ? { background: chip.colour } : null" :title="chip.text">{{ chip.text }}</span>
+          <span v-for="(chip, i) in day.chips.slice(0, 3)" :key="i" class="event-bar"
+            :class="{ 'event-bar-lobby': chip.lobby }" :style="chip.colour ? { background: chip.colour } : null"
+            :title="chip.text"></span>
 
-          <span v-if="day.chips.length > 2" class="more">+{{ day.chips.length - 2 }} more</span>
+          <span v-if="day.chips.length > 3" class="more">
+            +{{ day.chips.length - 3 }}
+          </span>
         </button>
       </div>
     </div>
@@ -329,7 +334,7 @@ watch(
   font-size: 11px;
   text-transform: uppercase;
   white-space: nowrap;
-  
+
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
@@ -375,9 +380,13 @@ watch(
   flex-direction: column;
   align-items: stretch;
   gap: 3px;
+  min-width: 0;
   min-height: 70px;
-  aspect-ratio: 1/1;
+  aspect-ratio: 1 / 1;
   padding: 6px;
+  box-sizing: border-box;
+  overflow: hidden;
+
   border: 2px solid var(--color-grey);
   border-radius: 15px;
   background: var(--card);
@@ -403,7 +412,7 @@ watch(
 
 .day-num {
   font-weight: 700;
-  font-size: 12px;
+  font-size: 10px;
   padding: 2px 0 0 4px;
 }
 
@@ -412,26 +421,25 @@ watch(
   text-underline-offset: 3px;
 }
 
-.chip {
-  padding: 4px 6px 0px;
+.event-bar {
+  display: block;
+  flex: 0 0 5px;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  height: 5px;
+  box-sizing: border-box;
   border-radius: 999px;
   background-color: var(--color-green);
-  color: var(--color-dark-green);
-  font-size: 10px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
-.chip-lobby {
+.event-bar-lobby {
   background-color: var(--color-blue);
-  color: var(--color-white);
-  font-weight: 700;
 }
 
 .more {
-  padding-left: 4px;
-  font-size: 10px;
+  padding-left: 2px;
+  font-size: 9px;
   opacity: 0.7;
 }
 
@@ -441,9 +449,100 @@ watch(
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .nav-btn,
   .member {
     transition: none;
+  }
+}
+
+/* =========================
+   MOBILE CALENDAR
+========================= */
+@media (max-width: 768px) {
+
+  .cal {
+    margin: 0;
+    padding: 8px;
+    gap: 8px;
+    border-radius: 12px;
+  }
+
+  /* Month header */
+  .section-head {
+    padding: 0 3px;
+    gap: 5px;
+  }
+
+  .section-title {
+    font-size: 16px;
+  }
+
+  .month-nav {
+    gap: 5px;
+  }
+
+  .nav-btn {
+    width: 27px;
+    height: 27px;
+    font-size: 15px;
+  }
+
+  /* Member avatars */
+  .members {
+    gap: 6px;
+    margin-left: 3px;
+  }
+
+  .member {
+    width: 24px;
+    height: 24px;
+    font-size: 9px;
+  }
+
+  /* Calendar grid */
+  .grid-scroll-container {
+    padding-right: 0;
+  }
+
+  .grid {
+    gap: 4px;
+  }
+
+  .weekday {
+    font-size: 9px;
+    padding-bottom: 3px;
+  }
+
+  /* Individual day cells */
+  .day {
+  min-width: 0;
+  min-height: 0;
+  aspect-ratio: 1 / 1;
+  padding: 4px;
+  gap: 2px;
+  border-width: 1px;
+  border-radius: 9px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.day.selected {
+  border-width: 2px;
+}
+
+.event-bar {
+  flex-basis: 4px;
+  height: 4px;
+}
+
+.more {
+  font-size: 7px;
+  padding-left: 1px;
+}
+
+  .error {
+    font-size: 9px;
   }
 }
 </style>

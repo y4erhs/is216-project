@@ -70,7 +70,7 @@
     </header>
 
     <main class="stage">
-      <FolderTabs :key="folderKey" :tabs="tabs" :default-active="tab" @tab-change="tab = $event">
+      <FolderTabs :key="folderKey" :tabs="tabs" v-model="tab" :show-mobile-pills="true">
         <template #invite>
           <div class="pane">
             <section class="section-wrapper">
@@ -271,57 +271,117 @@
 </div>
 </main>
 
-<aside v-if="tab === 'calendar'" class="panel-wrap" aria-label="Selected day">
-  <div class="side-panel day-panel" v-auto-scrollbar>
-    <PlanForm v-if="showPlanForm" :user-id="userId" :lobby-id="lobbyId" :date="selectedDay?.date || ''"
-      @close="showPlanForm = false" @created="calendarEl?.reload()" />
+<aside
+  v-if="tab === 'calendar'"
+  class="panel-wrap selected-day-wrap"
+  :class="{ 'is-expanded': showSelectedDayMobile }"
+  aria-label="Selected day"
+>
+  <button
+    class="selected-day-mobile-toggle"
+    type="button"
+    @click="showSelectedDayMobile = !showSelectedDayMobile"
+    :aria-expanded="showSelectedDayMobile"
+  >
+    <span class="panel-title">Selected Day</span>
+    <span class="registered-chevron">
+      {{ showSelectedDayMobile ? '-' : '+' }}
+    </span>
+  </button>
 
-    <template v-else>
-      <h3 class="panel-title">Selected day</h3>
+  <div
+    class="selected-day-content"
+    :class="{ 'is-open': showSelectedDayMobile }"
+  >
+    <div class="side-panel day-panel" v-auto-scrollbar>
 
-      <div class="ev">
-        <template v-if="selectedDay">
-          <span class="ev-title">{{ selectedDayLabel }}</span>
-          <ul v-if="selectedDay.chips.length" class="day-chips">
-            <li v-for="(chip, i) in selectedDay.chips" :key="i" class="chip" :class="{ 'chip-lobby': chip.lobby }"
-              :style="chip.colour ? { background: chip.colour } : null">{{ chip.text }}</li>
-          </ul>
-          <p v-else class="ev-meta">Everyone's free</p>
-        </template>
-        <p v-else class="ev-meta">Pick a day on the calendar to see what's on.</p>
-      </div>
+      <PlanForm
+        v-if="showPlanForm"
+        :user-id="userId"
+        :lobby-id="lobbyId"
+        :date="selectedDay?.date || ''"
+        @close="showPlanForm = false"
+        @created="calendarEl?.reload()"
+      />
 
-      <BaseButton class="theme-dark-green add-plan" type="button" @click="showPlanForm = true">Add plan</BaseButton>
-    </template>
+      <template v-else>
+        <h3 class="panel-title">Selected day</h3>
+
+        <div class="ev">
+          <template v-if="selectedDay">
+            <span class="ev-title">{{ selectedDayLabel }}</span>
+
+            <ul v-if="selectedDay.chips.length" class="day-chips">
+              <li
+                v-for="(chip, i) in selectedDay.chips"
+                :key="i"
+                class="chip"
+                :class="{ 'chip-lobby': chip.lobby }"
+                :style="chip.colour ? { background: chip.colour } : null"
+              >
+                {{ chip.text }}
+              </li>
+            </ul>
+
+            <p v-else class="ev-meta">Everyone's free</p>
+          </template>
+
+          <p v-else class="ev-meta">
+            Pick a day on the calendar to see what's on.
+          </p>
+        </div>
+
+        <BaseButton
+          class="theme-dark-green add-plan"
+          type="button"
+          @click="showPlanForm = true"
+        >
+          Add plan
+        </BaseButton>
+      </template>
+
+    </div>
   </div>
 </aside>
 
 <aside v-else class="panel-wrap" aria-label="Registered events">
-  <div class="side-panel side-panel-split">
-    <h3 class="panel-title">Registered events</h3>
 
-    <div class="side-scroll" v-auto-scrollbar>
-      <ul v-if="eventRows.length" class="evlist">
-        <li v-for="(r, i) in eventRows" :key="r.key" class="ev">
-          <button class="ev-head" type="button" :aria-expanded="isOpen(r, i)" :aria-controls="`ev-${r.key}`"
-            @click="toggleEvent(r, i)">
-            <span class="ev-title">{{ r.title }}</span>
-            <span class="chev" :class="{ open: isOpen(r, i) }" aria-hidden="true"></span>
-          </button>
-          <span v-if="r.pitched" class="badge-pill pill-grey ev-tag">Pitched, not registered yet</span>
-          <p class="ev-meta">{{ r.date }}<br />{{ r.venue }}</p>
+  <!-- Mobile collapse toggle -->
+  <button class="registered-mobile-toggle" @click="showRegisteredMobile = !showRegisteredMobile"
+    :aria-expanded="showRegisteredMobile">
+    <span class="panel-title">Registered Events</span>
+    <span class="registered-chevron">
+      {{ showRegisteredMobile ? '-' : '+' }}
+    </span>
+  </button>
 
-          <div v-show="isOpen(r, i)" :id="`ev-${r.key}`" class="stats">
-            <div class="stat stat-pending"><span>Pending</span><b>{{ r.pending }}</b></div>
-            <div class="stat stat-declined"><span>Declined</span><b>{{ r.declined }}</b></div>
-            <div class="stat stat-accepted"><span>Accepted</span><b>{{ r.accepted }}</b></div>
-          </div>
-        </li>
-      </ul>
+  <div class="registered-content" :class="{ 'is-open': showRegisteredMobile }">
+    <div class="side-panel side-panel-split">
+      <h3 class="panel-title">Registered events</h3>
 
-      <div v-else class="ev-empty">
-        <p>No events yet. Pitch one to your group.</p>
-        <BaseButton v-if="isHost" class="theme-green" @click="goTo('register')">Choose event</BaseButton>
+      <div class="side-scroll" v-auto-scrollbar>
+        <ul v-if="eventRows.length" class="evlist">
+          <li v-for="(r, i) in eventRows" :key="r.key" class="ev">
+            <button class="ev-head" type="button" :aria-expanded="isOpen(r, i)" :aria-controls="`ev-${r.key}`"
+              @click="toggleEvent(r, i)">
+              <span class="ev-title">{{ r.title }}</span>
+              <span class="chev" :class="{ open: isOpen(r, i) }" aria-hidden="true"></span>
+            </button>
+            <span v-if="r.pitched" class="badge-pill pill-grey ev-tag">Pitched, not registered yet</span>
+            <p class="ev-meta">{{ r.date }}<br />{{ r.venue }}</p>
+
+            <div v-show="isOpen(r, i)" :id="`ev-${r.key}`" class="stats">
+              <div class="stat stat-pending"><span>Pending</span><b>{{ r.pending }}</b></div>
+              <div class="stat stat-declined"><span>Declined</span><b>{{ r.declined }}</b></div>
+              <div class="stat stat-accepted"><span>Accepted</span><b>{{ r.accepted }}</b></div>
+            </div>
+          </li>
+        </ul>
+
+        <div v-else class="ev-empty">
+          <p>No events yet. Pitch one to your group.</p>
+          <BaseButton v-if="isHost" class="theme-green" @click="goTo('register')">Choose event</BaseButton>
+        </div>
       </div>
     </div>
   </div>
@@ -650,9 +710,11 @@ watch(
 
 function onEsc(e) {
   if (e.key !== 'Escape') return
+
   confirmingDelete.value = false
   confirmingLeave.value = false
   confirmingRegister.value = false
+  showSelectedDayMobile.value = false
 }
 
 function handleEventClick(eventId) {
@@ -672,6 +734,9 @@ onMounted(async () => {
 })
 
 onBeforeUnmount(() => window.removeEventListener('keydown', onEsc))
+
+const showRegisteredMobile = ref(false)
+const showSelectedDayMobile = ref(false)
 </script>
 
 <style scoped>
@@ -1561,7 +1626,22 @@ button.badge-pill:disabled {
 }
 
 .day-panel .panel-title {
-  margin-bottom: 3px;
+  font-size: 15px;
+  margin: 0px;
+}
+
+.day-panel .ev-title {
+  font-size: 13px;
+  line-height: 1.15;
+}
+
+.day-panel .ev-meta {
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.day-panel .chip {
+  font-size: 13px;
 }
 
 .add-plan {
@@ -1796,5 +1876,410 @@ button.badge-pill:disabled {
   .remove-x {
     transition: none;
   }
+}
+
+.selected-day-mobile-toggle {
+  display: none;
+}
+
+/* =========================================
+   TABLET / MOBILE LAYOUT
+========================================= */
+
+@media (max-width: 991.98px) {
+
+  /* MAIN APP: fixed to viewport, no page scrolling */
+  .app {
+    width: 100%;
+    height: 100dvh;
+    min-height: 0;
+    max-height: 100dvh;
+
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'head'
+      'panel'
+      'stage';
+    grid-template-rows: auto auto minmax(0, 1fr);
+
+    gap: 12px;
+    overflow: hidden;
+    padding-bottom: 0;
+  }
+
+  /* HEADER */
+  .head {
+    grid-area: head;
+    min-width: 0;
+    min-height: 0;
+    gap: 8px;
+  }
+
+  .head-bar {
+    padding: 8px 8px 0;
+    gap: 10px;
+  }
+
+  .head-info {
+    padding: 0 8px;
+  }
+
+  /* REGISTERED EVENTS PANEL */
+  .panel-wrap {
+    grid-area: panel;
+    position: relative;
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  /* Mobile collapse button */
+  .registered-mobile-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 12px 15px;
+
+    border: 0;
+    background: var(--color-grey);
+    border-radius: 18px;
+
+    color: var(--color-dark-grey);
+    cursor: pointer;
+    text-align: left;
+  }
+
+  .registered-mobile-toggle .panel-title {
+    margin: 0;
+    font: 400 13px/1.2 'HeaderFont', sans-serif;
+    text-align: left;
+  }
+
+  .registered-chevron {
+    font-size: 18px;
+    line-height: 1;
+  }
+
+  /* Collapsed content */
+  .registered-content {
+    height: 0;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.25s ease;
+  }
+
+  /* Expanded content */
+  .registered-content.is-open {
+    height: 250px;
+    max-height: 250px;
+    margin-top: 8px;
+    overflow: hidden;
+  }
+
+  .registered-content .side-panel {
+    position: static;
+    width: 100%;
+    height: 100%;
+    max-height: none;
+    padding: 10px;
+    border-radius: 18px;
+    overflow: hidden;
+  }
+
+  /* Avoid showing the title twice */
+  .registered-content .side-panel-split > .panel-title {
+    display: none;
+  }
+
+  .registered-content .side-panel-split {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .registered-content .side-scroll {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+
+  /* =================================
+     SELECTED DAY — MOBILE DROPDOWN
+  ================================= */
+
+  .selected-day-wrap {
+    grid-area: panel;
+
+    display: flex;
+    flex-direction: column;
+
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    padding: 0;
+
+    background: var(--color-grey);
+    border-radius: 18px;
+    overflow: hidden;
+  }
+
+  /* Dropdown header */
+  .selected-day-mobile-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    width: 100%;
+    flex: none;
+    padding: 12px 15px;
+
+    border: 0;
+    background: transparent;
+    color: var(--color-dark-grey);
+
+    cursor: pointer;
+    text-align: left;
+  }
+
+  .selected-day-mobile-toggle .panel-title {
+    margin: 0;
+    font: 400 13px/1.2 'HeaderFont', sans-serif;
+    text-align: left;
+  }
+
+  /* Collapsed content */
+  .selected-day-content {
+    height: 0;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  /* Expanded content */
+  .selected-day-content.is-open {
+    flex: 1 1 0;
+    height: 0;
+    min-height: 0;
+    max-height: none;
+    overflow: hidden;
+  }
+
+  /* Inner content — no second box */
+  .selected-day-content .side-panel.day-panel {
+    position: static;
+
+    display: flex;
+    flex-direction: column;
+
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    max-height: none;
+
+    padding: 10px 15px 15px;
+    margin: 0;
+
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+
+    overflow-y: auto;
+  }
+
+  /* Hide duplicate heading */
+  .selected-day-content .day-panel > .panel-title {
+    display: none;
+  }
+
+  /* Expanded dropdown takes available screen height */
+  .app:has(.selected-day-content.is-open) {
+    grid-template-rows: auto minmax(0, 1fr) 0;
+  }
+
+  /* Hide calendar folder while Selected Day is expanded */
+  .app:has(.selected-day-content.is-open) .stage {
+    min-height: 0;
+    height: 0;
+    overflow: hidden;
+  }
+
+
+  /* =================================
+     FOLDER — MOBILE HEIGHT FIX
+  ================================= */
+
+  /* Hide desktop folder tabs */
+  .stage :deep(.tabs-header) {
+    display: none !important;
+  }
+
+  /* Stage fills only its allocated grid row */
+  .stage {
+    display: flex;
+    flex-direction: column;
+
+    min-width: 0;
+    min-height: 0;
+    height: auto;
+    overflow: hidden;
+  }
+
+  /* Folder takes remaining space inside stage */
+  .stage :deep(.folder-container) {
+    display: flex;
+    flex-direction: column !important;
+    align-items: stretch !important;
+
+    gap: 0;
+    width: 100%;
+
+    height: auto !important;
+    max-height: 100%;
+
+    flex: 1 1 0%;
+    min-width: 0;
+    min-height: 0;
+
+    overflow: hidden;
+  }
+
+  /* Folder body */
+  .stage :deep(.folder-body) {
+    display: flex;
+    flex-direction: column;
+
+    flex: 1 1 0% !important;
+
+    width: 100%;
+    height: auto !important;
+    min-width: 0;
+    min-height: 0;
+
+    overflow: hidden !important;
+    border-radius: 25px !important;
+  }
+
+  /* Inner folder scrolls internally */
+  .stage :deep(.inner-folder) {
+    display: flex;
+    flex-direction: column;
+
+    flex: 1 1 0% !important;
+
+    width: 100%;
+    height: auto !important;
+    max-height: 100%;
+
+    min-width: 0;
+    min-height: 0;
+
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+
+    padding: 10px !important;
+  }
+
+  /* Folder content */
+  .stage :deep(.pane) {
+    width: 100%;
+    min-width: 0;
+    padding: 0 !important;
+  }
+
+  /* Register button stays below folder */
+  .register-bar {
+    flex: 0 0 auto;
+    margin-top: 10px;
+  }
+
+  /* Calendar fills folder */
+  .calendar-pane {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+  }
+
+
+  /* =================================
+     SMALLER TEXT
+  ================================= */
+
+  .status-pill {
+    font-size: 10px !important;
+  }
+
+  .stat {
+    font-size: 10.5px;
+    padding: 8px 10px 4px 15px;
+  }
+
+}
+
+
+/* =========================================
+   SMALLER TABLETS
+========================================= */
+
+@media (max-width: 900px) {
+
+  .pitch-head {
+    flex-wrap: wrap;
+  }
+
+  .pitch-text {
+    flex-basis: 100%;
+  }
+
+  .pitch-head .filter-row {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+
+}
+
+
+/* =========================================
+   PHONES
+========================================= */
+
+@media (max-width: 720px) {
+
+  .people {
+    grid-template-columns: 1fr;
+  }
+
+  .head-bar {
+    gap: 10px;
+  }
+
+}
+
+
+/* =========================================
+   REDUCED MOTION
+========================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+  .live-dot,
+  .flash {
+    animation: none;
+  }
+
+  .roster-enter-active,
+  .roster-leave-active,
+  .meter i,
+  .btn,
+  .chev,
+  .remove-x,
+  .registered-content {
+    transition: none;
+  }
+
 }
 </style>
