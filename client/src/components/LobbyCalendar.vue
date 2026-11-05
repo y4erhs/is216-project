@@ -47,7 +47,9 @@
 
           <span v-for="(chip, i) in day.chips.slice(0, 3)" :key="i" class="event-bar"
             :class="{ 'event-bar-lobby': chip.lobby }" :style="chip.colour ? { background: chip.colour } : null"
-            :title="chip.text"></span>
+            :title="chip.text">
+            <span class="event-text">{{ chip.text }}</span>
+          </span>
 
           <span v-if="day.chips.length > 3" class="more">
             +{{ day.chips.length - 3 }}
@@ -412,7 +414,7 @@ watch(
 
 .day-num {
   font-weight: 700;
-  font-size: 10px;
+  font-size: 13px;
   padding: 2px 0 0 4px;
 }
 
@@ -423,14 +425,28 @@ watch(
 
 .event-bar {
   display: block;
-  flex: 0 0 5px;
   width: 100%;
   min-width: 0;
   max-width: 100%;
-  height: 5px;
+  min-height: 18px;
+  height: auto;
+  flex: 0 0 auto;
   box-sizing: border-box;
-  border-radius: 999px;
+  border-radius: 5px;
+  overflow: hidden;
+  padding: 2px 4px;
   background-color: var(--color-green);
+}
+
+.event-text {
+  display: block;
+  font-size: 13px;
+  line-height: 1.2;
+  padding-top: 2px;
+  color: var(--color-black);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .event-bar-lobby {
@@ -516,30 +532,42 @@ watch(
 
   /* Individual day cells */
   .day {
-  min-width: 0;
-  min-height: 0;
-  aspect-ratio: 1 / 1;
-  padding: 4px;
-  gap: 2px;
-  border-width: 1px;
-  border-radius: 9px;
-  box-sizing: border-box;
-  overflow: hidden;
-}
+    min-width: 0;
+    min-height: 0;
+    aspect-ratio: 1 / 1;
+    padding: 4px;
+    gap: 2px;
+    border-width: 1px;
+    border-radius: 9px;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
 
-.day.selected {
-  border-width: 2px;
-}
+  .day-num {
+    font-size: 10.5px;
+  }
 
-.event-bar {
-  flex-basis: 4px;
+  .day.selected {
+    border-width: 2px;
+  }
+
+  .event-bar {
+  flex: 0 0 4px;
+  width: 100%;
   height: 4px;
+  min-height: 4px;
+  padding: 0;
+  border-radius: 999px;
 }
 
-.more {
-  font-size: 7px;
-  padding-left: 1px;
+.event-text {
+  display: none;
 }
+
+  .more {
+    font-size: 7px;
+    padding-left: 1px;
+  }
 
   .error {
     font-size: 9px;
