@@ -10,7 +10,7 @@ import { useAuth } from '../composables/useAuth'
 import { vAutoScrollbar } from '../directives/autoScrollbar'
 
 const isNavbarCollapsed = inject('isNavbarCollapsed')
-
+const showUpcomingMobile = ref(false)
 const {
   activities,
   loadActivities,
@@ -210,9 +210,21 @@ onMounted(async () => {
       </div>
 
       <!-- RIGHT: SIDE BOX -->
-      <div class="side-box-container">
-        <SideUpcoming />
-      </div>
+<div class="side-box-container">
+
+  <!-- Mobile collapse button -->
+  <button type="button" class="upcoming-mobile-toggle"
+    @click="showUpcomingMobile = !showUpcomingMobile"
+    :aria-expanded="showUpcomingMobile">
+    <span class="side-box-title">UPCOMING PLANS</span>
+    <span class="upcoming-chevron">{{ showUpcomingMobile ? '-' : '+' }}</span>
+  </button>
+
+  <div class="upcoming-content" :class="{ 'is-open': showUpcomingMobile }">
+    <SideUpcoming />
+  </div>
+
+</div>
 
     </div>
   </div>
@@ -231,6 +243,15 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+}
+
+.upcoming-mobile-toggle {
+  display: none;
+}
+
+.upcoming-content {
+  width: 100%;
+  height: 100%;
 }
 
 /* HEADER */
@@ -350,17 +371,7 @@ onMounted(async () => {
 }
 
 /* RESPONSIVE GRID */
-@media (max-width: 1200px) {
-  .folder-cards-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
 
-@media (max-width: 900px) {
-  .folder-cards-grid {
-    grid-template-columns: repeat(1, minmax(0, 1fr));
-  }
-}
 
 /* EMPTY STATE */
 .empty-state-box {
@@ -410,5 +421,138 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+}
+
+/* MOBILE & TABLET */
+@media (max-width: 991.98px) {
+
+  /* PAGE HEIGHT */
+  .activity-page-container {
+    height: 100dvh;
+    max-height: 100dvh;
+    padding-left: 0;
+    overflow: hidden;
+  }
+
+  /* HEADER */
+  .header-row {
+    margin-bottom: 10px;
+  }
+
+  .page-title {
+    padding-left: 8px;
+    font-size: 22px;
+  }
+
+  .calendar-btn {
+    display: none;
+  }
+
+  /* STACK LAYOUT */
+  .activity-main-layout {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 0;
+    min-height: 0;
+    overflow: hidden;
+    gap: 12px;
+  }
+
+  /* UPCOMING PLANS (collapsible, shown above the folder) */
+  .side-box-container {
+    order: -1;
+    flex: 0 0 auto;
+    width: 100%;
+    height: auto;
+    padding: 4px 15px;
+    border-radius: 18px;
+  }
+
+  .side-box-title {
+    font-family: 'HeaderFont';
+    color: var(--color-dark-grey);
+  }
+
+  .upcoming-mobile-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 5px 0;
+    border: none;
+    background: transparent;
+    font-family: 'HeaderFont', sans-serif !important;
+    font-size: 12px;
+    cursor: pointer;
+  }
+
+  .upcoming-chevron {
+    font-size: 20px;
+    line-height: 1;
+    color: var(--color-dark-grey);
+    padding-top: 4px;
+  }
+
+  .upcoming-content {
+    height: 0;
+    max-height: 0;
+    overflow: hidden;
+    transition: height 0.3s ease, max-height 0.3s ease;
+  }
+
+  .upcoming-content.is-open {
+    height: 220px;
+    max-height: 220px;
+  }
+
+  .upcoming-content.is-open :deep(.side-upcoming) {
+    height: 100%;
+    min-height: 0;
+  }
+
+  /* FOLDER TAKES THE REMAINING HEIGHT */
+  .folder-wrapper {
+    flex: 1 1 0;
+    height: auto;
+  }
+
+  /* Keep the tabs visible, but let them scroll sideways if they don't fit */
+  .folder-wrapper :deep(.tabs-header) {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+  }
+
+  .folder-wrapper :deep(.inner-folder) {
+    padding: 0;
+    overflow: hidden !important;
+  }
+
+  /* CARDS: the scroll area scrolls, 1 column */
+  .folder-wrapper .folder-cards-scroll-area {
+    flex: 1 1 0;
+    height: 0;
+    min-height: 0;
+    overflow-y: auto;
+  }
+
+  .folder-wrapper .folder-cards-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    margin: 10px 0;
+  }
+
+  .folder-wrapper .folder-cards-grid > * {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+}
+
+/* TABLET: 2 columns */
+@media (min-width: 768px) and (max-width: 991.98px) {
+  .folder-wrapper .folder-cards-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 </style>
