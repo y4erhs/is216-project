@@ -199,7 +199,7 @@
                 </div>
               </div>
 
-              <<<<<<< HEAD <div v-if="pitchMode === 'recommended' && recsLoading" class="empty-note" role="status">
+              <div v-if="pitchMode === 'recommended' && recsLoading" class="empty-note" role="status">
                 <p>Finding events that suit your group...</p>
           </div>
 
