@@ -17,7 +17,7 @@ const showPlanForm = ref(false)
 const editingPlan = ref(null)
 const calendarKey = ref(0)
 const alertsKey = ref(0)
-const isAlertsCollapsed = ref(false) // State buat ngecek lg ke-collapse atau gak
+const isAlertsCollapsed = ref(false)
 
 const embedUrl = computed(() =>
     `https://calendar.google.com/calendar/embed?src=${encodeURIComponent(googleEmail.value)}&ctz=Asia%2FSingapore&mode=WEEK`
@@ -160,10 +160,9 @@ onMounted(loadStatus)
       background: var(--color-grey, #f0f1f7);
       border-radius: 25px;
       padding: 10px;
-      transition: flex 0.2s ease; /* Biar transisi ciutnya smooth */
+      transition: flex 0.2s ease;
     }
 
-    /* KUNCI: Pas di-collapse, box luarnya lgsg ikut ciut seukuran header doang! */
     .half-section.is-collapsed {
       flex: 0 0 auto !important;
     }
