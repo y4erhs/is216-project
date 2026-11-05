@@ -353,7 +353,6 @@ function handleCardClick(event) {
 
                     <FolderTabs :tabs="interestTabs" v-model="activeInterest" default-active="all"
                         :show-mobile-pills="true" @tab-change="showCardInfo = false">
-                        @tab-change="showCardInfo = false">
 
                         <div class="home-folder-content">
 
