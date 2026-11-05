@@ -46,7 +46,7 @@ exports.callback = async (req, res) => {
         userId = readGoogleLinkState(state)
     } catch (err) {
         console.error('Google callback got an invalid state:', err.message)
-        return res.redirect(`${clientUrl}/calendar?google=error`)
+        return res.redirect(`${clientUrl}/profile?google=error`)
     }
 
     try {
@@ -54,7 +54,7 @@ exports.callback = async (req, res) => {
         const { tokens } = await client.getToken(code)
 
         if (!tokens.refresh_token) {
-            return res.redirect(`${clientUrl}/calendar?google=error`)
+            return res.redirect(`${clientUrl}/profile?google=error`)
         }
 
         // read the user's Google email from the sign-in info Google sent back
@@ -73,10 +73,10 @@ exports.callback = async (req, res) => {
             { upsert: true, new: true, runValidators: true }
         )
 
-        return res.redirect(`${clientUrl}/calendar?google=connected`)
+        return res.redirect(`${clientUrl}/profile?google=connected`)
     } catch (err) {
         console.error('Google callback failed:', err.message)
-        return res.redirect(`${clientUrl}/calendar?google=error`)
+        return res.redirect(`${clientUrl}/profile?google=error`)
     }
 }
 

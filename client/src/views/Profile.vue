@@ -498,7 +498,7 @@ const executeDelete = async () => {
         </div>
 
         <div>
-          <GoogleCalendarCard />
+          <GoogleCalendarCard :user-id="userId" />
         </div>
 
       </div>
