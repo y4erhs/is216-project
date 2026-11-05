@@ -861,7 +861,7 @@ function handleCardClick(event) {
         flex: 1 1 0;
         min-height: 0;
         overflow: hidden;
-        gap: 12px;
+        gap: 5px;
     }
 
     /* =================================
@@ -942,7 +942,7 @@ function handleCardClick(event) {
         display: flex;
         flex-direction: column !important;
         align-items: stretch !important;
-        gap: 10px;
+        gap: 5px;
         width: 100%;
         height: 100% !important;
         flex: 1 1 0;

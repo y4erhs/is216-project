@@ -452,7 +452,7 @@ watch(() => props.modelValue, (newVal) => {
   width: 100%;
   box-sizing: border-box;
 
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   padding: 8px 0 0;
 
   overflow-x: auto;
