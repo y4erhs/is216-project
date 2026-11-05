@@ -203,6 +203,43 @@ Start the server and client first, then log in with a test account.
 | 15 | Responsive | Open each page at phone width | The menu works and nothing scrolls sideways |
 | 16 | Password reset | On the Log In page, open Password Reset, enter the account's email, then open the emailed link and set a new password | You can log in with the new password |
 
+### Telegram bot
+
+The bot runs on the live server, so test it with the live site.
+
+1. Open https://is216-project-zeta.vercel.app first. The server sleeps when it isn't used, and the bot only replies once it's awake. This can take up to a minute.
+2. In Telegram, search for **@smu_events_a2z_bot** and add it to a group/channel where you can make announcements (as an admin, can disable permissions), and then send an announcent, for example:
+
+   > Python Workshop! Learn the basics of Python. Saturday 21 November 2026, 2pm to 4pm at SCIS 1 Seminar Room 2-1. Register here: https://example.com
+
+   You can attach a poster image too.
+3. Wait a few seconds, then log in and search for the event, or find it on Discover.
+
+| Test | Expected result |
+|---|---|
+| Send an event post | A new event appears, with the title, date, time, location and link filled in |
+| Send a post with a poster | The poster shows as the event's image |
+| Send a message that isn't an event, e.g. "Hi everyone" | No event is created |
+| Edit the post you sent | The same event updates, and no new event is created |
+| Send a reminder for the same event (within 30 minutes of its start time) | No duplicate event is created |
+
+Clubs can also add the bot as an admin of their channel, and it reads every post the same way.
+
+**Running locally:** only one copy of a bot can run at a time. To test locally, create your own bot with @BotFather and put its token in `TELEGRAM_BOT_TOKEN`. Using the team's token locally would stop the live bot from getting messages.
+
+## Note on group registration
+
+When the host presses **Register Group** in a lobby, Campus Compass registers the group inside the app. Every member who accepted is marked as attending, the event shows under Attending in their Activity Tracking, and it's added to their Google Calendar if they've linked it.
+
+It does not sign the members up on the club's own registration form. Each member still opens the event's registration link and signs up there.
+
+We first wanted Register Group to fill in and submit the club's form for every member. We didn't build it, for two reasons:
+
+- **Each club uses a different form.** Most are Google Forms or similar, with different questions, so there's no single way to fill them in.
+- **The forms ask for details we don't store,** such as student ID and phone number. Collecting these would mean storing more personal data than the app needs.
+
+With more time, we would let members choose to save these details, then fill in the forms whose questions we can recognise, with each member confirming before it's sent.
+
 ## AI use declaration
 
 •	Explaining coding errors and debugging hints

@@ -87,26 +87,51 @@ test('empty account shows the empty states', async ({ page }) => {
   await expect(page.getByText('No pending requests. Find people on the Add tab.')).toBeVisible();
 });
 
-test('user can send a friend request', async ({ page }) => {
-  // Login as USER_A
-  await page.goto('http://localhost:5173/login?redirect=/');
-  await page.getByRole('textbox', { name: 'Username' }).fill(USER_A);
-  await page.getByRole('textbox', { name: 'Password' }).fill(PASS_A);
-  await page.getByRole('textbox', { name: 'Password' }).press('Enter');
-  
-  // Navigate to Friends and find USER_B
-  await page.getByRole('link', { name: /Friends/i }).click();
-  await page.getByRole('button', { name: 'Find friends' }).click();
-  
-  const searchBox = page.getByRole('searchbox', { name: 'Search users' });
-  await searchBox.click();
-  await searchBox.fill(USER_B);
-  
-  // Click the explicit "Add" button and verify request state
-  const addButton = page.getByRole('button', { name: 'Add' });
-  await expect(addButton).toBeVisible();
-  await addButton.click();
-  
-  // Verify UI reflects USER_B
-  await expect(page.getByText(USER_B)).toBeVisible();
+// ───────── Real data: USER_A and USER_B end up as friends again ─────────
+async function switchUser(page, username, password) {
+  await page.evaluate(() => localStorage.clear());
+  await login(page, username, password);
+}
+
+// Clears any friendship or request between USER_A and USER_B, so the test can run again and again
+async function unfriend(page) {
+  await page.goto('/friends?tab=friends');
+  await page.waitForLoadState('networkidle');   // wait for the lists before checking what's in them
+  const removeX = page.getByRole('button', { name: `Remove ${USER_B}`, exact: true });
+  if (await removeX.isVisible()) {
+    await removeX.click();
+    await person(page, `Remove ${USER_B}\\?`).getByRole('button', { name: 'Yes, remove' }).click();
+    await expect(removeX).toHaveCount(0);
+  }
+
+  await page.goto('/friends?tab=requests');
+  await page.waitForLoadState('networkidle');
+  const row = person(page, USER_B);
+  for (const name of ['Cancel', 'Decline']) {
+    const button = row.getByRole('button', { name, exact: true });
+    if (await button.isVisible()) {
+      await button.click();
+      await expect(row).toHaveCount(0);
+    }
+  }
+}
+
+test('user can send a friend request and the other user accepts it', async ({ page }) => {
+  await login(page, USER_A, PASS_A);
+  await unfriend(page);
+
+  // USER_A sends the request
+  await page.goto('/friends?tab=add');
+  await page.getByRole('searchbox', { name: 'Search users' }).fill(USER_B);
+  await person(page, USER_B).getByRole('button', { name: 'Add', exact: true }).click();
+  await expect(person(page, USER_B).getByText('Sent', { exact: true })).toBeVisible();
+
+  // USER_B accepts it
+  await switchUser(page, USER_B, PASS_B);
+  await page.goto('/friends?tab=requests');
+  await person(page, USER_A).getByRole('button', { name: 'Accept', exact: true }).click();
+  await expect(person(page, USER_A)).toHaveCount(0);
+
+  await page.goto('/friends?tab=friends');
+  await expect(page.getByRole('button', { name: `Remove ${USER_A}`, exact: true })).toBeVisible();
 });
