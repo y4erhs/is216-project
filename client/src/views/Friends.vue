@@ -3,6 +3,25 @@
   Folder with three tabs: Friends / Requests / Add. Same design system as Lobby.vue.
   Needs: FolderTabs.vue, useLobbies.js (friends list), useFriendRequests.js, friendsApi.js
 -->
+
+<script>
+import { ref } from 'vue'
+import ProfileCard from '@/components/ProfileCard.vue' // Adjust path as needed
+
+// Holds the friend object that was clicked (null when closed)
+const selectedFriend = ref(null)
+
+// Open profile view
+const viewFriendProfile = (friend) => {
+  selectedFriend.value = friend
+}
+
+// Close profile view
+const closeFriendProfile = () => {
+  selectedFriend.value = null
+}
+</script>
+
 <template>
   <div class="app">
     <!-- ───── Heading ───── -->

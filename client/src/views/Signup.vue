@@ -879,6 +879,7 @@ input:focus {
   width: 100%;
   font-size: 0.85rem;
   border-radius: 15px;
+  border: 0;
 }
 
 .interest-card-img {
@@ -972,17 +973,17 @@ input:focus {
   .page-wrapper > * {
     width: 100%;
     max-width: 800px;
-    height: 100%;
+    height: 85dvh;
     min-height: 0;
-    max-height: 100%;
-    flex: 1 1 auto;
+    max-height: 85dvh;
+    flex: none;
     position: relative;
   }
 
   .section-title {
     font-size: 1.6rem;
     margin-left: -12px;
-    margin-top: 10px;
+    margin-top: 0;
   }
 
   form {

@@ -110,6 +110,7 @@ defineEmits(['click'])
 @media (max-width: 440px) {
   .btn-custom:not(.btn-circle) {
     padding: 0px 12px 2px 12px;
+    font-size: 10.5px !important;
   }
 }
 </style>
