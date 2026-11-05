@@ -879,6 +879,7 @@ input:focus {
   width: 100%;
   font-size: 0.85rem;
   border-radius: 15px;
+  border: 0;
 }
 
 .interest-card-img {
