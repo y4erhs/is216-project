@@ -118,4 +118,12 @@ function closeMobileNav() {
     padding-left: 0;
   }
 }
+
+@media (max-width: 440px) {
+  .content-scroll {
+    padding: 0;
+    border-radius: 0;
+    background: var(--theme-blue);
+  }
+}
 </style>

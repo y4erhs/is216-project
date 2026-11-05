@@ -29,6 +29,7 @@ function handleSave() {
 }
 
 function handleClear() {
+  if (!noteText.value && !props.initialNote) return
   noteText.value = ''
   emit('save-note', '')
 }
@@ -233,6 +234,7 @@ const displayTime = computed(() => {
           <BaseButton class="action-pill-btn theme-dark-grey" @click="handleSave">
             SAVE
           </BaseButton>
+          <button type="button" class="clear-link" @click="handleClear">clear note</button>
           <transition name="fade">
             <span v-if="isSaved" class="saved-notification">
               note saved.
@@ -280,25 +282,24 @@ const displayTime = computed(() => {
   background-color: #f1f3f8;
   border-radius: 15px;
   padding: 20px;
-  width: 100%;
+
+  width: calc(100% - 20px);
+max-width: calc(100% - 20px);
+margin: 15px 10px;
   height: 100%;
-  min-height: 0;
-  min-width: 0;
-  position: relative;
+
   box-sizing: border-box;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
 
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  margin: 15px 0;
 }
 
 /* CLOSE BUTTON */
 .close-btn {
   position: absolute;
-  top: 10px;
-  left: 9px;
+  top: 35px;
+  left: 40px;
   z-index: 2;
 
   background: none;
@@ -481,6 +482,8 @@ const displayTime = computed(() => {
 }
 
 .clear-link {
+  display: none;
+  /* phones only, desktop uses the x inside the notes field */
   background: none;
   border: none;
   font-family: 'TextFont', sans-serif;
@@ -533,7 +536,6 @@ const displayTime = computed(() => {
   gap: 8px;
 
   height: 100%;
-  max-height: 100%;
   width: fit-content;
   max-width: 100%;
   min-height: 0;
@@ -541,16 +543,17 @@ const displayTime = computed(() => {
 }
 
 .poster-container {
-  height: calc(100% - 43px);
+  height: auto;
   width: auto;
   aspect-ratio: 210 / 297;
 
+  max-height: calc(100% - 43px);
   max-width: 100%;
   min-height: 0;
 
   overflow: hidden;
   border-radius: 15px;
-  flex-shrink: 1;
+  flex: 1 1 auto;
 }
 
 .poster-img {
@@ -590,54 +593,275 @@ const displayTime = computed(() => {
   opacity: 0.8;
 }
 
-/* MOBILE RESPONSIVE */
-@media (max-width: 639.98px) {
+/* MOBILE RESPONSIVE
+   poster + title/meta/categories on top, then description, notes + reminder, SAVE + clear note, registration */
+@media (max-width: 440px) {
+
+  /* =================================
+     MAIN CARD
+  ================================= */
+
   .event-detail-box {
+    width: calc(100% - 20px);
+    max-width: calc(100% - 20px);
     height: 100%;
+    min-width: 0;
+    min-height: 0;
+    margin: 10px;
+    padding: 12px;
+    box-sizing: border-box;
+
+    overflow-x: hidden;
     overflow-y: auto;
-    padding: 24px 16px 16px;
   }
+
+  /* =================================
+     CLOSE BUTTON
+  ================================= */
+
+  .close-btn {
+    left: auto;
+    right: 25px;
+    top: 25px;
+  }
+
+  /* =================================
+     FLATTEN DESKTOP WRAPPERS
+  ================================= */
+
+  .detail-left,
+  .top-info-block,
+  .top-section,
+  .flexible-middle-section,
+  .detail-right,
+  .poster-actions {
+    display: contents;
+  }
+
+  /* =================================
+     MAIN MOBILE GRID
+  ================================= */
 
   .detail-grid {
-    display: flex;
-    flex-direction: column;
-    flex: none;
-    gap: 16px;
-
-    flex: 1;
-    height: 100%;
-    min-height: 0;
-    min-width: 0;
-    overflow: hidden;
-  }
-
-  .detail-right {
-    order: 1;
+    display: grid;
     width: 100%;
+    min-width: 0;
+
+    grid-template-columns: clamp(85px, 27%, 115px) minmax(0, 1fr);
+
+    grid-template-rows: auto auto 1fr auto auto auto auto;
+
+    grid-template-areas:
+      'poster title'
+      'poster meta'
+      'poster cats'
+      'desc desc'
+      'notes notes'
+      'actions actions'
+      'register register';
+
+    column-gap: 10px;
+    row-gap: 5px;
+
+    flex: none;
+    height: auto;
+    min-height: 0;
     overflow: visible;
   }
 
-  .poster-actions {
-    width: min(100%, 280px);
-    height: auto;
-    align-items: stretch;
-  }
+  /* =================================
+     POSTER
+  ================================= */
 
   .poster-container {
+    grid-area: poster;
+
+    align-self: start;
     width: 100%;
     height: auto;
+
+    max-width: 100%;
+    max-height: none;
+
     aspect-ratio: 210 / 297;
-    flex-shrink: 0;
+    flex: none;
   }
 
-  .detail-left {
-    order: 2;
-    width: 100%;
-    overflow: visible;
+  /* =================================
+     EVENT TITLE
+  ================================= */
+
+  .event-title {
+    grid-area: title;
+
+    margin: 0 0 6px;
+    font-size: 12px;
+    line-height: 1.1;
+    overflow-wrap: anywhere;
   }
+
+  /* =================================
+     EVENT META
+  ================================= */
+
+  .event-meta {
+    grid-area: meta;
+    min-width: 0;
+  }
+
+  .event-meta p {
+    font-size: 10.5px;
+    line-height: 1.4;
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+
+  /* =================================
+     CATEGORIES
+  ================================= */
+
+  .categories-row {
+    grid-area: cats;
+
+    align-self: start;
+    margin-top: 5px;
+    gap: 3px;
+    min-width: 0;
+  }
+
+  /* =================================
+     DESCRIPTION
+  ================================= */
+
+  .event-desc {
+    grid-area: desc;
+
+    margin: 5px 2px 8px;
+    font-size: 10.5px;
+    line-height: 1.4;
+    text-align: justify;
+    overflow-wrap: anywhere;
+  }
+
+  /* =================================
+     NOTES + REMINDER
+  ================================= */
 
   .dual-columns-section {
-    grid-template-columns: 1fr;
+    grid-area: notes;
+
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+
+    width: 100%;
+    min-width: 0;
   }
+
+  .dual-columns-section.single-column {
+    grid-template-columns: 1fr !important;
+  }
+
+  .column-box {
+    min-width: 0;
+  }
+
+  :deep(.input-label) {
+    font-size: 10.5px !important;
+  }
+
+  .notes-input-flex :deep(textarea) {
+    font-size: 10.5px !important;
+    min-height: 30px !important;
+    max-height: 80px !important;
+  }
+
+  .internal-clear-btn {
+    display: none;
+  }
+
+  /* =================================
+     SAVE + CLEAR ACTIONS
+  ================================= */
+
+  .left-actions {
+    grid-area: actions;
+
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    width: 100%;
+    margin: 5px 0 8px;
+    font-size: 10.5px;
+  }
+
+  .clear-link {
+    display: inline-block;
+    font-size: 10.5px;
+  }
+
+  .saved-notification {
+    margin-left: auto;
+    font-size: 10px;
+  }
+
+  /* =================================
+     REGISTRATION BUTTON
+  ================================= */
+
+  .registration-btn {
+    grid-area: register;
+    width: 100%;
+  }
+
+  .poster-actions :deep(.btn-custom) {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+}
+
+@media (max-width: 400px) {
+
+  .detail-grid {
+    grid-template-columns: clamp(85px, 27%, 115px) minmax(0, 1fr);
+
+    grid-template-rows: auto auto auto auto auto auto;
+
+    grid-template-areas:
+      'poster info'
+      'cats cats'
+      'desc desc'
+      'notes notes'
+      'actions actions'
+      'register register';
+  }
+
+  /* Group title + event details */
+  .top-section {
+    grid-area: info;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-self: stretch;
+    min-width: 0;
+  }
+
+  .event-title {
+    margin: 0 0 8px;
+  }
+
+  .event-meta {
+    min-width: 0;
+  }
+
+  /* Categories below poster + info */
+  .categories-row {
+    grid-area: cats;
+    margin-top: 8px;
+    margin-bottom: 4px;
+  }
+
 }
 </style>

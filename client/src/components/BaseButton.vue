@@ -106,4 +106,10 @@ defineEmits(['click'])
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+@media (max-width: 440px) {
+  .btn-custom:not(.btn-circle) {
+    padding: 0px 12px 2px 12px;
+  }
+}
 </style>
