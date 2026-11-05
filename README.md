@@ -196,10 +196,8 @@ Start the server and client first, then log in with a test account.
 
 ## AI use declaration
 
-•	Generating website concepts, layouts, or themes
 •	Explaining coding errors and debugging hints
 •	Boilerplate code generation – starter code and code snippets
-•	Generating unit test cases, sample inputs, or mock data
-
+•	Generating End-to-End test cases, sample inputs, or mock data
 
 Separately, the app itself calls an AI model at runtime to generate recommendations and to read Telegram posts.
