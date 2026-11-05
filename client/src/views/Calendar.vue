@@ -20,21 +20,21 @@ const alertsKey = ref(0)
 const isAlertsCollapsed = ref(false)
 
 const embedUrl = computed(() =>
-    `https://calendar.google.com/calendar/embed?src=${encodeURIComponent(googleEmail.value)}&ctz=Asia%2FSingapore&mode=WEEK`
+  `https://calendar.google.com/calendar/embed?src=${encodeURIComponent(googleEmail.value)}&ctz=Asia%2FSingapore&mode=WEEK`
 )
 
 async function loadStatus() {
-    loading.value = true
-    try {
-        const res = await fetch(`${API_URL}/auth/google/status?userId=${userId.value}`)
-        const data = await res.json()
-        connected.value = data.connected
-        googleEmail.value = data.googleEmail
-    } catch (err) {
-        message.value = 'Could not check Google Calendar status.'
-    } finally {
-        loading.value = false
-    }
+  loading.value = true
+  try {
+    const res = await fetch(`${API_URL}/auth/google/status?userId=${userId.value}`)
+    const data = await res.json()
+    connected.value = data.connected
+    googleEmail.value = data.googleEmail
+  } catch (err) {
+    message.value = 'Could not check Google Calendar status.'
+  } finally {
+    loading.value = false
+  }
 }
 
 function openPlanForm(plan = null) {
@@ -52,15 +52,12 @@ onMounted(loadStatus)
 
 <template>
   <div class="calendar-page">
+    <h2 class="page-title">MY CALENDAR</h2>
     <div class="calendar-main">
       <p v-if="loading" class="text-muted">Loading calendar...</p>
       <p v-else-if="message" class="text-muted">{{ message }}</p>
-      <iframe
-        v-else-if="connected && googleEmail"
-        :key="calendarKey"
-        :src="embedUrl"
-        style="border: 0; width: 100%; height: 100%; border-radius: 20px;"
-      ></iframe>
+      <iframe v-else-if="connected && googleEmail" :key="calendarKey" :src="embedUrl"
+        style="border: 0; width: 100%; height: 100%; border-radius: 20px;"></iframe>
       <p v-else class="text-muted">
         Google Calendar isn't linked yet. <router-link to="/profile">Link it in Profile & Settings</router-link>.
       </p>
@@ -81,106 +78,122 @@ onMounted(loadStatus)
 
         <!-- Tambahin class :class="{ 'is-collapsed': isAlertsCollapsed }" -->
         <div class="half-section collapsible-section" :class="{ 'is-collapsed': isAlertsCollapsed }">
-          <ScheduleAlerts class="side-alerts" :user-id="userId" :refresh-key="alertsKey" @collapse="isAlertsCollapsed = $event" />
+          <ScheduleAlerts class="side-alerts" :user-id="userId" :refresh-key="alertsKey"
+            @collapse="isAlertsCollapsed = $event" />
         </div>
         <div class="half-section">
-          <PlansList :user-id="userId" :refresh-key="alertsKey" @edit="openPlanForm" @changed="refreshAll" @replied="alertsKey++" />
+          <PlansList :user-id="userId" :refresh-key="alertsKey" @edit="openPlanForm" @changed="refreshAll"
+            @replied="alertsKey++" />
         </div>
       </template>
 
-      <PlanForm
-        v-else
-        :user-id="userId"
-        :plan="editingPlan"
-        @close="showPlanForm = false"
-        @created="refreshAll"
-      />
+      <PlanForm v-else :user-id="userId" :plan="editingPlan" @close="showPlanForm = false" @created="refreshAll" />
     </aside>
   </div>
 </template>
 
 <style scoped>
-    .calendar-page {
-      display: flex;
-      gap: 16px;
-      height: calc(100vh - 120px);
-      max-height: calc(100vh - 120px);
-      box-sizing: border-box;
-      overflow: hidden;
-    }
+.calendar-page {
+  display: flex;
+  gap: 16px;
+  height: calc(100vh - 120px);
+  max-height: calc(100vh - 120px);
+  box-sizing: border-box;
+  overflow: hidden;
+}
 
-    .calendar-main {
-      flex: 1;
-      min-width: 0;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-    }
+.page-title {
+  color: var(--color-white);
+  font-family: 'HeaderFont', cursive, sans-serif;
+  font-size: 25px;
+  margin: 0;
+  letter-spacing: 1px;
+  padding-top: 0 !important;
+}
 
-    .calendar-side {
-      width: 280px;
-      flex-shrink: 0;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      height: 100%;
-      min-height: 0;
-      overflow: hidden;
-    }
+.calendar-main {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
 
-    .action-buttons-row {
-      display: flex;
-      gap: 8px;
-      flex-shrink: 0;
-    }
+.calendar-side {
+  width: 280px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
 
-    .action-btn {
-      flex: 1;
-      width: 100%;
-      min-height: 38px;
-      font-size: 10px;
-      padding: 6px 8px;
-      justify-content: center;
-      text-align: center;
-      white-space: nowrap;
-    }
+.action-buttons-row {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
 
-    .base-btn-wrapper {
-      flex: 1;
-      text-decoration: none;
-      display: flex;
-    }
+.action-btn {
+  flex: 1;
+  width: 100%;
+  min-height: 38px;
+  font-size: 10px;
+  padding: 6px 8px;
+  justify-content: center;
+  text-align: center;
+  white-space: nowrap;
+}
 
-    .half-section {
-      flex: 1;
-      min-height: 0;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      background: var(--color-grey, #f0f1f7);
-      border-radius: 25px;
-      padding: 10px;
-      transition: flex 0.2s ease;
-    }
+.base-btn-wrapper {
+  flex: 1;
+  text-decoration: none;
+  display: flex;
+}
 
-    .half-section.is-collapsed {
-      flex: 0 0 auto !important;
-    }
+.half-section {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--color-white);
+  border-radius: 25px;
+  padding: 10px;
+  transition: flex 0.2s ease;
+}
 
-    .side-alerts {
-      flex: 1;
-      min-height: 0;
-      overflow-y: auto;
-    }
+.half-section.is-collapsed {
+  flex: 0 0 auto !important;
+}
 
-    @media (max-width: 992px) {
-      .calendar-page { 
-        flex-direction: column; 
-        height: auto;
-        max-height: none;
-        overflow: visible;
-      }
-      .calendar-side { width: 100%; height: auto; }
-      .calendar-main { height: 500px; }
-    }
+.side-alerts {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+@media (max-width: 768px) {
+  .page-title {
+    font-size: 22px;
+  }
+  .calendar-page {
+    flex-direction: column;
+    height: auto;
+    max-height: none;
+    overflow: visible;
+    gap: 10px;
+  }
+
+  .calendar-main {
+    min-height: 400px;
+  }
+
+  .calendar-side {
+    width: 100%;
+    height: auto;
+  }
+}
 </style>

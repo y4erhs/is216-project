@@ -1,5 +1,6 @@
+
 <script setup>
-import { ref, computed, onMounted, inject } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, inject } from 'vue'
 import FolderTabs from '../components/FolderTabs.vue'
 import EventCard from '../components/EventCard.vue'
 import CardInfo from '../components/CardInfo.vue'
@@ -9,11 +10,9 @@ import { useActivities } from '../composables/useActivities'
 import { useAuth } from '../composables/useAuth'
 import { vAutoScrollbar } from '../directives/autoScrollbar'
 
-import { useRouter } from 'vue-router'
-const router = useRouter()
-
 const isNavbarCollapsed = inject('isNavbarCollapsed')
 const showUpcomingMobile = ref(false)
+
 const {
   activities,
   loadActivities,
@@ -32,18 +31,40 @@ const activeTab = ref('attending')
 const selectedEvent = ref(null)
 const showCardInfo = ref(false)
 
+// Match Discover's responsive breakpoint.
+const isMobile = ref(false)
+
+function updateScreenSize() {
+  isMobile.value = window.innerWidth <= 768
+}
+
+// Open or toggle CardInfo.
 function handleCardClick(eventObj) {
+  const currentId = selectedEvent.value?._id || selectedEvent.value?.id
+  const clickedId = eventObj?._id || eventObj?.id
+
+  if (showCardInfo.value && currentId === clickedId) {
+    closeCardInfo()
+    return
+  }
+
   selectedEvent.value = eventObj
   showCardInfo.value = true
 }
 
+function closeCardInfo() {
+  showCardInfo.value = false
+  selectedEvent.value = null
+}
+
+// Activity status filters.
 const hasSession = (a, status) =>
   a.sessions && a.sessions.some(s => s.going === status)
 
 const matches = {
-  interested: (a) => a.interested,
-  attending: (a) => hasSession(a, 'attending'),
-  attended: (a) => hasSession(a, 'attended'),
+  interested: a => a.interested,
+  attending: a => hasSession(a, 'attending'),
+  attended: a => hasSession(a, 'attended'),
 }
 
 function sortKey(a, tab) {
@@ -53,8 +74,8 @@ function sortKey(a, tab) {
     tab === 'interested'
       ? a.event.sessions.map(s => new Date(s.startTime).getTime())
       : (a.sessions || [])
-        .filter(s => s.going === tab)
-        .map(s => new Date(s.startTime).getTime())
+          .filter(s => s.going === tab)
+          .map(s => new Date(s.startTime).getTime())
 
   return times.length ? Math.min(...times) : 0
 }
@@ -73,6 +94,10 @@ const byStatus = computed(() => {
   }
 
   return out
+})
+
+const activeEvents = computed(() => {
+  return byStatus.value[activeTab.value] || []
 })
 
 const tabs = computed(() => [
@@ -102,24 +127,37 @@ function getGoingBySession(activity) {
   }, {})
 }
 
-// Helper buat dapetin activity data dari event yang lagi dipilih di CardInfo
+// Get activity data for the selected event.
 const selectedActivity = computed(() => {
   if (!selectedEvent.value) return null
-  return activities.value.find(a => (a.event?._id || a.event?.id) === (selectedEvent.value._id || selectedEvent.value.id))
+
+  return activities.value.find(
+    a =>
+      (a.event?._id || a.event?.id) ===
+      (selectedEvent.value._id || selectedEvent.value.id)
+  )
 })
 
 const isSelectedEventAttending = computed(() => {
   const act = selectedActivity.value
+
   if (!act || !act.sessions) return false
+
   return act.sessions.some(s => s.going === 'attending')
 })
 
 function onInviteFriends(id) {
   console.log('Invite friends for event:', id)
-  router.push('/lobby')
+}
+
+function handleTabChange() {
+  closeCardInfo()
 }
 
 onMounted(async () => {
+  updateScreenSize()
+  window.addEventListener('resize', updateScreenSize)
+
   try {
     await loadActivities()
   } catch {
@@ -127,6 +165,10 @@ onMounted(async () => {
   }
 
   loading.value = false
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', updateScreenSize)
 })
 </script>
 
@@ -137,7 +179,11 @@ onMounted(async () => {
     <div class="header-row">
       <h1 class="header-style page-title">MY ACTIVITY</h1>
 
-      <BaseButton class="calendar-btn theme-purple" variant="primary" @click="$router.push('/calendar')">
+      <BaseButton
+        class="calendar-btn theme-purple"
+        variant="primary"
+        @click="$router.push('/calendar')"
+      >
         VIEW MY CALENDAR
       </BaseButton>
     </div>
@@ -161,81 +207,132 @@ onMounted(async () => {
       <!-- LEFT: FOLDERS -->
       <div class="folder-wrapper">
 
-        <FolderTabs :tabs="tabs" v-model="activeTab" @tab-change="showCardInfo = false">
+        <FolderTabs
+          :tabs="tabs"
+          v-model="activeTab"
+          @tab-change="handleTabChange"
+        >
+          <div class="home-folder-content">
 
-          <template v-for="t in tabs" :key="t.id" #[t.id]>
-
-            <!-- CARD INFO -->
-            <div v-if="showCardInfo && selectedEvent" class="card-info-wrapper">
-              <CardInfo :event="selectedEvent" :is-attending="isSelectedEventAttending"
-                :initial-note="selectedActivity?.note || ''" @close="showCardInfo = false"
-                @save-note="text => saveNote(selectedEvent._id || selectedEvent.id, text)" />
+            <!-- DESKTOP: CardInfo replaces the event list -->
+            <div
+              v-if="showCardInfo && selectedEvent && !isMobile"
+              class="card-info-wrapper"
+            >
+              <CardInfo
+                :event="selectedEvent"
+                :is-attending="isSelectedEventAttending"
+                :initial-note="selectedActivity?.note || ''"
+                @close="closeCardInfo"
+                @save-note="text => saveNote(selectedEvent._id || selectedEvent.id, text)"
+              />
             </div>
 
-            <!-- FOLDER CONTENT -->
-            <template v-else>
+            <!-- EVENT LIST: visible on mobile -->
+            <div v-else class="folder-content-area">
 
-              <div class="folder-content-area">
+              <!-- EMPTY STATE -->
+              <div
+                v-if="activeEvents.length === 0"
+                class="empty-state-box"
+              >
+                <p class="empty-text">
+                  No {{ activeTab }} events yet.
+                  Mark events from the Discover page!
+                </p>
+              </div>
 
-                <!-- EMPTY STATE -->
-                <div v-if="byStatus[t.id].length === 0" class="empty-state-box">
-                  <p class="empty-text">
-                    No {{ t.id }} events yet.
-                    Mark events from the Discover page!
-                  </p>
-                </div>
+              <!-- EVENT GRID -->
+              <div
+                v-else
+                class="folder-cards-scroll-area"
+                v-auto-scrollbar
+              >
+                <div
+                  class="folder-cards-grid"
+                  :class="{ 'navbar-collapsed': isNavbarCollapsed }"
+                >
 
-                <!-- EVENT CARDS -->
-                <div v-else class="folder-cards-scroll-area" v-auto-scrollbar>
-                  <div class="folder-cards-grid" :class="{
-                    'navbar-collapsed': isNavbarCollapsed
-                  }">
+                  <div
+                    v-for="a in activeEvents"
+                    :key="a._id"
+                    class="activity-event-item"
+                  >
 
-                    <EventCard v-for="a in byStatus[t.id]" :key="a._id" :event="a.event" :variant="t.id"
-                      :interested="a.interested" :note="a.note || ''" :going-by-session="getGoingBySession(a)"
-                      @set-interested="
-                        val => setInterested(a.event._id, val)
-                      " @set-going="
-                        payload => setGoing(a.event._id, payload)
-                      " @save-note="
-                        text => saveNote(a.event._id, text)
-                      " @remove-history="
-                        deleteActivity(a.event._id)
-                        " @invite-friends="onInviteFriends" @card-click="handleCardClick(a.event)" />
+                    <!-- MOBILE: CardInfo replaces only the selected card -->
+                    <CardInfo
+                      v-if="
+                        isMobile &&
+                        showCardInfo &&
+                        (selectedEvent?._id || selectedEvent?.id) ===
+                        (a.event?._id || a.event?.id)
+                      "
+                      :event="selectedEvent"
+                      :is-attending="isSelectedEventAttending"
+                      :initial-note="selectedActivity?.note || ''"
+                      @close="closeCardInfo"
+                      @save-note="text => saveNote(selectedEvent._id || selectedEvent.id, text)"
+                    />
+
+                    <!-- NORMAL EVENT CARD -->
+                    <EventCard
+                      v-else
+                      :event="a.event"
+                      :variant="activeTab"
+                      :interested="a.interested"
+                      :note="a.note || ''"
+                      :going-by-session="getGoingBySession(a)"
+                      @set-interested="val => setInterested(a.event._id, val)"
+                      @set-going="payload => setGoing(a.event._id, payload)"
+                      @save-note="text => saveNote(a.event._id, text)"
+                      @remove-history="deleteActivity(a.event._id)"
+                      @invite-friends="onInviteFriends"
+                      @card-click="handleCardClick(a.event)"
+                    />
 
                   </div>
+
                 </div>
-
               </div>
-            </template>
+            </div>
 
-          </template>
+          </div>
         </FolderTabs>
       </div>
 
       <!-- RIGHT: SIDE BOX -->
-<div class="side-box-container">
+      <div class="side-box-container">
 
-  <!-- Mobile collapse button -->
-  <button type="button" class="upcoming-mobile-toggle"
-    @click="showUpcomingMobile = !showUpcomingMobile"
-    :aria-expanded="showUpcomingMobile">
-    <span class="side-box-title">UPCOMING PLANS</span>
-    <span class="upcoming-chevron">{{ showUpcomingMobile ? '-' : '+' }}</span>
-  </button>
+        <button
+          type="button"
+          class="upcoming-mobile-toggle"
+          @click="showUpcomingMobile = !showUpcomingMobile"
+          :aria-expanded="showUpcomingMobile"
+        >
+          <span class="side-box-title">UPCOMING PLANS</span>
 
-  <div class="upcoming-content" :class="{ 'is-open': showUpcomingMobile }">
-    <SideUpcoming />
-  </div>
+          <span class="upcoming-chevron">
+            {{ showUpcomingMobile ? '-' : '+' }}
+          </span>
+        </button>
 
-</div>
+        <div
+          class="upcoming-content"
+          :class="{ 'is-open': showUpcomingMobile }"
+        >
+          <SideUpcoming />
+        </div>
 
+      </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-/* PAGE (1 SCREEN VIEW) */
+/* =========================================
+   PAGE
+========================================= */
+
 .activity-page-container {
   width: 100%;
   max-width: 1450px;
@@ -258,7 +355,10 @@ onMounted(async () => {
   height: 100%;
 }
 
-/* HEADER */
+/* =========================================
+   HEADER
+========================================= */
+
 .header-row {
   display: flex;
   justify-content: space-between;
@@ -284,7 +384,10 @@ onMounted(async () => {
   box-sizing: border-box;
 }
 
-/* MAIN LAYOUT */
+/* =========================================
+   MAIN LAYOUT
+========================================= */
+
 .activity-main-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 200px;
@@ -295,7 +398,10 @@ onMounted(async () => {
   align-items: stretch;
 }
 
-/* FOLDER WRAPPER */
+/* =========================================
+   FOLDER WRAPPER
+========================================= */
+
 .folder-wrapper {
   width: 100%;
   height: 100%;
@@ -306,7 +412,6 @@ onMounted(async () => {
   overflow: hidden;
 }
 
-/* FOLDER TABS & BODY */
 .folder-wrapper :deep(.folder-container) {
   flex: 1;
   width: 100%;
@@ -340,26 +445,58 @@ onMounted(async () => {
   padding: 0 6px;
 }
 
-/* FOLDER CONTENT */
-.folder-content-area {
+/* =========================================
+   FOLDER CONTENT
+========================================= */
+
+.home-folder-content {
   flex: 1;
   min-height: 0;
+  min-width: 0;
+  width: 100%;
   height: 100%;
   display: flex;
   flex-direction: column;
   overflow: hidden;
 }
 
-/* SCROLLABLE EVENT AREA */
+.folder-content-area {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* =========================================
+   CARD INFO — DESKTOP
+========================================= */
+
+.card-info-wrapper {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+  overflow: hidden;
+}
+
+/* =========================================
+   EVENT GRID
+========================================= */
+
 .folder-cards-scroll-area {
   flex: 1;
   min-height: 0;
+  min-width: 0;
   overflow-y: auto;
   overflow-x: hidden;
   scrollbar-gutter: stable both-edges;
 }
 
-/* EVENT GRID */
 .folder-cards-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -374,10 +511,27 @@ onMounted(async () => {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-/* RESPONSIVE GRID */
+/* Each event owns its own slot */
+.activity-event-item {
+  display: flex;
+  flex-direction: column;
+  align-self: start;
+  width: 100%;
+  min-width: 0;
+  height: fit-content;
+}
 
+/* Inline CardInfo uses the same width as its event slot */
+.activity-event-item > :deep(.event-detail-box) {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
 
-/* EMPTY STATE */
+/* =========================================
+   EMPTY STATE
+========================================= */
+
 .empty-state-box {
   flex: 1;
   min-height: 0;
@@ -399,7 +553,10 @@ onMounted(async () => {
   margin: 0;
 }
 
-/* RIGHT SIDEBAR BOX */
+/* =========================================
+   RIGHT SIDEBAR
+========================================= */
+
 .side-box-container {
   width: 100%;
   height: 100%;
@@ -415,22 +572,14 @@ onMounted(async () => {
   min-width: 0;
 }
 
-/* CARD INFO */
-.card-info-wrapper {
-  flex: 1;
-  width: 100%;
-  height: 100%;
-  min-height: 0;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
+/* =========================================
+   MOBILE & TABLET
+========================================= */
 
-/* MOBILE & TABLET */
 @media (max-width: 991.98px) {
 
   /* PAGE HEIGHT */
+
   .activity-page-container {
     height: 100dvh;
     max-height: 100dvh;
@@ -439,6 +588,7 @@ onMounted(async () => {
   }
 
   /* HEADER */
+
   .header-row {
     margin-bottom: 10px;
   }
@@ -449,16 +599,17 @@ onMounted(async () => {
   }
 
   .calendar-btn {
-  width: auto;
-  min-width: 0;
-  height: 35px;
-  padding: 0 12px;
-  font-size: 11px;
-  white-space: nowrap;
-  margin-right: 8px;
-}
+    width: auto;
+    min-width: 0;
+    height: 35px;
+    padding: 0 12px;
+    font-size: 11px;
+    white-space: nowrap;
+    margin-right: 8px;
+  }
 
   /* STACK LAYOUT */
+
   .activity-main-layout {
     display: flex;
     flex-direction: column;
@@ -468,7 +619,8 @@ onMounted(async () => {
     gap: 12px;
   }
 
-  /* UPCOMING PLANS (collapsible, shown above the folder) */
+  /* UPCOMING PLANS */
+
   .side-box-container {
     order: -1;
     flex: 0 0 auto;
@@ -520,38 +672,88 @@ onMounted(async () => {
     min-height: 0;
   }
 
-  /* FOLDER TAKES THE REMAINING HEIGHT */
+  /* FOLDER TAKES REMAINING HEIGHT */
+
   .folder-wrapper {
     flex: 1 1 0;
     height: auto;
+    min-height: 0;
   }
 
-  /* Keep the tabs visible, but let them scroll sideways if they don't fit */
-  .folder-wrapper :deep(.tabs-header) {
-    overflow-x: auto;
-    flex-wrap: nowrap;
-  }
+  /* KEEP TABS VISIBLE */
+
+.folder-wrapper :deep(.tabs-header) {
+  overflow-x: auto;
+  flex-wrap: nowrap;
+  padding-bottom: 0 !important;
+  margin-bottom: -1px;
+}
+
+.folder-wrapper :deep(.tabs-header > *) {
+  margin-bottom: 0 !important;
+}
+
+.folder-wrapper :deep(.folder-container) {
+  gap: 0 !important;
+}
 
   .folder-wrapper :deep(.inner-folder) {
+    overflow: hidden !important;
     padding: 0;
+  }
+
+  .folder-wrapper :deep(.folder-body) {
+    flex: 1 1 0 !important;
+    width: 100%;
+    height: 0 !important;
+    min-width: 0;
+    min-height: 0 !important;
     overflow: hidden !important;
   }
 
-  /* CARDS: the scroll area scrolls, 1 column */
-  .folder-wrapper .folder-cards-scroll-area {
+
+
+  /* FOLDER CONTENT */
+
+  .folder-wrapper .home-folder-content,
+  .folder-wrapper .folder-content-area {
     flex: 1 1 0;
+    width: 100%;
     height: 0;
+    min-width: 0;
     min-height: 0;
-    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
   }
 
+  /* EVENT SCROLL AREA */
+
+  .folder-wrapper .folder-cards-scroll-area {
+    flex: 1 1 0;
+    width: 100%;
+    height: 0;
+    min-width: 0;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    box-sizing: border-box;
+  }
+
+  /* ONE COLUMN ON PHONE */
+
   .folder-wrapper .folder-cards-grid {
-    grid-template-columns: minmax(0, 1fr);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) !important;
     gap: 12px;
+    width: 100%;
+    min-width: 0;
+    align-content: start;
+    box-sizing: border-box;
     margin: 10px 0;
   }
 
-  .folder-wrapper .folder-cards-grid > * {
+  .folder-wrapper .activity-event-item {
     width: 100%;
     min-width: 0;
     max-width: 100%;
@@ -559,10 +761,43 @@ onMounted(async () => {
   }
 }
 
-/* TABLET: 2 columns */
+/* =========================================
+   TABLET: TWO EVENT COLUMNS
+========================================= */
+
 @media (min-width: 768px) and (max-width: 991.98px) {
+
   .folder-wrapper .folder-cards-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+.folder-wrapper :deep(.tabs-header) {
+  overflow-x: auto;
+  flex-wrap: nowrap;
+  padding-bottom: 0 !important;
+  margin-bottom: -1px;
+}
+
+.folder-wrapper :deep(.tabs-header > *) {
+  margin-bottom: 0 !important;
+}
+
+.folder-wrapper :deep(.folder-container) {
+  gap: 0 !important;
+}
+
+  .folder-wrapper :deep(.inner-folder) {
+    overflow: hidden !important;
+    padding: 0;
+  }
+
+  .folder-wrapper :deep(.folder-body) {
+    flex: 1 1 0 !important;
+    width: 100%;
+    height: 0 !important;
+    min-width: 0;
+    min-height: 0 !important;
+    overflow: hidden !important;
   }
 }
 </style>

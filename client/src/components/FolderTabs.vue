@@ -445,7 +445,6 @@ watch(() => props.modelValue, (newVal) => {
 .mobile-category-nav {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 5px;
   width: 100%;
 
@@ -453,7 +452,7 @@ watch(() => props.modelValue, (newVal) => {
   box-sizing: border-box;
 
   margin-bottom: 8px;
-  padding: 8px 0 0;
+  padding: 8px 2px 0;
 
   overflow-x: auto;
   overflow-y: hidden;

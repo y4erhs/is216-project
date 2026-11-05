@@ -35,6 +35,13 @@ const allLoading = ref(false)
 const updating = ref(false)
 const showUpcomingMobile = ref(false)
 
+// Keep the CardInfo behaviour in sync with the viewport.
+const isMobile = ref(false)
+
+function updateScreenSize() {
+    isMobile.value = window.innerWidth <= 768
+}
+
 // Date filters
 const fromDate = ref('')
 const toDate = ref('')
@@ -280,9 +287,15 @@ async function lessLikeThis(eventId) {
     }, REFRESH_DELAY_MS)
 }
 
-onBeforeUnmount(() => clearTimeout(refreshTimer))
+onBeforeUnmount(() => {
+    clearTimeout(refreshTimer)
+    window.removeEventListener('resize', updateScreenSize)
+})
 
 onMounted(async () => {
+    updateScreenSize()
+    window.addEventListener('resize', updateScreenSize)
+
     loadActivities()
     loadAllEvents()
     loadMyInterests()
@@ -356,45 +369,82 @@ function handleCardClick(event) {
 
                         <div class="home-folder-content">
 
-                            <!-- CARD INFO -->
-                            <div v-if="showCardInfo && selectedEvent" class="card-info-wrapper">
-                                <CardInfo :event="selectedEvent"
+                            <!-- DESKTOP: CardInfo replaces the event list -->
+                            <div
+                                v-if="showCardInfo && selectedEvent && !isMobile"
+                                class="card-info-wrapper"
+                            >
+                                <CardInfo
+                                    :event="selectedEvent"
                                     :is-attending="Object.values(activityMap[selectedEvent._id || selectedEvent.id]?.sessions || {}).includes('attending')"
-                                    @close="showCardInfo = false"
                                     :initial-note="activityMap[selectedEvent._id || selectedEvent.id]?.note || ''"
-                                    @save-note="text => saveNote(selectedEvent._id || selectedEvent.id, text)" />
+                                    @close="showCardInfo = false"
+                                    @save-note="text => saveNote(selectedEvent._id || selectedEvent.id, text)"
+                                />
                             </div>
 
-                            <!-- EVENT GRID -->
+                            <!-- Event list remains visible on mobile -->
                             <div v-else class="folder-content-area">
 
+                                <!-- LOADING -->
                                 <div v-if="cardsLoading" class="folder-status-state">
                                     <p>Finding events for you...</p>
                                 </div>
 
+                                <!-- EMPTY STATE -->
                                 <div v-else-if="filteredCards.length === 0" class="folder-status-state">
                                     <p class="empty-text">
                                         No events found. Try another interest or adjust your filters!
                                     </p>
                                 </div>
 
-                                <div v-else class="folder-cards-scroll-area auto-scrollbar" v-auto-scrollbar
-                                    :class="{ updating: updating }">
-
+                                <!-- EVENT LIST -->
+                                <div
+                                    v-else
+                                    class="folder-cards-scroll-area auto-scrollbar"
+                                    v-auto-scrollbar
+                                    :class="{ updating: updating }"
+                                >
                                     <div class="folder-cards-grid">
+                                        <div
+                                            v-for="card in filteredCards"
+                                            :key="card.key"
+                                            class="event-card-slot"
+                                        >
+                                            <!-- MOBILE: CardInfo expands in the clicked card's position -->
+                                            <CardInfo
+                                                v-if="
+                                                    isMobile &&
+                                                    showCardInfo &&
+                                                    (selectedEvent?._id || selectedEvent?.id) ===
+                                                    (card.event._id || card.event.id)
+                                                "
+                                                :event="selectedEvent"
+                                                :is-attending="Object.values(activityMap[selectedEvent._id || selectedEvent.id]?.sessions || {}).includes('attending')"
+                                                :initial-note="activityMap[selectedEvent._id || selectedEvent.id]?.note || ''"
+                                                @close="showCardInfo = false"
+                                                @save-note="text => saveNote(selectedEvent._id || selectedEvent.id, text)"
+                                            />
 
-                                        <EventCard v-for="card in filteredCards" :key="card.key" :event="card.event"
-                                            :score="card.score" :reason="card.reason" show-hide
-                                            :interested="activityMap[card.event._id]?.interested || false"
-                                            :going-by-session="activityMap[card.event._id]?.sessions || {}"
-                                            @set-interested="v => setInterested(card.event._id, v)"
-                                            @set-going="p => setGoing(card.event._id, p)" @less-like-this="lessLikeThis"
-                                            @card-click="handleCardClick" />
-
+                                            <!-- NORMAL EVENT CARD -->
+                                            <EventCard
+                                                v-else
+                                                :event="card.event"
+                                                :score="card.score"
+                                                :reason="card.reason"
+                                                show-hide
+                                                :interested="activityMap[card.event._id]?.interested || false"
+                                                :going-by-session="activityMap[card.event._id]?.sessions || {}"
+                                                @set-interested="v => setInterested(card.event._id, v)"
+                                                @set-going="p => setGoing(card.event._id, p)"
+                                                @less-like-this="lessLikeThis"
+                                                @card-click="handleCardClick"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
-
                             </div>
+
                         </div>
 
                     </FolderTabs>
@@ -474,8 +524,7 @@ function handleCardClick(event) {
 
 .discover-title {
     margin: 0;
-    padding-left: 8px;
-    color: #fff;
+    color: var(--color-white);
     font: 400 25px/1.1 'HeaderFont', sans-serif;
     text-transform: uppercase;
 }
@@ -508,7 +557,7 @@ function handleCardClick(event) {
 
 .edit-interest-link:hover {
     opacity: .7;
-    color: #fff;
+    color: var(--color-white);
 }
 
 .calendar-btn {
@@ -633,7 +682,6 @@ function handleCardClick(event) {
     min-height: 0;
     min-width: 0;
     display: flex;
-    flex-direction: column;
     overflow: hidden;
 }
 
@@ -644,6 +692,7 @@ function handleCardClick(event) {
     min-height: 0;
     min-width: 0;
 }
+
 
 /* =========================================
    EVENT CARDS
@@ -671,6 +720,11 @@ function handleCardClick(event) {
     width: 100%;
     align-content: start;
     margin: 15px 0;
+}
+
+.event-card-slot {
+    width: 100%;
+    min-width: 0;
 }
 
 /* =========================================
@@ -773,7 +827,6 @@ function handleCardClick(event) {
     }
 
     .discover-title {
-        padding-left: 8px;
         font-size: 22px;
     }
 
@@ -805,7 +858,7 @@ function handleCardClick(event) {
     .discover-header .discover-controls .calendar-btn {
         position: absolute;
         top: 0;
-        right: 8px;
+        right: 0;
         width: auto;
         min-width: 0;
         height: 35px;
@@ -1033,6 +1086,7 @@ function handleCardClick(event) {
     .updating-message {
         flex-shrink: 0;
     }
+    
 }
 
 /* =========================================

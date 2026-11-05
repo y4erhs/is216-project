@@ -108,7 +108,8 @@ function triggerAvatarInput() {
                 <div class="edit-avatar-overlay">
                     <span class="edit-text">Edit</span>
                 </div>
-                <input type="file" ref="avatarInputFile" @change="e => emit('handleAvatarSelection', e)"
+                <input type="file" 
+                ref="avatarInputFile" @change="e => emit('handleAvatarSelection', e)"
                     accept="image/*" class="d-none" />
             </div>
         </div>

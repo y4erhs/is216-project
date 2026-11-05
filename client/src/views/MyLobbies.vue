@@ -248,11 +248,12 @@ function clear() {
 }
 
 .page-title {
+  color: var(--color-white);
+  font-family: 'HeaderFont', cursive, sans-serif;
+  font-size: 25px;
   margin: 0;
-  padding-left: 8px;
-  color: #fff;
-  font: 400 25px/1.1 'HeaderFont', sans-serif;
-  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding-top: 0 !important;
 }
 
 /* ── Scrollable Area for Cards ── */
@@ -261,9 +262,9 @@ function clear() {
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  padding-right: 4px;
+  margin-right: -10px;
   margin-top: 15px;
-  /* Sedikit spasi buat scrollbar */
+  scrollbar-gutter: stable;
 }
 
 /* ── Search, filter pills, event dropdown ── */
@@ -611,4 +612,74 @@ function clear() {
     transition: none;
   }
 }
+
+@media (max-width: 991.98px) {
+  .sticky {
+  gap: 10px;
+}
+
+  .toolbar {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 8px;
+    padding: 10px;
+  }
+
+  /* Row 1: Search + All Events */
+  .search {
+  grid-column: 1;
+  grid-row: 1;
+  min-width: 0;
+  width: 100%;
+}
+
+
+  .event-select {
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 0;
+  width: 100%;
+  flex: none;
+}
+
+
+  /* Row 2: All four filter chips */
+  .chips {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  display: grid;
+  grid-template-columns: 1fr 1.5fr 1.5fr 2fr;
+  gap: 5px;
+  width: 100%;
+}
+
+  .chip {
+    min-width: 0;
+    width: 100%;
+    height: 32px;
+    justify-content: center;
+    gap: 3px;
+    padding: 2px 0 0 0;
+    font-size: 9px;
+    white-space: nowrap;
+  }
+
+  .chip b {
+    width: 16px;
+    height: 16px;
+    font-size: 9px;
+    margin: 0;
+    margin-bottom: 2px;
+    padding-top: 3px;
+    flex-shrink: 0;
+  }
+
+  .toolbar .event-select :deep(.base-field) {
+    min-width: 0;
+    width: 100%;
+    padding: 3px 8px;
+    font-size: 10px;
+  }
+}
+
 </style>

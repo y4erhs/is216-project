@@ -1,4 +1,3 @@
-
 <script setup>
 import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import axios from 'axios'
@@ -379,11 +378,7 @@ const executeDelete = async () => {
           DELETE ACCOUNT
         </BaseButton>
 
-        <BaseButton
-          class="logout-btn"
-          variant="outline-main"
-          @click="confirmingLogout = true"
-        >
+        <BaseButton class="logout-btn" variant="outline-main" @click="confirmingLogout = true">
           LOG OUT
         </BaseButton>
 
@@ -397,124 +392,76 @@ const executeDelete = async () => {
     <div class="profile-grid">
 
       <!-- PROFILE -->
-      <div class="left-column">
-        <ProfileCard
-          :profile="profile"
-          :profileError="profileError"
-          :eventsAttended="eventsAttended"
-          :friendCount="friendCount"
-
-          v-model:selectedCourse="selectedCourse"
-          :courses="courses"
-
-          v-model:selectedYear="selectedYear"
-          :yearOptions="yearOptions"
-
-          v-model:selectedGrad="selectedGrad"
-          :gradOptions="gradOptions"
-
-          :clubs="clubs"
-          v-model:newClub="newClub"
-          v-model:showClubDropdown="showClubDropdown"
-
-          :categories="categories"
-          :allAvailableInterests="allAvailableInterests"
-          v-model:showInterestDropdown="showInterestDropdown"
-
-          :saveMessage="saveMessage"
-
-          :bannerPreview="bannerPreview"
-          v-model:bannerFailed="bannerFailed"
-
-          :avatarPreview="avatarPreview"
-          v-model:avatarFailed="avatarFailed"
-
-          @handleBannerSelection="handleBannerSelection"
-          @handleAvatarSelection="handleAvatarSelection"
-
-          @addClub="addClub"
-          @removeClub="removeClub"
-          @toggleInterest="toggleInterest"
-        />
+      <div class="profile-area">
+        <ProfileCard :profile="profile" :profileError="profileError" :eventsAttended="eventsAttended"
+          :friendCount="friendCount" v-model:selectedCourse="selectedCourse" :courses="courses"
+          v-model:selectedYear="selectedYear" :yearOptions="yearOptions" v-model:selectedGrad="selectedGrad"
+          :gradOptions="gradOptions" :clubs="clubs" v-model:newClub="newClub"
+          v-model:showClubDropdown="showClubDropdown" :categories="categories"
+          :allAvailableInterests="allAvailableInterests" v-model:showInterestDropdown="showInterestDropdown"
+          :saveMessage="saveMessage" :bannerPreview="bannerPreview" v-model:bannerFailed="bannerFailed"
+          :avatarPreview="avatarPreview" v-model:avatarFailed="avatarFailed"
+          @handleBannerSelection="handleBannerSelection" @handleAvatarSelection="handleAvatarSelection"
+          @addClub="addClub" @removeClub="removeClub" @toggleInterest="toggleInterest" />
       </div>
 
       <!-- SETTINGS -->
-      <div class="right-column">
 
-        <div class="settings-card">
+      <div class="settings-card">
 
-          <div class="settings-header-row">
-            <span class="header-col-title">ALERT TYPE</span>
+        <div class="settings-header-row">
+          <span class="header-col-title">ALERT TYPE</span>
 
-            <div class="header-col-switches">
-              <span>IN-APP</span>
-            </div>
+          <div class="header-col-switches">
+            <span>IN-APP</span>
           </div>
-
-          <div
-            v-for="row in ALERT_ROWS"
-            :key="row.key"
-            class="settings-item-row"
-          >
-            <div class="setting-info">
-              <p class="setting-title">{{ row.title }}</p>
-              <p class="setting-desc">{{ row.desc }}</p>
-            </div>
-
-            <div class="setting-switches">
-              <label class="toggle-switch">
-                <input
-                  type="checkbox"
-                  :checked="alertSettings[row.key]"
-                  :aria-label="row.title"
-                  @change="saveAlertSetting(row.key, $event.target.checked)"
-                />
-                <span class="slider"></span>
-              </label>
-            </div>
-          </div>
-
-          <div class="settings-reminder-row">
-            <div class="setting-info">
-              <p class="setting-title">Default reminder time</p>
-              <p class="setting-desc">
-                What Remind Me starts on. Reminders you set always go off.
-              </p>
-            </div>
-
-            <div class="setting-reminder-input">
-              <BaseInput
-                type="select"
-                :modelValue="alertSettings.remindMinutesBefore"
-                :options="REMINDER_OPTIONS"
-                @update:modelValue="saveAlertSetting('remindMinutesBefore', $event)"
-              />
-            </div>
-          </div>
-
-          <p v-if="alertMessage" class="save-message" role="status">
-            {{ alertMessage }}
-          </p>
-
         </div>
 
-        <div>
-          <GoogleCalendarCard :user-id="userId" />
+        <div v-for="row in ALERT_ROWS" :key="row.key" class="settings-item-row">
+          <div class="setting-info">
+            <p class="setting-title">{{ row.title }}</p>
+            <p class="setting-desc">{{ row.desc }}</p>
+          </div>
+
+          <div class="setting-switches">
+            <label class="toggle-switch">
+              <input type="checkbox" :checked="alertSettings[row.key]" :aria-label="row.title"
+                @change="saveAlertSetting(row.key, $event.target.checked)" />
+              <span class="slider"></span>
+            </label>
+          </div>
         </div>
+
+        <div class="settings-reminder-row">
+          <div class="setting-info">
+            <p class="setting-title">Default reminder time</p>
+            <p class="setting-desc">
+              What Remind Me starts on. Reminders you set always go off.
+            </p>
+          </div>
+
+          <div class="setting-reminder-input">
+            <BaseInput type="select" :modelValue="alertSettings.remindMinutesBefore" :options="REMINDER_OPTIONS"
+              @update:modelValue="saveAlertSetting('remindMinutesBefore', $event)" />
+          </div>
+        </div>
+
+        <p v-if="alertMessage" class="save-message" role="status">
+          {{ alertMessage }}
+        </p>
 
       </div>
+
+      <div class="calendar-area">
+        <GoogleCalendarCard :user-id="userId" />
+      </div>
+
     </div>
 
     <!-- DELETE ACCOUNT CONFIRMATION -->
     <Transition name="fade">
-      <div
-        v-if="confirmingDelete"
-        class="overlay"
-        role="alertdialog"
-        aria-modal="true"
-        aria-labelledby="del-title"
-        @click.self="confirmingDelete = false"
-      >
+      <div v-if="confirmingDelete" class="overlay" role="alertdialog" aria-modal="true" aria-labelledby="del-title"
+        @click.self="confirmingDelete = false">
         <div class="dialog">
           <h3 id="del-title" class="dialog-title">Delete Account?</h3>
 
@@ -524,20 +471,11 @@ const executeDelete = async () => {
           </p>
 
           <div class="dialog-actions">
-            <BaseButton
-              class="btn-ghost"
-              type="button"
-              @click="confirmingDelete = false"
-            >
+            <BaseButton class="btn-ghost" type="button" @click="confirmingDelete = false">
               Cancel
             </BaseButton>
 
-            <BaseButton
-              class="theme-red"
-              type="button"
-              :disabled="deleting"
-              @click="executeDelete"
-            >
+            <BaseButton class="theme-red" type="button" :disabled="deleting" @click="executeDelete">
               {{ deleting ? 'Deleting...' : 'Yes, Delete' }}
             </BaseButton>
           </div>
@@ -547,33 +485,19 @@ const executeDelete = async () => {
 
     <!-- LOGOUT CONFIRMATION -->
     <Transition name="fade">
-      <div
-        v-if="confirmingLogout"
-        class="overlay"
-        role="alertdialog"
-        aria-modal="true"
-        aria-labelledby="logout-title"
-        @click.self="confirmingLogout = false"
-      >
+      <div v-if="confirmingLogout" class="overlay" role="alertdialog" aria-modal="true" aria-labelledby="logout-title"
+        @click.self="confirmingLogout = false">
         <div class="dialog">
           <h3 id="logout-title" class="dialog-title">Log Out?</h3>
 
           <p>Are you sure you want to log out of your account?</p>
 
           <div class="dialog-actions">
-            <BaseButton
-              class="btn-ghost"
-              type="button"
-              @click="confirmingLogout = false"
-            >
+            <BaseButton class="btn-ghost" type="button" @click="confirmingLogout = false">
               Cancel
             </BaseButton>
 
-            <BaseButton
-              class="theme-green"
-              type="button"
-              @click="executeLogout"
-            >
+            <BaseButton class="theme-green" type="button" @click="executeLogout">
               Yes, Log Out
             </BaseButton>
           </div>
@@ -629,28 +553,55 @@ const executeDelete = async () => {
 
 .profile-grid {
   display: grid;
-  grid-template-columns: 350px 1fr;
+
+  grid-template-columns: minmax(280px, 350px) minmax(0, 1fr);
+  grid-template-rows: auto auto;
+
+  grid-template-areas:
+    'profile settings'
+    'profile calendar';
+
   gap: 15px;
-  align-items: start;
+  align-items: stretch;
+}
+
+.profile-area {
+  grid-area: profile;
+}
+
+.settings-card {
+  grid-area: settings;
+}
+
+.calendar-area {
+  grid-area: calendar;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-area,
+.calendar-area {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.profile-area > :deep(*),
+.calendar-area > :deep(*) {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 @media (max-width: 991px) {
   .profile-grid {
     grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto;
+    grid-template-areas:
+      'profile'
+      'settings'
+      'calendar';
   }
-}
-
-.left-column {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  width: 100%;
-}
-
-.right-column {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
 }
 
 .settings-card {
@@ -763,11 +714,11 @@ const executeDelete = async () => {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
-.toggle-switch input:checked + .slider {
+.toggle-switch input:checked+.slider {
   background-color: var(--color-orange);
 }
 
-.toggle-switch input:checked + .slider::before {
+.toggle-switch input:checked+.slider::before {
   transform: translateX(20px);
 }
 

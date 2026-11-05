@@ -1,3 +1,4 @@
+
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
 import axios from 'axios'
@@ -40,15 +41,15 @@ const registerLink = computed(() =>
 
 const { userId } = useAuth()
 
-// Reminder state
 const reminder = ref(null)
-const selectedReminderValue = ref('none') // Default 'none'
+const selectedReminderValue = ref('none')
 const reminderError = ref('')
 const savingReminder = ref(false)
 
 const hasUpcomingSession = computed(() =>
   (props.event.sessions || []).some(session => new Date(session.startTime) > new Date())
 )
+
 const hasEnded = computed(() => {
   const sessions = props.event.sessions || []
   if (!sessions.length) return false
@@ -67,7 +68,9 @@ function handleRegister() {
   window.open(registerLink.value, '_blank', 'noopener,noreferrer')
 }
 
-const showReminderSection = computed(() => props.isAttending && hasUpcomingSession.value)
+const showReminderSection = computed(() =>
+  props.isAttending && hasUpcomingSession.value
+)
 
 const extendedReminderOptions = computed(() => [
   { label: 'None', value: 'none' },
@@ -76,16 +79,18 @@ const extendedReminderOptions = computed(() => [
 
 async function loadReminder() {
   try {
-    const { data } = await axios.get(`${API_URL}/api/notifications/reminders?userId=${userId.value}`)
+    const { data } = await axios.get(
+      `${API_URL}/api/notifications/reminders?userId=${userId.value}`
+    )
+
     reminder.value = data.find(item =>
-      item.status === 'pending' && (item.eventId?._id || item.eventId) === props.event._id
+      item.status === 'pending' &&
+      (item.eventId?._id || item.eventId) === props.event._id
     ) || null
 
-    if (reminder.value) {
-      selectedReminderValue.value = reminder.value.offsetMinutes
-    } else {
-      selectedReminderValue.value = 'none'
-    }
+    selectedReminderValue.value = reminder.value
+      ? reminder.value.offsetMinutes
+      : 'none'
   } catch (error) {
     console.log('There was an error: ' + error.message)
   }
@@ -97,7 +102,9 @@ async function handleReminderChange(newValue) {
   if (newValue === 'none') {
     if (reminder.value) {
       try {
-        await axios.delete(`${API_URL}/api/notifications/reminders/${reminder.value._id}?userId=${userId.value}`)
+        await axios.delete(
+          `${API_URL}/api/notifications/reminders/${reminder.value._id}?userId=${userId.value}`
+        )
         reminder.value = null
       } catch (error) {
         reminderError.value = 'Could not remove the reminder.'
@@ -107,26 +114,32 @@ async function handleReminderChange(newValue) {
   }
 
   savingReminder.value = true
+
   try {
     if (reminder.value) {
-      await axios.delete(`${API_URL}/api/notifications/reminders/${reminder.value._id}?userId=${userId.value}`).catch(() => { })
+      await axios.delete(
+        `${API_URL}/api/notifications/reminders/${reminder.value._id}?userId=${userId.value}`
+      ).catch(() => {})
     }
 
-    const { data } = await axios.post(`${API_URL}/api/notifications/reminders?userId=${userId.value}`, {
-      eventId: props.event._id,
-      offsetMinutes: newValue
-    })
+    const { data } = await axios.post(
+      `${API_URL}/api/notifications/reminders?userId=${userId.value}`,
+      {
+        eventId: props.event._id,
+        offsetMinutes: newValue
+      }
+    )
+
     reminder.value = data
   } catch (error) {
-    reminderError.value = error.response?.data?.message || 'Could not set the reminder.'
+    reminderError.value =
+      error.response?.data?.message || 'Could not set the reminder.'
   } finally {
     savingReminder.value = false
   }
 }
 
-onMounted(() => {
-  loadReminder()
-})
+onMounted(loadReminder)
 
 const imageFailed = ref(false)
 
@@ -136,7 +149,9 @@ const imageSrc = computed(() =>
     : props.event.image
 )
 
-const firstSession = computed(() => props.event.sessions?.[0] ?? null)
+const firstSession = computed(() =>
+  props.event.sessions?.[0] ?? null
+)
 
 function validDate(value) {
   if (!value) return null
@@ -146,8 +161,10 @@ function validDate(value) {
 
 const displayDate = computed(() => {
   if (props.event.date) return props.event.date
+
   const start = validDate(firstSession.value?.startTime)
   if (!start) return ''
+
   return new Intl.DateTimeFormat('en-SG', {
     day: 'numeric',
     month: 'short',
@@ -157,14 +174,18 @@ const displayDate = computed(() => {
 
 const displayTime = computed(() => {
   if (props.event.time) return props.event.time
+
   const start = validDate(firstSession.value?.startTime)
   if (!start) return ''
+
   const end = validDate(firstSession.value?.endTime)
+
   const formatTime = (date) =>
     new Intl.DateTimeFormat('en-SG', {
       hour: 'numeric',
       minute: '2-digit'
     }).format(date)
+
   return end
     ? `${formatTime(start)} – ${formatTime(end)}`
     : formatTime(start)
@@ -173,18 +194,13 @@ const displayTime = computed(() => {
 
 <template>
   <div class="event-detail-box">
-
     <button type="button" class="close-btn" @click="emit('close')">
       X
     </button>
 
     <div class="detail-grid">
-
-      <!-- LEFT SECTION -->
       <div class="detail-left">
-
         <div class="top-info-block">
-
           <div class="top-section">
             <h2 class="header-style event-title">
               {{ event.title }}
@@ -198,66 +214,94 @@ const displayTime = computed(() => {
           </div>
 
           <div class="flexible-middle-section">
-            <p class="event-desc">
-              {{ event.description }}
-            </p>
+            <p class="event-desc">{{ event.description }}</p>
 
             <div class="categories-row">
-              <CategoryPill v-for="(cat, index) in event.tags" :key="index" :category="cat" />
+              <CategoryPill
+                v-for="(cat, index) in event.tags"
+                :key="index"
+                :category="cat"
+              />
             </div>
           </div>
-
         </div>
 
-        <!-- 2-COLUMN LAYOUT FOR NOTES & REMINDER -->
-        <div class="dual-columns-section" :class="{ 'single-column': !showReminderSection }">
-          <!-- COLUMN 1: MY NOTES -->
+        <div
+          class="dual-columns-section"
+          :class="{ 'single-column': !showReminderSection }"
+        >
           <div class="column-box">
-            <BaseInput type="textarea" label="My Notes" v-model="noteText" placeholder="Type your notes here..."
-              class="notes-input-flex" />
+            <BaseInput
+              type="textarea"
+              label="My Notes"
+              v-model="noteText"
+              placeholder="Type your notes here..."
+              class="notes-input-flex"
+            />
 
-            <button v-if="noteText" type="button" class="internal-clear-btn" @click="handleClear" title="Clear note">
+            <button
+              v-if="noteText"
+              type="button"
+              class="internal-clear-btn"
+              @click="handleClear"
+              title="Clear note"
+            >
               ✕
             </button>
           </div>
 
-          <!-- COLUMN 2: REMINDER -->
           <div class="column-box" v-if="showReminderSection">
-            <BaseInput type="select" label="Reminder" v-model="selectedReminderValue" :options="extendedReminderOptions"
-              @update:modelValue="handleReminderChange" />
-            <p v-if="reminderError" class="reminder-error" role="alert">{{ reminderError }}</p>
+            <BaseInput
+              type="select"
+              label="Reminder"
+              v-model="selectedReminderValue"
+              :options="extendedReminderOptions"
+              @update:modelValue="handleReminderChange"
+            />
+
+            <p v-if="reminderError" class="reminder-error" role="alert">
+              {{ reminderError }}
+            </p>
           </div>
         </div>
 
-        <!-- BOTTOM ACTIONS FOR NOTES -->
         <div class="left-actions">
           <BaseButton class="action-pill-btn theme-dark-grey" @click="handleSave">
             SAVE
           </BaseButton>
-          <button type="button" class="clear-link" @click="handleClear">clear note</button>
+
+          <button type="button" class="clear-link" @click="handleClear">
+            clear note
+          </button>
+
           <transition name="fade">
             <span v-if="isSaved" class="saved-notification">
               note saved.
             </span>
           </transition>
         </div>
-
       </div>
 
-      <!-- RIGHT SECTION: POSTER + REGISTRATION -->
       <div class="detail-right">
-
         <div class="poster-actions">
-
           <div class="poster-container">
-            <img v-if="event.image && !imageFailed" :src="imageSrc" :alt="event.title" class="poster-img"
-              @error="imageFailed = true" />
+            <img
+              v-if="event.image && !imageFailed"
+              :src="imageSrc"
+              :alt="event.title"
+              class="poster-img"
+              @error="imageFailed = true"
+            />
 
             <div v-else class="poster-placeholder"></div>
           </div>
 
-          <BaseButton v-if="registerLink" class="action-pill-btn btn-blue registration-btn"
-            :disabled="registrationClosed" @click="handleRegister">
+          <BaseButton
+            v-if="registerLink"
+            class="action-pill-btn btn-blue registration-btn"
+            :disabled="registrationClosed"
+            @click="handleRegister"
+          >
             {{
               registrationClosed
                 ? 'REGISTRATION CLOSED'
@@ -266,42 +310,34 @@ const displayTime = computed(() => {
                   : 'VIEW ORIGINAL POST'
             }}
           </BaseButton>
-
         </div>
-
       </div>
-
     </div>
-
   </div>
 </template>
 
 <style scoped>
-/* MAIN CARD */
 .event-detail-box {
-  background-color: #f1f3f8;
+  background-color: var(--color-white);
   border-radius: 15px;
   padding: 20px;
-
   width: calc(100% - 20px);
-max-width: calc(100% - 20px);
-margin: 15px 10px;
-  height: 100%;
-
+  max-width: calc(100% - 20px);
+  margin: 15px 10px;
+  min-height: 400px;
+  height: auto;
   box-sizing: border-box;
-
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  position: relative;
 }
 
-/* CLOSE BUTTON */
 .close-btn {
   position: absolute;
-  top: 35px;
-  left: 40px;
+  top: 10px;
+  left: 10px;
   z-index: 2;
-
   background: none;
   border: none;
   font-size: 18px;
@@ -309,21 +345,17 @@ margin: 15px 10px;
   color: #475569;
 }
 
-/* MAIN CONTENT GRID */
 .detail-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 16px;
-  align-items: start;
-
+  align-items: stretch;
   flex: 1;
-  height: 100%;
-  min-height: 0;
+  min-height: 360px;
   min-width: 0;
   overflow: hidden;
 }
 
-/* LEFT CONTENT */
 .detail-left {
   display: flex;
   flex-direction: column;
@@ -331,7 +363,6 @@ margin: 15px 10px;
   gap: 8px;
   margin: 10px;
   padding-right: 4px;
-
   height: 100%;
   min-height: 0;
   min-width: 0;
@@ -343,7 +374,6 @@ margin: 15px 10px;
   display: flex;
   flex-direction: column;
   gap: 12px;
-
   flex: 1;
   min-height: 0;
   overflow-y: auto;
@@ -365,7 +395,7 @@ margin: 15px 10px;
   font-weight: 600;
   color: #1e293b;
   line-height: 1.4;
-  margin: 0 0 3px 0;
+  margin: 0 0 3px;
 }
 
 .flexible-middle-section {
@@ -378,7 +408,7 @@ margin: 15px 10px;
   font-weight: 500;
   color: #1e293b;
   line-height: 1.4;
-  margin: 0 0 14px 0;
+  margin: 0 0 14px;
   overflow-wrap: anywhere;
 }
 
@@ -388,7 +418,6 @@ margin: 15px 10px;
   gap: 8px;
 }
 
-/* 2 COLUMNS SECTION (NOTES & REMINDER) */
 .dual-columns-section {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -427,7 +456,7 @@ margin: 15px 10px;
   cursor: pointer;
   transition: all 0.2s ease;
   z-index: 5;
-  padding: 4px 0 0 0;
+  padding: 4px 0 0;
   margin-top: 4px;
 }
 
@@ -466,12 +495,11 @@ margin: 15px 10px;
 
 .reminder-error {
   width: 100%;
-  margin: 4px 0 0 0;
+  margin: 4px 0 0;
   color: var(--color-dark-red);
   font-size: 11px;
 }
 
-/* LEFT ACTIONS (SAVE & CLEAR) */
 .left-actions {
   display: flex;
   align-items: center;
@@ -483,7 +511,6 @@ margin: 15px 10px;
 
 .clear-link {
   display: none;
-  /* phones only, desktop uses the x inside the notes field */
   background: none;
   border: none;
   font-family: 'TextFont', sans-serif;
@@ -515,14 +542,12 @@ margin: 15px 10px;
   opacity: 0;
 }
 
-/* RIGHT CONTENT */
 .detail-right {
   display: flex;
   align-items: flex-start;
   justify-content: center;
   padding: 10px 10px 10px 0;
   box-sizing: border-box;
-
   height: 100%;
   min-height: 0;
   min-width: 0;
@@ -534,7 +559,6 @@ margin: 15px 10px;
   flex-direction: column;
   align-items: stretch;
   gap: 8px;
-
   height: 100%;
   width: fit-content;
   max-width: 100%;
@@ -546,11 +570,9 @@ margin: 15px 10px;
   height: auto;
   width: auto;
   aspect-ratio: 210 / 297;
-
   max-height: calc(100% - 43px);
   max-width: 100%;
   min-height: 0;
-
   overflow: hidden;
   border-radius: 15px;
   flex: 1 1 auto;
@@ -593,41 +615,56 @@ margin: 15px 10px;
   opacity: 0.8;
 }
 
-/* MOBILE RESPONSIVE
-   poster + title/meta/categories on top, then description, notes + reminder, SAVE + clear note, registration */
-@media (max-width: 440px) {
-
-  /* =================================
-     MAIN CARD
-  ================================= */
-
+@media (min-width: 769px) {
   .event-detail-box {
+    flex: 0 1 auto;
     width: calc(100% - 20px);
     max-width: calc(100% - 20px);
-    height: 100%;
-    min-width: 0;
+    height: calc(100% - 30px);
     min-height: 0;
-    margin: 10px;
+    max-height: calc(100% - 30px);
+    margin: 15px 10px;
+    padding: 20px;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+
+  .detail-grid {
+    flex: 1 1 0;
+    height: 100%;
+    min-height: 0;
+    min-width: 0;
+    overflow: hidden;
+  }
+}
+
+@media (max-width: 768px) {
+  .event-detail-box {
+    display: block;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0;
+    height: auto !important;
+    min-height: 0;
+    margin: 0;
     padding: 12px;
     box-sizing: border-box;
-
-    overflow-x: hidden;
-    overflow-y: auto;
-  }
-
-  /* =================================
-     CLOSE BUTTON
-  ================================= */
+    overflow: visible;
+    flex: none;
+}
 
   .close-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
     left: auto;
-    right: 25px;
-    top: 25px;
-  }
-
-  /* =================================
-     FLATTEN DESKTOP WRAPPERS
-  ================================= */
+    z-index: 10;
+    background: none;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    color: #475569;
+}
 
   .detail-left,
   .top-info-block,
@@ -638,19 +675,12 @@ margin: 15px 10px;
     display: contents;
   }
 
-  /* =================================
-     MAIN MOBILE GRID
-  ================================= */
-
   .detail-grid {
     display: grid;
     width: 100%;
     min-width: 0;
-
     grid-template-columns: clamp(85px, 27%, 115px) minmax(0, 1fr);
-
-    grid-template-rows: auto auto 1fr auto auto auto auto;
-
+    grid-template-rows: auto auto auto auto auto auto auto;
     grid-template-areas:
       'poster title'
       'poster meta'
@@ -659,50 +689,33 @@ margin: 15px 10px;
       'notes notes'
       'actions actions'
       'register register';
-
     column-gap: 10px;
     row-gap: 5px;
-
     flex: none;
     height: auto;
     min-height: 0;
     overflow: visible;
   }
 
-  /* =================================
-     POSTER
-  ================================= */
-
   .poster-container {
     grid-area: poster;
-
     align-self: start;
     width: 100%;
     height: auto;
-
     max-width: 100%;
     max-height: none;
-
     aspect-ratio: 210 / 297;
     flex: none;
   }
 
-  /* =================================
-     EVENT TITLE
-  ================================= */
-
   .event-title {
     grid-area: title;
-
     margin: 0 0 6px;
     font-size: 12px;
     line-height: 1.1;
     overflow-wrap: anywhere;
+    max-width: 90%;
   }
-
-  /* =================================
-     EVENT META
-  ================================= */
 
   .event-meta {
     grid-area: meta;
@@ -716,26 +729,16 @@ margin: 15px 10px;
     overflow-wrap: anywhere;
   }
 
-  /* =================================
-     CATEGORIES
-  ================================= */
-
   .categories-row {
     grid-area: cats;
-
     align-self: start;
     margin-top: 5px;
     gap: 3px;
     min-width: 0;
   }
 
-  /* =================================
-     DESCRIPTION
-  ================================= */
-
   .event-desc {
     grid-area: desc;
-
     margin: 5px 2px 8px;
     font-size: 10.5px;
     line-height: 1.4;
@@ -743,17 +746,11 @@ margin: 15px 10px;
     overflow-wrap: anywhere;
   }
 
-  /* =================================
-     NOTES + REMINDER
-  ================================= */
-
   .dual-columns-section {
     grid-area: notes;
-
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
-
     width: 100%;
     min-width: 0;
   }
@@ -780,17 +777,11 @@ margin: 15px 10px;
     display: none;
   }
 
-  /* =================================
-     SAVE + CLEAR ACTIONS
-  ================================= */
-
   .left-actions {
     grid-area: actions;
-
     display: flex;
     align-items: center;
     gap: 10px;
-
     width: 100%;
     margin: 5px 0 8px;
     font-size: 10.5px;
@@ -806,10 +797,6 @@ margin: 15px 10px;
     font-size: 10px;
   }
 
-  /* =================================
-     REGISTRATION BUTTON
-  ================================= */
-
   .registration-btn {
     grid-area: register;
     width: 100%;
@@ -819,16 +806,12 @@ margin: 15px 10px;
     width: 100%;
     box-sizing: border-box;
   }
-
 }
 
 @media (max-width: 400px) {
-
   .detail-grid {
     grid-template-columns: clamp(85px, 27%, 115px) minmax(0, 1fr);
-
     grid-template-rows: auto auto auto auto auto auto;
-
     grid-template-areas:
       'poster info'
       'cats cats'
@@ -836,9 +819,12 @@ margin: 15px 10px;
       'notes notes'
       'actions actions'
       'register register';
+    flex: none;
+    height: auto;
+    min-height: 0;
+    overflow: visible;
   }
 
-  /* Group title + event details */
   .top-section {
     grid-area: info;
     display: flex;
@@ -856,12 +842,10 @@ margin: 15px 10px;
     min-width: 0;
   }
 
-  /* Categories below poster + info */
   .categories-row {
     grid-area: cats;
     margin-top: 8px;
     margin-bottom: 4px;
   }
-
 }
 </style>

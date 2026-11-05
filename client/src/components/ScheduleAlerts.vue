@@ -77,7 +77,7 @@ onMounted(loadAlerts)
     <!-- Panggil fungsi toggleCollapse di header -->
     <div class="alerts-header" @click="toggleCollapse">
       <h2 class="alerts-title">
-        Clashes <span v-if="alerts.length">({{ alerts.length }})</span>
+        Clashes <span class="alerts-num" v-if="alerts.length">({{ alerts.length }})</span>
       </h2>
       <button type="button" class="collapse-btn" :aria-label="isCollapsed ? 'Expand clashes' : 'Collapse clashes'">
         <svg class="info-chev" :class="{ open: !isCollapsed }" width="12" height="8" viewBox="0 0 12 8" aria-hidden="true">
@@ -142,7 +142,6 @@ onMounted(loadAlerts)
   font-size: 20px;
   text-transform: uppercase;
 }
-
 .collapse-btn {
   background: none;
   border: none;
@@ -190,7 +189,7 @@ onMounted(loadAlerts)
   display: flex;
   flex-direction: column;
   gap: 6px;
-  color: var(--color-black);
+  color: #5e0e0e;
 }
 
 .alert-card.overlap {
@@ -234,7 +233,7 @@ onMounted(loadAlerts)
   font-size: 12px;
   font-weight: 600;
   text-decoration: underline;
-  color: #b42318;
+  color: var(--color-dark-red);
   cursor: pointer;
 }
 </style>
