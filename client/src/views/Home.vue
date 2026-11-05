@@ -33,6 +33,7 @@ const feedType = ref('weekly')
 const loading = ref(false)
 const allLoading = ref(false)
 const updating = ref(false)
+const showUpcomingMobile = ref(false)
 
 // Date filters
 const fromDate = ref('')
@@ -400,9 +401,24 @@ function handleCardClick(event) {
 
                 </div>
 
-                <!-- WHITE SIDE BOX -->
+                <!-- SIDE BOX -->
                 <div class="side-box-container">
-                    <SideUpcoming />
+
+                    <!-- Mobile collapse button -->
+                    <button class="upcoming-mobile-toggle" @click="showUpcomingMobile = !showUpcomingMobile"
+                        :aria-expanded="showUpcomingMobile">
+                        <span class="side-box-title">UPCOMING PLANS</span>
+
+                        <span class="upcoming-chevron">
+                            {{ showUpcomingMobile ? '-' : '+' }}
+                        </span>
+                    </button>
+
+                    <!-- Existing upcoming events component -->
+                    <div class="upcoming-content" :class="{ 'is-open': showUpcomingMobile }">
+                        <SideUpcoming />
+                    </div>
+
                 </div>
 
             </div>
@@ -685,7 +701,7 @@ function handleCardClick(event) {
 }
 
 /* =========================================
-   WHITE SIDE BOX (Height matches folder-body exactly)
+   SIDE BOX (Height matches folder-body exactly)
 ========================================= */
 
 .side-box-container {
@@ -702,6 +718,15 @@ function handleCardClick(event) {
     overflow: hidden;
 }
 
+.upcoming-mobile-toggle {
+    display: none;
+}
+
+.upcoming-content {
+    width: 100%;
+    height: 100%;
+}
+
 /* =========================================
    UPDATING MESSAGE
 ========================================= */
@@ -711,5 +736,287 @@ function handleCardClick(event) {
     font-size: 12px;
     margin: 6px 0 0;
     flex-shrink: 0;
+}
+
+@media (max-width: 991.98px) {
+
+    /* =================================
+       MAIN PAGE — PHONE HEIGHT
+    ================================= */
+
+    .home-page-container {
+        height: 100dvh;
+        min-height: 0;
+        max-height: 100dvh;
+        overflow: hidden;
+    }
+
+    .discover-container {
+        display: flex;
+        flex-direction: column;
+        flex: 1 1 0;
+        min-height: 0;
+        overflow: hidden;
+    }
+
+
+    /* =================================
+   DISCOVER HEADER + DATE FILTERS
+================================= */
+
+    .discover-header {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+        width: 100%;
+    }
+
+    .discover-title {
+        padding-left: 8px;
+        font-size: 22px;
+    }
+
+    .discover-controls {
+        display: grid;
+        grid-template-columns: 1.5fr 1.5fr 1fr 1fr;
+        align-items: center;
+        gap: 6px;
+        width: 100%;
+    }
+
+    /* Hide desktop-only controls */
+    .edit-interest-link,
+    .calendar-btn {
+        display: none;
+    }
+
+    /* FROM + TO take 3/5 combined */
+    .date-filter {
+        width: 100%;
+        min-width: 0;
+    }
+
+    /* Apply + Clear share remaining 2/5 */
+    .date-filter-buttons {
+        width: 100%;
+        min-width: 0;
+        padding-left: 2px;
+        padding-right: 2px;
+        font-size: 11px;
+        white-space: nowrap;
+    }
+
+    /* Keep date inputs within their columns */
+    .discover-controls :deep(input) {
+        width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+        font-size: 11px;
+    }
+
+    .discover-controls :deep(.btn-custom) {
+        width: 100%;
+        min-width: 0;
+        height: 35px;
+        min-height: 35px;
+        padding-left: 3px;
+        padding-right: 3px;
+        font-size: 11px;
+    }
+
+    /* =================================
+       MAIN CONTENT
+    ================================= */
+
+    .discover-main-layout {
+        display: flex;
+        flex-direction: column;
+        flex: 1 1 0;
+        min-height: 0;
+        overflow: hidden;
+        gap: 12px;
+    }
+
+    /* =================================
+       UPCOMING PLANS
+    ================================= */
+
+    .side-box-container {
+        order: -1;
+        flex: 0 0 auto;
+        width: 100%;
+        height: auto;
+        min-height: 0;
+        padding: 4px 15px;
+        box-sizing: border-box;
+        border-radius: 18px;
+        overflow: hidden;
+    }
+
+    .side-box-title {
+        font-family: 'HeaderFont';
+        color: var(--color-dark-grey);
+    }
+
+    .upcoming-mobile-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        padding: 5px 0;
+        border: none;
+        background: transparent;
+        font-family: 'HeaderFont', sans-serif !important;
+        font-size: 12px;
+        cursor: pointer;
+    }
+
+    .upcoming-chevron {
+        font-size: 20px;
+        line-height: 1;
+        color: var(--color-dark-grey);
+        padding-top: 4px;
+    }
+
+    .upcoming-content {
+        height: 0;
+        max-height: 0;
+        overflow: hidden;
+        transition: height 0.3s ease, max-height 0.3s ease;
+    }
+
+    .upcoming-content.is-open {
+        height: 220px;
+        max-height: 220px;
+    }
+
+    .upcoming-content.is-open :deep(.side-upcoming) {
+        height: 100%;
+        min-height: 0;
+    }
+
+    /* =================================
+       FOLDER — REMAINING HEIGHT
+    ================================= */
+
+    .folder-wrapper {
+        order: 0;
+        width: 100%;
+        height: auto;
+        flex: 1 1 0;
+        min-width: 0;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .folder-wrapper :deep(.folder-container) {
+        display: flex;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 10px;
+        width: 100%;
+        height: 100% !important;
+        flex: 1 1 0;
+        min-height: 0;
+        overflow: hidden;
+    }
+
+    /* Hide desktop tabs */
+    .folder-wrapper :deep(.tabs-header) {
+        display: none !important;
+    }
+
+    /* Folder body */
+    .folder-wrapper :deep(.folder-body) {
+        flex: 1 1 0 !important;
+        width: 100%;
+        height: 0 !important;
+        min-width: 0;
+        min-height: 0 !important;
+        overflow: hidden !important;
+        border-radius: 25px !important;
+    }
+
+    /* Inner folder */
+    .folder-wrapper :deep(.inner-folder) {
+        flex: 1 1 0 !important;
+        width: 100%;
+        height: 100% !important;
+        min-width: 0;
+        min-height: 0;
+        max-height: 100% !important;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden !important;
+        padding: 0 !important;
+    }
+
+    /* =================================
+       FOLDER CONTENT
+    ================================= */
+
+    .folder-wrapper .home-folder-content,
+    .folder-wrapper .folder-content-area {
+        flex: 1 1 0;
+        width: 100%;
+        height: 0;
+        min-width: 0;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    /* =================================
+       EVENT CARD SCROLL
+    ================================= */
+
+    .folder-wrapper .folder-cards-scroll-area {
+        flex: 1 1 0;
+        width: 100%;
+        height: 0;
+        min-width: 0;
+        min-height: 0;
+        overflow-y: auto;
+        overflow-x: hidden;
+        box-sizing: border-box;
+    }
+
+    /* One column on mobile */
+    .folder-wrapper .folder-cards-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) !important;
+        gap: 12px;
+        width: 100%;
+        min-width: 0;
+        align-content: start;
+        box-sizing: border-box;
+        margin: 10px 0;
+    }
+
+    .folder-wrapper .folder-cards-grid>* {
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+
+    .updating-message {
+        flex-shrink: 0;
+    }
+}
+
+/* =========================================
+   MEDIUM: TABLET — 2 EVENT COLUMNS
+========================================= */
+
+@media (min-width: 768px) and (max-width: 991.98px) {
+    .folder-wrapper .folder-cards-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 12px;
+    }
 }
 </style>

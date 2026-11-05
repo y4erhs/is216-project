@@ -121,4 +121,10 @@ const upcoming = computed(() => {
   font-size: 11px;
   line-height: 1.6;
 }
+
+@media (max-width: 768px) {
+  .side-title {
+    display: none;
+  }
+}
 </style>

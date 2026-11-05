@@ -62,10 +62,12 @@ function closeMobileNav() {
 <style scoped>
 .app-layout {
   display: flex;
+  position: relative;
   width: 100%;
   height: 100vh;
   height: 100dvh;
   overflow: hidden;
+  box-sizing: border-box;
 }
 
 .main-container {
@@ -103,14 +105,25 @@ function closeMobileNav() {
   box-sizing: border-box;
 }
 
-@media (max-width: 767.98px) {
-  .content-wrapper {
-    padding: 0 12px 12px;
+/* LARGE: 992px - 1199px */
+@media (min-width: 992px) and (max-width: 1199.98px) {
+  .app-layout {
+    padding-left: 81px;
   }
+}
 
+/* MEDIUM + SMALL: below 992px */
+@media (max-width: 991.98px) {
+  .app-layout {
+    padding-left: 0;
+  }
+}
+
+@media (max-width: 440px) {
   .content-scroll {
-    border-radius: 20px;
-    padding: 16px;
+    padding: 0;
+    border-radius: 0;
+    background: var(--theme-blue);
   }
 }
 </style>

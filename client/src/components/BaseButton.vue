@@ -61,7 +61,7 @@ defineEmits(['click'])
   height: 35px;
   gap: 8px;
   padding: 0px 15px 3px 15px;
-  font-size: 10px;
+  font-size: 11px;
   border-radius: 25px;
 }
 
@@ -105,5 +105,11 @@ defineEmits(['click'])
 .btn-custom:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+@media (max-width: 440px) {
+  .btn-custom:not(.btn-circle) {
+    padding: 0px 12px 2px 12px;
+  }
 }
 </style>

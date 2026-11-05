@@ -2,102 +2,93 @@
   LobbyInvite.vue  (Vue 3, <script setup>)
   The screen an invited friend sees when they open an invite link or tap an invitation notification.
   Styled like Lobby.vue / MyLobbies.vue (folder frame, white cards, shared pills).
-
-  Usage (e.g. on route /lobby/:code):
-    <LobbyInvite host-name="Alex Chen" :event="event" :members="members"
-                 via="link" :my-status="myStatus" :closable="false"
-                 @respond="(status) => api.reply(code, status)" />
 -->
 <template>
-  <section class="invite" aria-labelledby="invite-title">
-    <button v-if="closable" class="close" type="button" aria-label="Close" @click="$emit('close')">✕</button>
-
-    <div class="inner">
-      <div v-if="lobbyName" class="lobby-head">
-        <strong class="lobby-name">{{ lobbyName }}</strong>
-        <span v-if="description">{{ description }}</span>
-      </div>
+  <div class="top-bar">
+    <div class="top-bar-left">
       <h2 id="invite-title" class="title">{{ via === 'link' ? 'You opened an invite link' : "You're invited" }}</h2>
       <p class="lead">
         <strong>{{ hostName }}</strong>
         {{ via === 'link' ? 'wants you to join their lobby.' : 'invited you to join their lobby.' }}
-        Reply so they know whether to count you in.
+        <br> Reply so they know whether to count you in.
       </p>
-
-      <!-- Event on the table -->
-      <section>
-        <h3 class="section-title">Event being pitched</h3>
-        <div class="card">
-          <template v-if="event">
-            <strong class="event-title">{{ event.title }}</strong>
-            <span>{{ event.date }} at {{ event.venue }}</span>
-            <span>{{ event.limitsText }}</span>
-          </template>
-          <p v-else class="plain">{{ hostName }} hasn't picked an event yet. You can still reply now!</p>
+    </div>
+    <div class="top-bar-right">
+      <div class="choices">
+        <div class="choice">
+          <BaseButton class="answer theme-green" :class="{ chosen: myStatus === 'accepted' }" type="button"
+            :aria-pressed="myStatus === 'accepted'" @click="$emit('respond', 'accepted')">
+            {{ myStatus === 'accepted' ? '✓ Accepted' : 'Accept' }}
+          </BaseButton>
         </div>
-      </section>
+        <div class="choice">
+          <BaseButton class="answer theme-orange" :class="{ chosen: myStatus === 'declined' }" type="button"
+            :aria-pressed="myStatus === 'declined'" @click="$emit('respond', 'declined')">
+            {{ myStatus === 'declined' ? '✕ Declined' : 'Decline' }}
+          </BaseButton>
+        </div>
+      </div>
+    </div>
+  </div>
 
-      <!-- How to reply -->
-      <section>
-        <h3 class="section-title">Your reply</h3>
-        <div v-if="!locked" class="card">
-          <div class="choices">
-            <div class="choice">
-              <button class="answer answer-accept" :class="{ chosen: myStatus === 'accepted' }" type="button"
-                :aria-pressed="myStatus === 'accepted'" @click="$emit('respond', 'accepted')">
-                {{ myStatus === 'accepted' ? '✓ Accepted' : 'Accept' }}
-              </button>
-              <p>You're in! If {{ hostName }} registers the group, you're signed up automatically.</p>
-            </div>
-            <div class="choice">
-              <button class="answer answer-decline" :class="{ chosen: myStatus === 'declined' }" type="button"
-                :aria-pressed="myStatus === 'declined'" @click="$emit('respond', 'declined')">
-                {{ myStatus === 'declined' ? '✕ Declined' : 'Decline' }}
-              </button>
-              <p>You're skipping this one! No bookings will be made for you, but we hope to catch you at the next event.
-              </p>
+  <section class="invite" aria-labelledby="invite-title">
+    <button v-if="closable" class="close" type="button" aria-label="Close" @click="$emit('close')">✕</button>
+
+    <!-- Full-width Lobby Header at the top inside the green box -->
+    <div v-if="lobbyName" class="lobby-head">
+      <strong class="lobby-name">{{ lobbyName }}</strong>
+      <span class="lobby-desc" v-if="description">{{ description }}</span>
+    </div>
+
+    <!-- Main Two-Column Layout for Who's in & Pitched Event -->
+    <div class="invite-grid">
+      
+      <!-- LEFT COLUMN: Who's in so far -->
+      <div class="column">
+        <section class="section-box flex-section">
+          <h3 class="section-title">Who's in so far</h3>
+          <div class="scroll-area">
+            <ul class="people">
+              <li v-for="m in members" :key="m.id" class="person">
+                <span class="avatar" :style="{ background: m.color || '#fdebd0' }">{{ initials(m.name) }}
+                  <AvatarPic :path="m.avatar" />
+                </span>
+                <span class="who">{{ m.name }}</span>
+                <span v-if="m.host" class="badge-pill pill-host">Host</span>
+                <span v-else-if="m.id === meId" class="badge-pill pill-grey">You</span>
+                <span class="badge-pill" :class="`pill-${m.status}`">{{ statusLabel[m.status] }}</span>
+              </li>
+            </ul>
+          </div>
+        </section>
+      </div>
+
+      <!-- RIGHT COLUMN: Pitched Event -->
+      <div class="column">
+        <section class="section-box flex-section">
+          <h3 class="section-title">Pitched Event</h3>
+          <div class="scroll-area">
+            <div class="card">
+              <template v-if="event">
+                <strong class="event-title">{{ event.title }}</strong>
+                <span>{{ event.date }} at {{ event.venue }}</span>
+                <span>{{ event.limitsText }}</span>
+              </template>
+              <p v-else class="plain">{{ hostName }} hasn't picked an event yet. You can still reply now!</p>
             </div>
           </div>
+        </section>
+      </div>
 
-          <p class="reply-line" aria-live="polite">
-            <template v-if="myStatus === 'pending'">No reply yet. You can change your answer any time before
-              registration.</template>
-            <template v-else>
-              You replied <strong>{{ statusLabel[myStatus] }}</strong>.
-              You can change this until {{ hostName }} registers the group.
-            </template>
-          </p>
-        </div>
-        <div v-else class="card">
-          <p class="plain">{{ hostName }} has already registered the group, so replies are closed.</p>
-        </div>
-      </section>
-
-      <!-- Who's in so far -->
-      <section>
-        <h3 class="section-title">Who's in so far</h3>
-        <div class="scroll">
-          <ul class="people">
-            <li v-for="m in members" :key="m.id" class="person">
-              <span class="avatar" :style="{ background: m.color || '#fdebd0' }">{{ initials(m.name) }}
-                <AvatarPic :path="m.avatar" />
-              </span>
-              <span class="who">{{ m.name }}</span>
-              <span v-if="m.host" class="badge-pill pill-host">Host</span>
-              <span v-else-if="m.id === meId" class="badge-pill pill-grey">You</span>
-              <span class="badge-pill" :class="`pill-${m.status}`">{{ statusLabel[m.status] }}</span>
-            </li>
-          </ul>
-        </div>
-      </section>
     </div>
   </section>
 </template>
 
 <script setup>
 import AvatarPic from '../components/AvatarPic.vue'
+import BaseButton from '../components/BaseButton.vue'
+
 defineProps({
-  /* Shown at the top so people know which lobby this is */
   lobbyName: { type: String, default: '' },
   description: { type: String, default: '' },
   hostName: { type: String, default: 'Your friend' },
@@ -126,16 +117,16 @@ const initials = (name) => name.split(' ').map((w) => w[0]).slice(0, 2).join('')
 
   position: relative;
   width: 100%;
-  max-width: 560px;
-  max-height: calc(100vh - 40px);
-  max-height: calc(100dvh - 40px);
-  padding: 15px;
+  height: 100%;
+  max-height: 100%;
+
+  padding: 20px;
   border: 9px solid var(--lime);
   border-radius: 25px;
   background: #667033;
   color: var(--ink);
   font-family: 'TextFont', sans-serif;
-  font-size: 11px;
+  font-size: 13px;
   text-align: left;
   box-sizing: border-box;
   display: flex;
@@ -154,25 +145,64 @@ const initials = (name) => name.split(' ').map((w) => w[0]).slice(0, 2).join('')
   outline-offset: 2px;
 }
 
-.card :focus-visible {
-  outline-color: var(--ink);
+/* Full-width header inside green box */
+.lobby-head {
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  padding-right: 30px;
+  color: #fff;
+  line-height: 1.4;
+  flex-shrink: 0;
+  margin-bottom: 15px;
 }
 
-.inner {
+.lobby-name {
+  font: 400 32px 'HeaderFont', sans-serif;
+  text-transform: uppercase;
+  opacity: 0.9;
+}
+
+.lobby-desc {
+  font-size: 14px;
+  opacity: 0.85;
+}
+
+/* Two-column layout grid for the rest of content */
+.invite-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  flex: 1;
+  min-height: 0;
+  align-items: start;
+  overflow: hidden;
+}
+
+.column {
   display: flex;
   flex-direction: column;
   gap: 15px;
-  overflow-y: auto;
+  height: 100%;
   min-height: 0;
+}
+
+.section-box {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+}
+
+.flex-section {
   flex: 1;
-  padding-right: 4px;
 }
 
 .close {
   position: absolute;
-  top: 12px;
-  right: 12px;
-  z-index: 1;
+  top: 15px;
+  right: 15px;
+  z-index: 10;
   display: grid;
   place-items: center;
   width: 28px;
@@ -187,52 +217,73 @@ const initials = (name) => name.split(' ').map((w) => w[0]).slice(0, 2).join('')
   line-height: 1;
 }
 
-.lobby-head {
-  display: grid;
-  gap: 2px;
-  padding-right: 40px;
-  color: #fff;
-  line-height: 1.5;
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: stretch;
+  margin: 15px;
+  margin-top: 0;
 }
 
-.lobby-name {
-  font: 400 14px/1.2 'HeaderFont', sans-serif;
-  text-transform: uppercase;
-  opacity: 0.9;
+.top-bar-left {
+  flex: 1.5;
+  display: flex;            
+  flex-direction: column;    
+  justify-content: flex-end; 
+}
+
+.top-bar-right {
+  flex: 1;
+  display: flex;             
+  flex-direction: column;    
+  justify-content: flex-end; 
 }
 
 .title {
   margin: 0;
   padding-right: 40px;
   color: #fff;
-  font: 400 25px/1.1 'HeaderFont', sans-serif;
+  font: 400 25px 'HeaderFont', sans-serif;
   text-transform: uppercase;
 }
 
 .lead {
-  margin: -4px 0 0;
+  margin-top: 10px;
+  margin-bottom: 0;
   color: #fff;
   line-height: 1.4;
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .section-title {
-  margin: 0 0 6px;
+  margin: 0 0 8px;
   color: #fff;
-  font: 400 18px/1.1 'HeaderFont', sans-serif;
+  font: 400 22px 'HeaderFont', sans-serif;
   text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+/* Independent scroll area for Who's in & Pitched Event */
+.scroll-area {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 6px;
 }
 
 .card {
   display: grid;
   gap: 4px;
-  padding: 12px 15px;
+  padding: 14px 16px;
   border-radius: 15px;
   background: var(--card);
   color: var(--ink);
 }
 
 .event-title {
-  font: 400 15px/1.15 'HeaderFont', sans-serif;
+  font: 400 16px/1.15 'HeaderFont', sans-serif;
   text-transform: uppercase;
 }
 
@@ -241,71 +292,41 @@ const initials = (name) => name.split(' ').map((w) => w[0]).slice(0, 2).join('')
   line-height: 1.4;
 }
 
-/* accept / decline */
+/* Accept / Decline buttons in top-bar */
 .choices {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  gap: 10px;
+  margin-top: auto;
 }
 
 .choice {
   display: grid;
   align-content: start;
-  gap: 8px;
-}
-
-.choice p {
-  margin: 0;
-  line-height: 1.35;
 }
 
 .answer {
-  --nudge: 2px;
-  display: block;
   width: 100%;
-  padding: calc(12px + var(--nudge)) 16px calc(12px - var(--nudge));
+  padding: 12px 16px;
   border: 0;
   border-radius: 999px;
   cursor: pointer;
-  color: var(--ink);
-  font: 700 11px/1 'TextFont', sans-serif;
+  font: 700 12px/1 'TextFont', sans-serif;
   text-transform: uppercase;
   transition: transform 0.15s;
+  justify-content: center;
+  text-align: center;
 }
 
 .answer:hover {
   transform: translateY(-1px);
 }
 
-.answer-accept {
-  background: var(--lime);
-}
-
-.answer-decline {
-  background: var(--orange);
-}
-
 .chosen {
   box-shadow: inset 0 0 0 3px var(--ink);
 }
 
-.reply-line {
-  margin: 8px 0 0;
-  padding-top: 8px;
-  border-top: 2px dashed rgba(31, 42, 68, 0.2);
-  line-height: 1.4;
-}
-
-/* who's in: same cards as the roster */
-.scroll {
-  max-height: 160px;
-  overflow-y: auto;
-  margin: -3px;
-  padding: 3px 11px 3px 3px;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.6) transparent;
-}
-
+/* People roster list */
 .people {
   list-style: none;
   margin: 0;
@@ -333,7 +354,7 @@ const initials = (name) => name.split(' ').map((w) => w[0]).slice(0, 2).join('')
   flex: none;
   border-radius: 50%;
   font-weight: 700;
-  font-size: 11px;
+  font-size: 13px;
   position: relative;
 }
 
@@ -346,7 +367,7 @@ const initials = (name) => name.split(' ').map((w) => w[0]).slice(0, 2).join('')
   white-space: nowrap;
 }
 
-/* pills */
+/* Pills */
 .badge-pill {
   display: inline-block;
   flex: none;
@@ -380,19 +401,13 @@ const initials = (name) => name.split(' ').map((w) => w[0]).slice(0, 2).join('')
   color: #fff;
 }
 
-@media (max-width: 560px) {
-  .choices {
+@media (max-width: 768px) {
+  .invite-grid {
     grid-template-columns: 1fr;
+    overflow-y: auto;
   }
-
-  .title {
-    font-size: 22px;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .answer {
-    transition: none;
+  .invite {
+    overflow-y: auto;
   }
 }
 </style>

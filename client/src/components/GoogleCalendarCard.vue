@@ -227,12 +227,6 @@ async function syncNow() {
   }
 }
 
-.left-column {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  width: 100%;
-}
 
 .calendar-card {
   background-color: var(--color-white);
@@ -242,6 +236,7 @@ async function syncNow() {
   flex-direction: column;
   gap: 14px;
   box-sizing: border-box;
+  width: 100%;
 }
 
 .calendar-header {

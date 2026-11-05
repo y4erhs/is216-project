@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted } from 'vue'
+import { onMounted, onBeforeUnmount } from 'vue'
 import { useFriendRequests } from '../composables/useFriendRequests'
 import { computed, ref, watch } from "vue";
 import { useAuth } from "../composables/useAuth";
@@ -7,6 +7,7 @@ import { userAvatarUrl, userInitials, userName, userSubtitle } from "../utils/us
 import { useUserStore } from "../stores/userStore";
 import { useRouter } from "vue-router";
 import "../assets/theme.css";
+import BaseButton from './BaseButton.vue'
 
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
@@ -29,9 +30,29 @@ const avatarFailed = ref(false);
 watch(avatarUrl, () => { avatarFailed.value = false; });
 
 const reqs = useFriendRequests();
-onMounted(() => reqs.load());
 
-const isCollapsed = ref(false);
+const isCollapsed = ref(
+  window.innerWidth >= 992 && window.innerWidth < 1200
+);
+
+const largeScreenQuery = window.matchMedia(
+  '(min-width: 992px) and (max-width: 1199.98px)'
+);
+
+function handleScreenChange(event) {
+  isCollapsed.value = event.matches;
+}
+
+onMounted(() => {
+  reqs.load();
+
+  largeScreenQuery.addEventListener('change', handleScreenChange);
+});
+
+onBeforeUnmount(() => {
+  largeScreenQuery.removeEventListener('change', handleScreenChange);
+});
+
 const showMenuBox = ref(false);
 
 const emit = defineEmits(["close", "collapse-change"]);
@@ -47,10 +68,32 @@ function toggleMenuBox() {
   showMenuBox.value = !showMenuBox.value;
 }
 
-const handleLogout = () => {
+function handleProfileClick() {
+  showMenuBox.value = false;
+
+  if (window.innerWidth >= 992) {
+    isCollapsed.value = true;
+  } else {
+    emit('close');
+  }
+}
+
+const confirmingLogout = ref(false);
+
+function handleLogout() {
+  showMenuBox.value = false;
+  confirmingLogout.value = true;
+}
+
+function cancelLogout() {
+  confirmingLogout.value = false;
+}
+
+function confirmLogout() {
   userStore.logout();
+  confirmingLogout.value = false;
   router.push('/login');
-};
+}
 </script>
 
 <template>
@@ -60,11 +103,11 @@ const handleLogout = () => {
         <img :src="logo" class="logo" style="height: 50px" />
       </div>
 
-      <button class="toggle-btn hamburger d-none d-md-flex" @click="isCollapsed = !isCollapsed">
+      <button class="toggle-btn hamburger d-none d-lg-flex" @click="isCollapsed = !isCollapsed">
         {{ isCollapsed ? "☰" : "X" }}
       </button>
 
-      <button class="toggle-btn d-md-none" @click="emit('close')">
+      <button class="toggle-btn d-lg-none" @click="emit('close')">
         <i class="bi bi-x-lg fs-5"></i>
       </button>
     </div>
@@ -74,8 +117,8 @@ const handleLogout = () => {
       <p class="mb-0 header-style">Singapore Management University</p>
     </div>
 
-    <div class="menu" @click="emit('close')">
-      <RouterLink to="/" class="tab-pill theme-grey" :title="isCollapsed ? 'Discover' : ''">
+    <div class="menu">
+      <RouterLink to="/" class="tab-pill theme-grey" :title="isCollapsed ? 'Discover' : ''" @click="emit('close')">
         <div class="pill-icon">
           <i class="bi bi-compass fs-5"></i>
         </div>
@@ -85,7 +128,8 @@ const handleLogout = () => {
         </div>
       </RouterLink>
 
-      <RouterLink to="/activity-tracking" class="tab-pill theme-grey" :title="isCollapsed ? 'Activity Tracking' : ''">
+      <RouterLink to="/activity-tracking" class="tab-pill theme-grey" :title="isCollapsed ? 'Activity Tracking' : ''"
+        @click="emit('close')">
         <div class="pill-icon">
           <i class="bi bi-clipboard-check fs-5"></i>
         </div>
@@ -95,7 +139,8 @@ const handleLogout = () => {
         </div>
       </RouterLink>
 
-      <RouterLink to="/calendar" class="tab-pill theme-grey" :title="isCollapsed ? 'My Calendar' : ''">
+      <RouterLink to="/calendar" class="tab-pill theme-grey" :title="isCollapsed ? 'My Calendar' : ''"
+        @click="emit('close')">
         <div class="pill-icon">
           <i class="bi bi-calendar-event fs-5"></i>
         </div>
@@ -105,7 +150,8 @@ const handleLogout = () => {
         </div>
       </RouterLink>
 
-      <RouterLink to="/lobby" class="tab-pill theme-grey" :title="isCollapsed ? 'My Lobbies' : ''">
+      <RouterLink to="/lobby" class="tab-pill theme-grey" :title="isCollapsed ? 'My Lobbies' : ''"
+        @click="emit('close')">
         <div class="pill-icon">
           <i class="bi bi-people fs-5"></i>
         </div>
@@ -116,7 +162,8 @@ const handleLogout = () => {
       </RouterLink>
 
 
-      <RouterLink to="/friends" class="tab-pill theme-grey" :title="isCollapsed ? 'Friends' : ''">
+      <RouterLink to="/friends" class="tab-pill theme-grey" :title="isCollapsed ? 'Friends' : ''"
+        @click="emit('close')">
         <div class="pill-icon position-relative">
           <i class="bi bi-person-plus fs-5"></i>
           <span v-if="reqs.state.incoming.length" class="req-badge" style="pointer-events: none">
@@ -146,13 +193,36 @@ const handleLogout = () => {
 
       <!-- Tambahin class dynamic :class="{ 'collapsed-popup': isCollapsed }" -->
       <div v-if="showMenuBox" class="popup-menu-box shadow-sm" :class="{ 'collapsed-popup': isCollapsed }">
-        <RouterLink to="/profile" class="popup-item header-style" @click="showMenuBox = false">profile & settings
+        <RouterLink to="/profile" class="popup-item header-style" @click="handleProfileClick">
+          profile & settings
         </RouterLink>
         <a href="#" class="popup-item header-style logout"
           @click.prevent="handleLogout(); showMenuBox = false">logout</a>
       </div>
     </div>
   </aside>
+  <Teleport to="body">
+    <Transition name="fade">
+      <div v-if="confirmingLogout" class="overlay" role="alertdialog" aria-modal="true" aria-labelledby="logout-title"
+        @click.self="cancelLogout">
+        <div class="dialog">
+          <h3 id="logout-title" class="dialog-title">Log Out?</h3>
+
+          <p>Are you sure you want to log out of your account?</p>
+
+          <div class="dialog-actions">
+            <BaseButton class="theme-blue" type="button" @click="cancelLogout">
+              Cancel
+            </BaseButton>
+
+            <BaseButton class="theme-green" type="button" @click="confirmLogout">
+              Yes, Log Out
+            </BaseButton>
+          </div>
+        </div>
+      </div>
+    </Transition>
+  </Teleport>
 </template>
 
 <style scoped>
@@ -503,14 +573,71 @@ aside.collapsed .user-profile {
   text-align: center;
 }
 
-@media (max-width: 767.98px) {
+/* CUSTOM MODAL OVERLAY STYLING */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  padding: 15px;
+  background: rgba(31, 42, 68, 0.65);
+}
+
+.dialog {
+  display: grid;
+  gap: 12px;
+  width: min(440px, 100%);
+  padding: 20px;
+  border-radius: 25px;
+  background-color: var(--color-white);
+  color: var(--color-black);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+}
+
+.dialog-title {
+  margin: 0;
+  font-family: 'HeaderFont', sans-serif;
+  font-size: 20px;
+  text-transform: uppercase;
+}
+
+.dialog p {
+  margin: 0;
+  line-height: 1.4;
+  font-size: 13px;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+@media (max-width: 991.98px) {
   aside {
     position: fixed;
     top: 12px;
     left: 12px;
     bottom: 12px;
     width: calc(100vw - 24px) !important;
-    height: calc(100vh - 24px) !important;
+
+    height: 100% !important;
+    height: 100dvh !important;
+    max-height: calc(100vh - 24px);
+    max-height: calc(100dvh - 24px);
+
     margin: 0 !important;
     padding: 20px 16px;
     border-radius: 20px;
@@ -525,6 +652,19 @@ aside.collapsed .user-profile {
 
   .pill-label span {
     font-size: 15px;
+  }
+}
+
+/* LARGE: collapsed navbar occupies its reserved space;
+   expanded navbar overlays the page */
+@media (min-width: 992px) and (max-width: 1199.98px) {
+  aside {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    bottom: 15px;
+    height: auto;
+    margin: 0;
   }
 }
 </style>

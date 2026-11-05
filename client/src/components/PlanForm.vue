@@ -1,29 +1,23 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { API_URL } from '../utils/api'
+import BaseButton from './BaseButton.vue'
 
 const props = defineProps({
   userId: { type: String, required: true },
-  // from a lobby's shared calendar: every lobby member is invited, so no friend picker
   lobbyId: { type: String, default: null },
-  // "YYYY-MM-DD" to start the form on
   date: { type: String, default: '' },
-  // an existing plan to edit; its invitees stay the same
   plan: { type: Object, default: null }
 })
 const emit = defineEmits(['close', 'created'])
 
-
-// form fields
 const title = ref(props.plan?.title || '')
 const allDay = ref(props.plan?.allDay || false)
-// timed by default, so a given date starts as a 9-10am slot
 const start = ref(props.plan ? inputValue(props.plan.startTime) : props.date ? `${props.date}T09:00` : '')
 const end = ref(props.plan ? inputValue(props.plan.endTime) : props.date ? `${props.date}T10:00` : '')
 const location = ref(props.plan?.location || '')
 const description = ref(props.plan?.description || '')
 
-// A saved time in the format the date inputs use
 function inputValue(time) {
   const date = new Date(time)
   if (props.plan.allDay) return date.toLocaleDateString('en-CA', { timeZone: 'Asia/Singapore' })
@@ -32,7 +26,6 @@ function inputValue(time) {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
 }
 
-// friends
 const friends = ref([])
 const selectedIds = ref([])
 
@@ -42,16 +35,14 @@ const error = ref('')
 async function loadFriends() {
   try {
     const res = await fetch(`${API_URL}/api/friends/${props.userId}/accepted`)
-    if (!res.ok) return   // 404 means no friends yet
+    if (!res.ok) return
     const data = await res.json()
 
-    // each record has both people; keep the one that isn't this user
     friends.value = data.map(f => {
       const other = String(f.requester._id) === props.userId ? f.receiver : f.requester
       return { id: String(other._id), username: other.username }
     })
   } catch (err) {
-    // friends are optional, so the form still works without them
   }
 }
 
@@ -64,7 +55,6 @@ function toggleFriend(id) {
 }
 
 function onAllDayChange() {
-  // inputs switch between date and date-time, so clear old values (or go back to the given date)
   if (props.date) {
     start.value = allDay.value ? props.date : `${props.date}T09:00`
     end.value = allDay.value ? '' : `${props.date}T10:00`
@@ -98,7 +88,6 @@ async function submit() {
     userId: props.userId,
     title: title.value.trim(),
     allDay: allDay.value,
-    // all-day: plain "YYYY-MM-DD"; timed: convert to a full date-time with timezone
     start: allDay.value ? start.value : new Date(start.value).toISOString(),
     end: allDay.value ? (end.value || start.value) : new Date(end.value).toISOString(),
     location: location.value,
@@ -121,7 +110,7 @@ async function submit() {
       return
     }
 
-    if (data.warning) alert(data.warning)   // e.g. Google not linked
+    if (data.warning) alert(data.warning)
     emit('created', data.plan)
     emit('close')
   } catch (err) {
@@ -156,15 +145,17 @@ onMounted(() => {
       </label>
     </div>
 
-    <label class="field">
-      <span>{{ allDay ? 'Start date' : 'Start time' }}</span>
-      <input v-model="start" :type="allDay ? 'date' : 'datetime-local'" />
-    </label>
+    <div class="datetime-row">
+      <label class="field">
+        <span>{{ allDay ? 'Start date' : 'Start time' }}</span>
+        <input v-model="start" :type="allDay ? 'date' : 'datetime-local'" />
+      </label>
 
-    <label class="field">
-      <span>{{ allDay ? 'End date (optional)' : 'End time' }}</span>
-      <input v-model="end" :type="allDay ? 'date' : 'datetime-local'" />
-    </label>
+      <label class="field">
+        <span>{{ allDay ? 'End date (optional)' : 'End time' }}</span>
+        <input v-model="end" :type="allDay ? 'date' : 'datetime-local'" />
+      </label>
+    </div>
 
     <label class="field">
       <span>Location</span>
@@ -197,9 +188,9 @@ onMounted(() => {
 
     <p v-if="error" class="error">{{ error }}</p>
 
-    <button type="button" class="btn-add" :disabled="saving" @click="submit">
+    <BaseButton type="button" class="theme-green" :disabled="saving" @click="submit">
       {{ saving ? 'Saving...' : plan ? 'Save changes' : 'Add to calendar' }}
-    </button>
+    </BaseButton>
   </div>
 </template>
 
@@ -210,7 +201,7 @@ onMounted(() => {
   padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
   box-sizing: border-box;
 }
 
@@ -260,6 +251,18 @@ onMounted(() => {
 
 .field textarea {
   resize: vertical;
+}
+
+.datetime-row {
+  display: flex !important;
+  flex-direction: row !important;
+  gap: 10px !important;
+  width: 100% !important;
+}
+
+.datetime-row .field {
+  flex: 1 1 0 !important;
+  min-width: 0 !important;
 }
 
 .toggle-row {
@@ -325,24 +328,6 @@ onMounted(() => {
   color: #dc2626;
 }
 
-.btn-add {
-  background-color: var(--color-green);
-  color: var(--color-dark-green);
-  border: none;
-  border-radius: 9999px;
-  padding: 12px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  cursor: pointer;
-}
-
-.btn-add:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-/* toggle switch (same as GoogleCalendarCard) */
 .toggle-switch {
   position: relative;
   display: inline-block;

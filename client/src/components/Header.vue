@@ -3,12 +3,12 @@ import { ref, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import NotificationBell from '../components/NotificationBell.vue'
 import { useAuth } from '../composables/useAuth'
-import { useUserStore } from '@/stores/userStore' // <--- 1. Tambahin import store user
+import { useUserStore } from '@/stores/userStore'
 import { userAvatarUrl, userInitials, userName } from '../utils/userDisplay'
 
 const router = useRouter();
 const route = useRoute();
-const userStore = useUserStore(); // <--- 2. Initialize userStore-nya
+const userStore = useUserStore();
 
 // --- Emits ---
 const emit = defineEmits(['toggle-menu'])
@@ -80,7 +80,7 @@ const handleLogout = () => {
     <header class="topbar-container d-flex justify-content-between align-items-center px-3 px-md-3 pt-3 pb-3 gap-2">
 
         <!-- Mobile Hamburger Toggle -->
-        <button class="btn-hamburger d-md-none" type="button" @click="emit('toggle-menu')">
+        <button class="btn-hamburger d-lg-none" type="button" @click="emit('toggle-menu')">
             <i class="bi bi-list"></i>
         </button>
 

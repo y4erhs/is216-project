@@ -9,7 +9,8 @@
     <header class="head">
       <button class="back-link" type="button" @click="$emit('cancel')">
         <svg width="18" height="12" viewBox="0 0 18 12" aria-hidden="true">
-          <path d="M17 6H2M6 1 1 6l5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+          <path d="M17 6H2M6 1 1 6l5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+            stroke-linejoin="round" />
         </svg>
         <span>My lobbies</span>
       </button>
@@ -26,7 +27,7 @@
             <span class="badge-pill pill-grey">Required</span>
           </div>
           <input id="lobby-name" ref="nameEl" v-model="name" class="control" maxlength="40" autocomplete="off"
-                 placeholder="e.g. Weekend Warriors" :aria-invalid="showError" aria-describedby="name-help" />
+            placeholder="e.g. Weekend Warriors" :aria-invalid="showError" aria-describedby="name-help" />
           <p id="name-help" class="help">
             <span v-if="showError" class="error" role="alert">Give your lobby a name.</span>
             <span v-else>Pick something your friends will recognise.</span>
@@ -40,7 +41,7 @@
             <span class="badge-pill pill-grey">Optional</span>
           </div>
           <textarea id="lobby-desc" v-model="description" class="control control-area" maxlength="200" rows="4"
-                    placeholder="What is this group for? e.g. Friday workshops and hackathons."></textarea>
+            placeholder="What is this group for? e.g. Friday workshops and hackathons."></textarea>
           <p class="help"><span class="count">{{ description.length }}/200</span></p>
         </section>
 
@@ -65,7 +66,9 @@
           <span class="event-line">No event yet.</span>
           <span class="desc">{{ description.trim() || 'No description.' }}</span>
           <span class="foot">
-            <span class="stack" aria-hidden="true"><i>{{ myInitials }}<AvatarPic :path="user?.avatar" /></i></span>
+            <span class="stack" aria-hidden="true"><i>{{ myInitials }}
+                <AvatarPic :path="user?.avatar" />
+              </i></span>
             <span class="meta">1 member. You'll invite friends next.</span>
           </span>
         </div>
@@ -146,79 +149,310 @@ async function submit() {
   box-sizing: border-box;
   border-radius: 25px;
 }
-.app *, .app *::before, .app *::after { box-sizing: border-box; }
-.app button, .app input, .app textarea { font-family: inherit; }
-:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
-.panel :focus-visible { outline-color: var(--ink); }
+
+.app *,
+.app *::before,
+.app *::after {
+  box-sizing: border-box;
+}
+
+.app button,
+.app input,
+.app textarea {
+  font-family: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-green);
+  outline-offset: 2px;
+}
+
+.panel :focus-visible {
+  outline-color: var(--ink);
+}
 
 /* ── Heading ── */
-.head { display: grid; justify-items: start; gap: 8px; }
-.back-link {
-  display: inline-flex; align-items: center; gap: 8px; padding: 0; border: 0; background: none; cursor: pointer;
-  color: #fff; font: 400 11px/1 'TextFont', sans-serif; letter-spacing: 0.14em; text-transform: uppercase;
+.head {
+  display: grid;
+  justify-items: start;
+  gap: 8px;
 }
-.back-link span { text-decoration: underline; text-underline-offset: 4px; }
-.page-title { margin: 0; color: #fff; font: 400 25px/1.1 'HeaderFont', sans-serif; letter-spacing: 0.02em; text-transform: uppercase; }
-.sub { margin: 0; max-width: 70ch; color: #fff; line-height: 1.5; }
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  color: #fff;
+  font: 400 11px/1 'TextFont', sans-serif;
+  text-transform: uppercase;
+}
+
+.back-link span {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.page-title {
+  margin: 0;
+  margin-top: 15px;
+  color: #fff;
+  font: 400 25px/1.1 'HeaderFont', sans-serif;
+  text-transform: uppercase;
+}
+
+.sub {
+  margin: 0;
+  max-width: 70ch;
+  color: #fff;
+  line-height: 1.5;
+}
 
 /* ── Buttons & pills ── */
 .btn {
-  --nudge: 2px;   /* pushes the label down so it sits in the middle; tune to your font */
+  --nudge: 2px;
+  /* pushes the label down so it sits in the middle; tune to your font */
   padding: calc(12px + var(--nudge)) 26px calc(12px - var(--nudge));
-  border: 0; border-radius: 999px; cursor: pointer;
-  font: 700 11px/1 'TextFont', sans-serif; letter-spacing: 0.14em; text-transform: uppercase;
-  background: var(--dark-blue); color: #fff; transition: transform 0.15s;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  font: 700 11px/1 'TextFont', sans-serif;
+  text-transform: uppercase;
+  background: var(--dark-blue);
+  color: #fff;
+  transition: transform 0.15s;
 }
-.btn:hover { transform: translateY(-1px); }
-.btn-lime { background: var(--lime); color: var(--ink); }
-.btn-light { background: transparent; color: #fff; box-shadow: inset 0 0 0 2px #fff; }
+
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+.btn-lime {
+  background: var(--lime);
+  color: var(--ink);
+}
+
+.btn-light {
+  background: transparent;
+  color: #fff;
+  box-shadow: inset 0 0 0 2px #fff;
+}
+
 .badge-pill {
-  display: inline-block; height: 22px; border-radius: 9999px; background-color: var(--grey);
-  padding: 5px 12px 8px 12px; color: var(--ink);
-  font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap;
+  display: inline-block;
+  height: 22px;
+  border-radius: 9999px;
+  background-color: var(--grey);
+  padding: 5px 12px 8px 12px;
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
-.pill-host { background: var(--dark-blue); color: #fff; }
+
+.pill-host {
+  background: var(--dark-blue);
+  color: #fff;
+}
 
 /* ── Layout ── */
-.layout { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 15px; align-items: start; }
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 15px;
+  align-items: start;
+}
 
 /* folder-style frame: coloured edge + dark inside, white headings (same as a lobby's Invite tab) */
-.frame { display: grid; gap: 20px; padding: 15px; border: 9px solid var(--lime); border-radius: 25px; background: #667033; }
-.field { display: grid; gap: 8px; }
-.field-head { display: flex; align-items: center; gap: 10px; }
-.section-title { margin: 0; color: #fff; font: 400 20px/1.1 'HeaderFont', sans-serif; letter-spacing: 0.03em; text-transform: uppercase; }
-.control {
-  width: 100%; padding: 3px 16px 0; height: 35px; border: 3px solid transparent; border-radius: 999px;
-  background: var(--card); color: var(--ink); font-size: 11px;
+.frame {
+  display: grid;
+  gap: 20px;
+  padding: 15px;
+  border: 9px solid var(--lime);
+  border-radius: 25px;
+  background: #667033;
 }
-.control::placeholder { color: var(--ink); opacity: 0.6; }
-.control-area { height: auto; padding: 12px 16px; border-radius: 15px; resize: vertical; line-height: 1.5; }
-.control[aria-invalid='true'] { border-color: var(--orange); }
-.help { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin: 0; color: #fff; }
-.error { padding: 4px 10px; border-radius: 999px; background: var(--danger); font-weight: 700; }
-.count { margin-left: auto; opacity: 0.8; }
-.actions { display: flex; justify-content: flex-end; gap: 10px; }
+
+.field {
+  display: grid;
+  gap: 8px;
+}
+
+.field-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.section-title {
+  margin: 0;
+  color: #fff;
+  font: 400 20px/1.1 'HeaderFont', sans-serif;
+  text-transform: uppercase;
+}
+
+.control {
+  width: 100%;
+  padding: 3px 16px 0;
+  height: 35px;
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--ink);
+  font-size: 11px;
+}
+
+.control::placeholder {
+  color: var(--ink);
+  opacity: 0.6;
+}
+
+.control-area {
+  height: auto;
+  padding: 12px 16px;
+  border-radius: 15px;
+  resize: vertical;
+  line-height: 1.5;
+
+  max-height: calc(1.5em * 6 + 24px); 
+  min-height: 80px;
+}
+
+.control[aria-invalid='true'] {
+  border-color: var(--orange);
+}
+
+.help {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  color: #fff;
+}
+
+.error {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--danger);
+  font-weight: 700;
+}
+
+.count {
+  margin-left: auto;
+  opacity: 0.8;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
 
 /* ── Preview panel (matches the registered-events panel in a lobby) ── */
-.panel { display: grid; gap: 12px; align-content: start; padding: 15px; border-radius: 25px; background: var(--grey); color: var(--ink); }
-.panel-title { margin: 8px 0 3px; text-align: center; font: 400 20px/1.1 'HeaderFont', sans-serif; letter-spacing: 0.03em; text-transform: uppercase; }
+.panel {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+  padding: 15px;
+  border-radius: 25px;
+  background: var(--grey);
+  color: var(--ink);
+}
+
+.panel-title {
+  margin: 8px 0 3px;
+  text-align: center;
+  font: 400 20px/1.1 'HeaderFont', sans-serif;
+  text-transform: uppercase;
+}
 
 /* the card, copied from My lobbies */
-.lobby { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; padding: 15px; border-radius: 25px; background: var(--card); }
-.top { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; }
-.name { font: 400 20px/1.1 'HeaderFont', sans-serif; letter-spacing: 0.03em; text-transform: uppercase; overflow-wrap: anywhere; }
-.event-line { font-size: 13px; letter-spacing: 0.04em; }
-.desc {
-  display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
-  line-height: 1.4; opacity: 0.85; margin-bottom: 6px;
+.lobby {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 15px;
+  border-radius: 25px;
+  background: var(--card);
 }
-.foot { display: flex; align-items: center; gap: 10px; width: 100%; margin-top: 4px; padding-top: 12px; border-top: 2px dashed rgba(31, 42, 68, 0.2); }
-.stack i { position: relative; display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: #9fd3ff; font-style: normal; font-weight: 700; font-size: 11px; }
-.meta { letter-spacing: 0.04em; }
+
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+}
+
+.name {
+  font: 400 20px/1.1 'HeaderFont', sans-serif;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+.event-line {
+  font-size: 13px;
+}
+
+.desc {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.4;
+  opacity: 0.85;
+  margin-bottom: 6px;
+}
+
+.foot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin-top: 4px;
+  padding-top: 12px;
+  border-top: 2px dashed rgba(31, 42, 68, 0.2);
+}
+
+.stack i {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #9fd3ff;
+  font-style: normal;
+  font-weight: 700;
+  font-size: 11px;
+}
+
 
 @media (max-width: 900px) {
-  .layout { grid-template-columns: minmax(0, 1fr); }
-  .app { min-height: 0; max-height: none; overflow-y: visible; }   /* only the page scrolls */
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .app {
+    min-height: 0;
+    max-height: none;
+    overflow-y: visible;
+  }
+
+  /* only the page scrolls */
 }
-@media (prefers-reduced-motion: reduce) { .btn { transition: none; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .btn {
+    transition: none;
+  }
+}
 </style>

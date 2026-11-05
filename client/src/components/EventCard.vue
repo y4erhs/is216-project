@@ -382,7 +382,7 @@ const imageSrc = computed(() =>
 
           <div class="btn-row">
             <BaseButton
-              class="action-pill-btn btn-red"
+              class="action-pill-btn"
               variant="outline-main"
               :disabled="attendedDisabled"
               :title="
@@ -855,4 +855,143 @@ const imageSrc = computed(() =>
   font-weight: 700;
   color: var(--color-dark-orange);
 }
+
+
+/* =========================================
+   RESPONSIVE EVENT CARD — MOBILE
+========================================= */
+
+@media (max-width: 768px) {
+
+    .event-card {
+        padding: 10px;
+        gap: 12px;
+        border-radius: 14px;
+        align-items: stretch;
+        min-width: 0;
+    }
+
+    /* Smaller, shorter poster */
+    .poster-container {
+        width: 85px;
+        min-width: 85px;
+        aspect-ratio: 3 / 4;
+        align-self: flex-start;
+        border-radius: 9px;
+    }
+
+    .poster-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    /* Right side content */
+    .right-content-area {
+        flex: 1;
+        min-width: 0;
+    }
+
+    /* Match badge */
+    .card-top-bar {
+        min-height: 18px;
+        margin-bottom: 2px;
+    }
+
+    .match-badge {
+        font-size: 9px;
+        padding: 3px 8px 1px;
+    }
+
+    .card-action-link {
+        font-size: 10px !important;
+    }
+
+    /* Event title */
+    .event-details {
+        margin-top: 0;
+        padding-top: 0;
+    }
+
+    .event-title {
+        font-size: 12px;
+        line-height: 1.15;
+        margin-bottom: 5px;
+    }
+
+    /* Date, time and venue */
+    .event-time-venue {
+        gap: 2px;
+        margin-top: 3px;
+    }
+
+    .event-datetime-line,
+    .event-venue-line {
+        font-size: 10.5px;
+        line-height: 1.2;
+    }
+
+    /* Buttons */
+    .actions-area {
+        padding-top: 7px;
+        gap: 4px;
+    }
+
+    .btn-row {
+        gap: 6px;
+    }
+
+    .action-pill-btn {
+        height: 30px;
+        font-size: 9px !important;
+        gap: 4px;
+        padding-left: 8px !important;
+        padding-right: 8px !important;
+    }
+
+    .heart-btn,
+    .trash-btn {
+        width: 30px !important;
+        height: 30px !important;
+        min-width: 30px !important;
+    }
+
+    .custom-icon {
+        width: 15px;
+        height: 15px;
+    }
+
+    .bottom-link-row {
+        margin-top: 3px;
+    }
+}
+
+/* Extra-small screens */
+@media (max-width: 380px) {
+
+    .event-card {
+        padding: 8px;
+        gap: 9px;
+    }
+
+    .poster-container {
+        width: 72px;
+        min-width: 72px;
+    }
+
+    .event-title {
+        font-size: 12px;
+    }
+
+    .event-datetime-line,
+    .event-venue-line {
+        font-size: 9.5px;
+    }
+
+    .action-pill-btn {
+        font-size: 8px;
+        height: 28px;
+    }
+}
+
 </style>
