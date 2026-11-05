@@ -89,7 +89,7 @@ function toLobby(raw) {
   }
 }
 
-const formatDate = (d) => new Date(d).toLocaleString('en-SG', {
+export const formatDate = (d) => new Date(d).toLocaleString('en-SG', {
   weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit',
   timeZone: 'Asia/Singapore',
 })
@@ -214,6 +214,7 @@ export function useLobbies() {
     },
     updateLobby: (id, { name, description }) =>
       act(id, () => api(`/api/lobbies/${id}`, { method: 'PATCH', body: { name, description } })),
+    getRecommendations: (id) => api(`/api/lobbies/${id}/recommendations?userId=${meId()}`),
     deleteLobby: (id) =>
       act(id, () => api(`/api/lobbies/${id}`, { method: 'DELETE' })),
     // CHANGED: now sends inviterId so the backend can check the inviter is in the lobby

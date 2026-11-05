@@ -179,6 +179,11 @@
                     <span v-if="pitchMode === 'interested'" aria-hidden="true">✓</span>
                     Interested <b>{{ interestedUpcoming.length }}</b>
                   </button>
+                  <button type="button" class="pitch-chip" :class="{ on: pitchMode === 'recommended' }"
+                          :aria-pressed="pitchMode === 'recommended'" @click="pitchPick = 'recommended'">
+                    <span v-if="pitchMode === 'recommended'" aria-hidden="true">✓</span>
+                    Recommended <b v-if="recs">{{ recs.recommendations.length }}</b>
+                  </button>
                   <button type="button" class="pitch-chip" :class="{ on: pitchMode === 'all' }"
                           :aria-pressed="pitchMode === 'all'" @click="pitchPick = 'all'">
                     <span v-if="pitchMode === 'all'" aria-hidden="true">✓</span>
@@ -190,8 +195,18 @@
                 </div>
               </div>
 
-              <div v-if="!pitchable.length" class="empty-note">
-                <p v-if="pitchMode === 'interested'">
+              <div v-if="pitchMode === 'recommended' && recsLoading" class="empty-note" role="status">
+                <p>Finding events that suit your group...</p>
+              </div>
+
+              <div v-else-if="pitchMode === 'recommended' && recsError" class="empty-note">
+                <p role="alert">{{ recsError }}</p>
+                <BaseButton class="theme-green" type="button" @click="loadRecs">Try again</BaseButton>
+              </div>
+
+              <div v-else-if="!pitchable.length" class="empty-note">
+                <p v-if="pitchMode === 'recommended'">No upcoming events suit your group right now.</p>
+                <p v-else-if="pitchMode === 'interested'">
                   None of your upcoming events are marked as interested. Mark some on the Discover page, or show all events.
                 </p>
                 <p v-else>No upcoming events to pitch right now.</p>
@@ -204,10 +219,16 @@
                     <input class="sr" type="radio" name="event" :value="e.id" v-model="selectedEventId"
                           :disabled="usedEventIds.has(e.id)" />
                     <span class="event-body">
+                      <span v-if="recFor(e)" class="match-tag" :class="matchClass(recFor(e).score)">
+                        {{ recFor(e).score }}% match
+                      </span>
                       <span class="event-details">
                         <strong>{{ e.title }}</strong>
-                        <span>{{ e.date }}</span>
+                        <span>{{ recFor(e) ? formatDate(recFor(e).sessionStart) : e.date }}</span>
                         <span>{{ e.venue }}</span>
+                      </span>
+                      <span v-if="recFor(e)" class="match-reason">
+                        <b>{{ recFor(e).freeCount }} of {{ recs.memberCount }} free</b> · {{ recFor(e).reason }}
                       </span>
                       <span class="event-meta">{{ e.limitsText }}</span>
                       <span v-if="usedEventIds.has(e.id)" class="badge-pill pill-accepted">Already registered</span>
@@ -367,7 +388,7 @@ import PlanForm from '../components/PlanForm.vue'
 import BaseButton from '../components/BaseButton.vue'
 import AvatarPic from '../components/AvatarPic.vue'
 import { useAuth } from '../composables/useAuth'
-import { useLobbies, daysAgo, timeAgo, INACTIVE_DAYS } from '../composables/useLobbies'
+import { useLobbies, daysAgo, timeAgo, formatDate, INACTIVE_DAYS } from '../composables/useLobbies'
 import { useActivities } from '../composables/useActivities'
 import { vAutoScrollbar } from '../directives/autoScrollbar'
 
@@ -480,13 +501,51 @@ const pitchPick = ref(null)   // null = automatic, until the host presses a butt
 const pitchMode = computed(
   () => pitchPick.value ?? (actsLoaded.value && interestedUpcoming.value.length ? 'interested' : 'all')
 )
-const pitchable = computed(() =>
-  pitchMode.value === 'all'
-    ? upcomingEvents.value
-    // keep the event that's already pitched visible, even if it isn't marked interested
-    : upcomingEvents.value.filter((e) => interestedIds.value.has(e.id) || e.id === selectedEventId.value)
-)
+/* group recommendations: loaded the first time the tab opens, and again if the members change */
+const recs = ref(null)   // { memberCount, recommendations }
+const recsLoading = ref(false)
+const recsError = ref('')
+
+async function loadRecs() {
+  recsLoading.value = true
+  recsError.value = ''
+  try {
+    recs.value = await store.getRecommendations(props.lobbyId)
+  } catch (err) {
+    recsError.value = 'Could not load recommendations. Please try again.'
+  } finally {
+    recsLoading.value = false
+  }
+}
+
+const recByEvent = computed(() => new Map((recs.value?.recommendations ?? []).map((r) => [r.eventId, r])))
+const recFor = (event) => (pitchMode.value === 'recommended' ? recByEvent.value.get(event.id) : null)
+const matchClass = (score) => (score >= 80 ? 'match-high' : 'match-low')   // same colours as Discover
+
+watch(pitchMode, (mode) => {
+  if (mode === 'recommended' && !recs.value && !recsLoading.value) loadRecs()
+})
+
+const pitchable = computed(() => {
+  if (pitchMode.value === 'all') return upcomingEvents.value
+  if (pitchMode.value === 'recommended') {
+    const picks = (recs.value?.recommendations ?? [])
+      .map((r) => upcomingEvents.value.find((e) => e.id === r.eventId))
+      .filter(Boolean)
+    // keep the event that's already pitched visible, even if it wasn't recommended
+    const pitched = upcomingEvents.value.find((e) => e.id === selectedEventId.value)
+    return pitched && !picks.includes(pitched) ? [...picks, pitched] : picks
+  }
+  // keep the event that's already pitched visible, even if it isn't marked interested
+  return upcomingEvents.value.filter((e) => interestedIds.value.has(e.id) || e.id === selectedEventId.value)
+})
 const acceptedMembers = computed(() => members.value.filter((m) => m.status === 'accepted'))
+
+// someone joining or leaving changes who's free and whose interests count
+watch(() => acceptedMembers.value.map((m) => m.id).join(), () => {
+  recs.value = null
+  if (pitchMode.value === 'recommended') loadRecs()
+})
 const counts = computed(() => ({
   pending: members.value.filter((m) => m.status === 'pending').length,
   declined: members.value.filter((m) => m.status === 'declined').length,
@@ -1134,6 +1193,28 @@ button.badge-pill:disabled {
 
 .event-body > * {
   min-width: 0;
+}
+
+.match-tag {
+  align-self: flex-start;
+  padding: 4px 10px 1px;
+  border-radius: 9999px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.match-high {
+  background-color: var(--color-green);
+  color: var(--color-dark-green);
+}
+
+.match-low {
+  background-color: var(--color-orange);
+  color: var(--color-white);
+}
+
+.match-reason {
+  line-height: 1.4;
 }
 
 .event-details {

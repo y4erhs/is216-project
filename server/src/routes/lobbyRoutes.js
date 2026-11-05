@@ -29,4 +29,6 @@ router.post('/:lobbyId/plan-next', lobbyController.planNext);
 
 router.get('/:lobbyId/calendar', lobbyCalendarController.getCalendar);
 
+router.get('/:lobbyId/recommendations', lobbyController.getRecommendations);
+
 module.exports = router;

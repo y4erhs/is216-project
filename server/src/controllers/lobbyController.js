@@ -3,7 +3,18 @@ const Lobby = require('../models/Lobby')
 const Event = require('../models/events')
 const User = require('../models/user')
 const notificationController = require('./notificationController')
+const lobbyRecommendationService = require('../services/lobbyRecommendationService')
 const mongoose = require('mongoose')
+
+// Events that suit the group: shared interests, and when most members are free
+exports.getRecommendations = async (req, res) => {
+    try {
+        const { lobbyId } = req.params;
+        res.json(await lobbyRecommendationService.recommendForLobby(lobbyId, req.query.userId));
+    } catch (err) {
+        res.status(err.status || 500).json({ message: err.message });
+    }
+};
 
 exports.createLobby = async(req,res) =>{
     try{
