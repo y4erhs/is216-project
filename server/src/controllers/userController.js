@@ -4,6 +4,7 @@ const Friends = require('../models/friends');
 const Image = require('../models/image');
 const { signLoginToken } = require('../middleware/authCheck');
 const GoogleSignInCode = require('../models/googleSignInCode');
+const { isEmailSetUp, sendPasswordResetEmail } = require('../services/emailService');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 
@@ -196,12 +197,26 @@ exports.forgotPassword = async (req, res) => {
         user.resetPasswordExpires = Date.now() + 3600000; 
         await user.save();
 
-        // 3. Simulate sending email (Check your backend terminal for this link!)
         const resetUrl = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
-        console.log(`🔗 PASSWORD RESET LINK for ${email}: ${resetUrl}`);
 
-        return res.status(200).json({ 
-            message: 'Password reset link sent to your email!' 
+        // 3. Without email settings (e.g. running locally), the link goes to the server's logs instead
+        if (!isEmailSetUp()) {
+            console.log(`🔗 PASSWORD RESET LINK for ${user.email}: ${resetUrl}`);
+            return res.status(200).json({
+                message: "Email isn't set up on this server, so the reset link is in the server's logs."
+            });
+        }
+
+        // 4. Email the link to the address saved on the account
+        try {
+            await sendPasswordResetEmail(user.email, resetUrl);
+        } catch (err) {
+            console.error('Could not send password reset email:', err.message);
+            return res.status(502).json({ message: 'Could not send the reset email. Please try again.' });
+        }
+
+        return res.status(200).json({
+            message: 'Password reset link sent to your email!'
         });
 
     } catch (err) {

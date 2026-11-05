@@ -99,6 +99,10 @@ GOOGLE_CLIENT_SECRET=<Google OAuth client secret>
 GOOGLE_REDIRECT_URI=http://localhost:8000/auth/google/callback
 CLIENT_URL=http://localhost:5173
 TELEGRAM_BOT_TOKEN=<Telegram bot token>
+EMAILJS_SERVICE_ID=<EmailJS service ID>
+EMAILJS_TEMPLATE_ID=<EmailJS template ID>
+EMAILJS_PUBLIC_KEY=<EmailJS public key>
+EMAILJS_PRIVATE_KEY=<EmailJS private key>
 ```
 
 | Setting | Needed for |
@@ -109,6 +113,7 @@ TELEGRAM_BOT_TOKEN=<Telegram bot token>
 | `JWT_SECRET` | Required. Signs login tokens. Use any long random text, e.g. from `openssl rand -hex 32`. |
 | `GOOGLE_*` | Google sign-in and Calendar sync. |
 | `TELEGRAM_BOT_TOKEN` | Optional. Without it, the bot stays off and the rest of the app still works. |
+| `EMAILJS_*` | Optional. Used to email password reset links. Without them, the link is printed in the server's logs. |
 
 ### 4. Set up Google (only to use Google features)
 
@@ -191,10 +196,8 @@ Start the server and client first, then log in with a test account.
 
 ## AI use declaration
 
-•	Generating website concepts, layouts, or themes
 •	Explaining coding errors and debugging hints
 •	Boilerplate code generation – starter code and code snippets
-•	Generating unit test cases, sample inputs, or mock data
-
+•	Generating End-to-End test cases, sample inputs, or mock data
 
 Separately, the app itself calls an AI model at runtime to generate recommendations and to read Telegram posts.

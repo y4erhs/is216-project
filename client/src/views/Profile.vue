@@ -1,6 +1,6 @@
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import axios from 'axios'
 import '../assets/theme.css'
 
@@ -73,6 +73,7 @@ async function loadProfile() {
     selectedGrad.value = data.graduationYear || ''
     clubs.value = [...(data.ccas || [])]
 
+    await nextTick()
     isInitialized.value = true
   } catch (error) {
     profileError.value = 'Could not load your profile. Please refresh and try again.'
@@ -498,7 +499,7 @@ const executeDelete = async () => {
         </div>
 
         <div>
-          <GoogleCalendarCard />
+          <GoogleCalendarCard :user-id="userId" />
         </div>
 
       </div>
