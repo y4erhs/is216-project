@@ -4,6 +4,10 @@ const cron = require('node-cron');
 const notificationController = require('./src/controllers/notificationController');
 
 dotenv.config({ path: './config.env' });
+if (!process.env.JWT_SECRET) {
+  console.error('JWT_SECRET is missing. Add it to config.env (see the README), then start the server again.');
+  process.exit(1);
+}
 const bot = process.env.TELEGRAM_BOT_TOKEN ? require('./telegramBot') : null;
 
 const mongoose = require('mongoose');

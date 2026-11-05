@@ -156,11 +156,11 @@ userSchema.statics.createUser = function({
 };
 
 userSchema.statics.getUsers = function() {
-    return this.find().select('-password');
+    return this.find().select('username avatar');
 };
 
 userSchema.statics.getUserById = function(userId) {
-    return this.findById(userId).select('-password');
+    return this.findById(userId).select('-password -resetPasswordToken -resetPasswordExpires');
 };
 
 userSchema.statics.findByUsername = function(username){

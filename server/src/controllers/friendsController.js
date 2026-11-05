@@ -1,6 +1,20 @@
 const Friends = require('../models/friends')
 const notificationController =require('./notificationController');
 const User = require('../models/user');
+
+// Loads a friend request or friendship, and refuses anyone who isn't allowed to change it
+async function findForUser(req, res, allowedIds) {
+    const friendship = await Friends.findById(req.params.friendshipId);
+    if (!friendship) {
+        res.status(404).json({ message: 'Friend request not found' });
+        return null;
+    }
+    if (!allowedIds(friendship).some(id => String(id) === String(req.user.id))) {
+        res.status(403).json({ message: "You can't change this friend request" });
+        return null;
+    }
+    return friendship;
+}
 exports.sendFriendRequest = async(req,res) =>{
     try{
         const {requesterId,receiverId} = req.body;
@@ -17,6 +31,7 @@ exports.acceptFriendRequest = async(req,res) => {
     console.log("ACCEPT CONTROLLER HIT")
     try{
         const { friendshipId } = req.params;
+        if (!(await findForUser(req, res, f => [f.receiver]))) return;   // only the person invited can accept
         const updated = await Friends.acceptFriendRequest(friendshipId);
         console.log(updated)
         console.log("UPDATED RECEIVER:", updated.receiver);
@@ -31,6 +46,7 @@ exports.acceptFriendRequest = async(req,res) => {
 exports.rejectFriendRequest = async(req,res) => {
     try{
         const { friendshipId } = req.params;
+        if (!(await findForUser(req, res, f => [f.requester, f.receiver]))) return;
         const removed =await Friends.findByIdAndDelete(friendshipId);
         if(!removed){
             return res.status(404).json({message: 'Friend request not found'});
@@ -89,6 +105,9 @@ exports.getAcceptedFriends = async(req,res) =>{
 exports.removeFriend = async(req,res) =>{
     try{
         const {requesterId, receiverId } = req.body;
+        if (![requesterId, receiverId].some(id => String(id) === String(req.user.id))) {
+            return res.status(403).json({ message: "You can't change this friendship" });
+        }
         const removed = await Friends.removeFriendByUsers(requesterId, receiverId);
         if(!removed){
             return res.status(404).json({message: 'Friendship not found'});
@@ -101,6 +120,7 @@ exports.removeFriend = async(req,res) =>{
 
 exports.removeFriendById = async (req, res) => {
   try {
+    if (!(await findForUser(req, res, f => [f.requester, f.receiver]))) return;
     const removed = await Friends.removeFriendById(req.params.friendshipId);
     if (!removed) return res.status(404).json({ message: 'Friendship not found' });
     res.json({ message: 'Removed' });

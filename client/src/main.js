@@ -15,6 +15,9 @@ import BaseInput from '@/components/BaseInput.vue'
 // Optional: global styles
 import './assets/main.css'
 import './assets/theme.css'
+import { setUpAuthRequests } from './utils/authRequests'
+
+setUpAuthRequests()
 
 const app = createApp(App)
 

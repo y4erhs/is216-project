@@ -16,9 +16,9 @@ export const useUserStore = defineStore('user', () => {
   const isLoggedIn = computed(() => !!currentUser.value);
 
   // Actions
-  function setUser(user) {
+  function setUser(user, token) {
     currentUser.value = user;
-    useAuth().setSession(user);
+    useAuth().setSession(user, token);
   }
 
   async function login(credentials) {
@@ -36,7 +36,7 @@ export const useUserStore = defineStore('user', () => {
       const data = response.data;
 
       // Saves to local storage and tells every page who is logged in
-      setUser(data.user || data);
+      setUser(data.user || data, data.token);
       console.log("3. SAVED TO LOCAL STORAGE");
 
       return data;
@@ -54,7 +54,7 @@ export const useUserStore = defineStore('user', () => {
   // Finishes "Continue with Google" for an existing user
   async function loginWithGoogle(code) {
     const response = await axios.post(`${API_URL}/auth/google/signin/exchange`, { code });
-    setUser(response.data.user);
+    setUser(response.data.user, response.data.token);
     return response.data;
   }
 
@@ -63,7 +63,8 @@ export const useUserStore = defineStore('user', () => {
     error.value = null;
     try {
       const response = await axios.post(`${API_URL}/api/users/register`, formData);
-      setUser(response.data);   // a new user is logged in straight away
+      const { token, ...user } = response.data;
+      setUser(user, token);   // a new user is logged in straight away
       return response.data;
     } catch (err) {
       error.value = err.response?.data?.message || err.message || 'Registration failed';

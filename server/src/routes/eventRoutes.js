@@ -2,21 +2,23 @@ const express = require('express');
 
 const eventController = require('../controllers/eventController');
 
+const { requireAuth, selfField } = require('../middleware/authCheck');
+
 const router = express.Router();
 
 
 // CREATE
-router.post('/', eventController.createEvent);
+router.post('/', requireAuth, eventController.createEvent);
 
 // READ
 router.get('/', eventController.getEvents);
 router.get('/:id', eventController.getEventById);
 
 // UPDATE
-router.put('/:id', eventController.updateEvent);
+router.put('/:id', requireAuth, eventController.updateEvent);
 
 // DELETE
-router.delete('/:id', eventController.deleteEvent);
+router.delete('/:id', requireAuth, eventController.deleteEvent);
 
-router.post('/signup', eventController.signUpUser);
+router.post('/signup', requireAuth, selfField('body', 'userId'), eventController.signUpUser);
 module.exports = router

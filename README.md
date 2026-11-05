@@ -106,6 +106,7 @@ TELEGRAM_BOT_TOKEN=<Telegram bot token>
 | `DB` | Required. The server won't start without a database. |
 | `OPENAI_API_KEY`, `OPENAI_MODEL` | Required. The API key is needed to start the server, and AI powers "For you" and Telegram parsing. |
 | `CLIENT_URL` | Required. Used for links and redirects back to the app. |
+| `JWT_SECRET` | Required. Signs login tokens. Use any long random text, e.g. from `openssl rand -hex 32`. |
 | `GOOGLE_*` | Google sign-in and Calendar sync. |
 | `TELEGRAM_BOT_TOKEN` | Optional. Without it, the bot stays off and the rest of the app still works. |
 

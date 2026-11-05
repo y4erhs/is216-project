@@ -42,9 +42,15 @@ async function loadStatus() {
     }
 }
 
-function connect() {
-    // leaves your site and goes to Google's permission screen
-    window.location.href = `${API_URL}/auth/google?userId=${props.userId}`
+async function connect() {
+    try {
+        const res = await fetch(`${API_URL}/auth/google?userId=${props.userId}`)
+        if (!res.ok) throw new Error('Could not start linking')
+        // leaves your site and goes to Google's permission screen
+        window.location.href = (await res.json()).url
+    } catch (err) {
+        console.error('Google connect failed:', err.message)
+    }
 }
 
 async function disconnect() {

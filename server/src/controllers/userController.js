@@ -2,6 +2,7 @@ const { LengthFinishReasonError } = require('openai/error.js');
 const User = require('../models/user');
 const Friends = require('../models/friends');
 const Image = require('../models/image');
+const { signLoginToken } = require('../middleware/authCheck');
 const GoogleSignInCode = require('../models/googleSignInCode');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
@@ -19,8 +20,6 @@ function passwordProblem(password) {
 
 // CREATE a user
 exports.createUser = async (req, res) => {
-    console.log("backend reached! /api/users/register was called with body:", req.body);
-    console.log("📁 Files received:", req.files);
     try {
         let {
             username, fullName, displayName, email, password,
@@ -84,7 +83,7 @@ exports.createUser = async (req, res) => {
         const result = user.toObject();
         delete result.password;
 
-        return res.status(201).json(result);
+        return res.status(201).json({ ...result, token: signLoginToken(user._id) });
     } catch (err) {
         if (err.code === 11000) {
             return res.status(409).json({
@@ -164,7 +163,8 @@ exports.login = async(req,res) =>{
 
         return res.status(200).json({
             message: 'Login successful',
-            user:result
+            user:result,
+            token: signLoginToken(user._id)
         });
     }catch(err){
         return res.status(500).json({

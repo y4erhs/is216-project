@@ -171,6 +171,12 @@ exports.declineInvite = async(req,res) =>{
 exports.removeUser = async (req,res) =>{
     try{
         const {lobbyId, userId} = req.body;
+        // the host can remove anyone, and anyone can leave
+        const lobby = await Lobby.findById(lobbyId).select('host');
+        if (!lobby) return res.status(404).json({ message: 'Lobby not found' });
+        if (![String(lobby.host), String(userId)].includes(String(req.user.id))) {
+            return res.status(403).json({ message: 'Only the host can remove other members' });
+        }
         const updated = await Lobby.removeUser(lobbyId, userId);
         await notificationController.notifyRemovedFromLobby(userId,updated);
         res.json(updated)

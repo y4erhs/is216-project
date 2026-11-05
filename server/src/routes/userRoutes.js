@@ -1,6 +1,7 @@
 const express = require('express');
 
 const userController = require('../controllers/userController');
+const { requireAuth, selfParam, selfField } = require('../middleware/authCheck');
 
 const router = express.Router();
 
@@ -46,24 +47,24 @@ router.get('/check-email/:email', userController.checkEmail);
 
 
 // READ
-router.get('/', userController.getUsers);
-router.get('/search', userController.searchUsers);
-router.get('/:id', userController.getUserById);
+router.get('/', requireAuth, userController.getUsers);
+router.get('/search', requireAuth, selfField('query', 'userId'), userController.searchUsers);
+router.get('/:id', requireAuth, selfParam('id'), userController.getUserById);
 
 //get preferences
-router.get('/:id/preferences', userController.getPreferences);
+router.get('/:id/preferences', requireAuth, selfParam('id'), userController.getPreferences);
 
 // UPDATE
-router.put('/:id', userController.updateUser);
+router.put('/:id', requireAuth, selfParam('id'), userController.updateUser);
 
 // update profile picture and banner
-router.put('/:id/images', uploadImages([
+router.put('/:id/images', requireAuth, selfParam('id'), uploadImages([
     { name: 'profileImage', maxCount: 1 },
     { name: 'bannerImage', maxCount: 1 }
 ]), userController.updateImages)
 
 // DELETE
-router.delete('/:id', userController.deleteUser);
+router.delete('/:id', requireAuth, selfParam('id'), userController.deleteUser);
 
 //forgot password
 router.post('/forgot-password', userController.forgotPassword);

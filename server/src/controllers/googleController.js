@@ -2,7 +2,7 @@ const { createOAuthClient } = require('../utils/googleClient')
 const GoogleConnection = require('../models/googleConnection')
 const GoogleSignInCode = require('../models/googleSignInCode')
 const User = require('../models/user')
-const mongoose = require('mongoose')
+const { signLoginToken, signGoogleLinkState, readGoogleLinkState } = require('../middleware/authCheck')
 const crypto = require('crypto')
 
 const SMU_DOMAIN = 'smu.edu.sg'
@@ -23,33 +23,29 @@ function newCode(fields, lifetime) {
     })
 }
 
-// Step 1: send the user to Google's permission screen
+// Step 1: give the browser the link to Google's permission screen
 exports.connect = (req, res) => {
-    // TEMPORARY: replace with the logged-in user once login exists
-    const userId = req.query.userId
-    if (!mongoose.isValidObjectId(userId)) {
-        console.error('Google connect got invalid userId:', userId)
-        return res.redirect(`${process.env.CLIENT_URL}/calendar?google=error`)
-    }
-
     const client = createOAuthClient()
     const url = client.generateAuthUrl({
         access_type: 'offline',
         prompt: 'consent',
         scope: ['openid','email','https://www.googleapis.com/auth/calendar.events'],
-        state: userId
+        state: signGoogleLinkState(req.user.id)
     })
 
-    return res.redirect(url)
+    return res.status(200).json({ url })
 }
 
 // Step 2: Google sends the user back here
 exports.callback = async (req, res) => {
-    const { code, state: userId, error } = req.query
+    const { code, state } = req.query
     const clientUrl = process.env.CLIENT_URL
 
-    if (!mongoose.isValidObjectId(userId)) {
-        console.error('Google callback got invalid userId:', userId)
+    let userId
+    try {
+        userId = readGoogleLinkState(state)
+    } catch (err) {
+        console.error('Google callback got an invalid state:', err.message)
         return res.redirect(`${clientUrl}/calendar?google=error`)
     }
 
@@ -87,11 +83,7 @@ exports.callback = async (req, res) => {
 // Check if a user has connected Google Calendar
 exports.status = async (req, res) => {
     try {
-        // TEMPORARY: replace with the logged-in user once login exists
-        const userId = req.query.userId
-        if (!mongoose.isValidObjectId(userId)) {
-            return res.status(400).json({ message: 'Invalid user id' })
-        }
+        const userId = req.user.id
 
         const connection = await GoogleConnection.findOne({ user: userId })
 
@@ -109,11 +101,7 @@ exports.status = async (req, res) => {
 // Disconnect Google Calendar
 exports.disconnect = async (req, res) => {
     try {
-        // TEMPORARY: replace with the logged-in user once login exists
-        const userId = req.query.userId
-        if (!mongoose.isValidObjectId(userId)) {
-            return res.status(400).json({ message: 'Invalid user id' })
-        }
+        const userId = req.user.id
 
         const connection = await GoogleConnection.findOne({ user: userId }).select('+refreshToken')
         if (!connection) {
@@ -139,11 +127,7 @@ exports.disconnect = async (req, res) => {
 // Turn "Include personal commitments" on or off
 exports.updateSettings = async (req, res) => {
     try {
-        // TEMPORARY: replace with the logged-in user once login exists
-        const userId = req.query.userId
-        if (!mongoose.isValidObjectId(userId)) {
-            return res.status(400).json({ message: 'Invalid user id' })
-        }
+        const userId = req.user.id
 
         const connection = await GoogleConnection.findOneAndUpdate(
             { user: userId },
@@ -232,7 +216,7 @@ exports.signInExchange = async (req, res) => {
         const user = await User.findById(found.user).select('-password')
         if (!user) return res.status(404).json({ message: 'User not found' })
 
-        return res.status(200).json({ message: 'Login successful', user })
+        return res.status(200).json({ message: 'Login successful', user, token: signLoginToken(user._id) })
     } catch (err) {
         return res.status(500).json({ message: err.message })
     }

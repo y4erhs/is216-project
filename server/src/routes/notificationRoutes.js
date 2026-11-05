@@ -1,6 +1,9 @@
 const express = require("express");
 const router = express.Router();
 const notificationsController = require("../controllers/notificationController");
+const { requireAuth, selfField } = require("../middleware/authCheck");
+
+router.use(requireAuth, selfField("query", "userId"));
 
 
 router.get("/", notificationsController.getMyNotifications);
