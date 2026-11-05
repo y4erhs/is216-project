@@ -112,11 +112,6 @@ function confirmLogout() {
       </button>
     </div>
 
-    <div v-if="!isCollapsed" class="campus px-2">
-      <p class="your-campus header-style m-0">YOUR CAMPUS</p>
-      <p class="mb-0 header-style">Singapore Management University</p>
-    </div>
-
     <div class="menu">
       <RouterLink to="/" class="tab-pill theme-grey" :title="isCollapsed ? 'Discover' : ''" @click="emit('close')">
         <div class="pill-icon">
@@ -293,15 +288,6 @@ aside {
 
 .toggle-btn:hover {
   background-color: #d1dbec;
-}
-
-.campus {
-  margin-bottom: 16px;
-}
-
-.your-campus {
-  opacity: 60%;
-  font-size: x-small;
 }
 
 .menu {
