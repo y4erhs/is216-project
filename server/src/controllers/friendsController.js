@@ -83,9 +83,7 @@ exports.getAcceptedFriends = async(req,res) =>{
         const {userId} = req.params;
         console.log(userId)
         const friends = (await Friends.getAcceptedFriends(userId)).filter((f) => f.requester && f.receiver);
-        if(!friends || friends.length === 0 ){
-            return res.status(404).json({ message: 'No accepted friends found'})
-        }
+        
         res.json(friends)
     }catch(err){
         res.status(500).json({error: err.message})
