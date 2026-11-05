@@ -445,8 +445,14 @@ onMounted(async () => {
   }
 
   .calendar-btn {
-    display: none;
-  }
+  width: auto;
+  min-width: 0;
+  height: 35px;
+  padding: 0 12px;
+  font-size: 11px;
+  white-space: nowrap;
+  margin-right: 8px;
+}
 
   /* STACK LAYOUT */
   .activity-main-layout {

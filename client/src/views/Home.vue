@@ -786,11 +786,37 @@ function handleCardClick(event) {
     }
 
     /* Hide desktop-only controls */
-    .edit-interest-link,
-    .calendar-btn {
+        /* Hide desktop-only controls */
+    .edit-interest-link {
         display: none;
     }
 
+    /* Calendar button: top-right, in line with the title */
+    .discover-header {
+        position: relative;
+    }
+
+    .discover-title {
+        display: flex;
+        align-items: center;
+        min-height: 35px;
+    }
+
+    .discover-header .discover-controls .calendar-btn {
+        position: absolute;
+        top: 0;
+        right: 8px;
+        width: auto;
+        min-width: 0;
+        height: 35px;
+        padding: 0 12px;
+        font-size: 11px;
+        white-space: nowrap;
+    }
+
+    /* FROM + TO take 3/5 combined */
+
+    
     /* FROM + TO take 3/5 combined */
     .date-filter {
         width: 100%;
