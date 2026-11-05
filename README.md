@@ -143,8 +143,9 @@ Open http://localhost:5173. The server address defaults to `http://localhost:800
 
 | Username | Password | Notes |
 |---|---|---|
-| Testuser | Testuser1234. | Account with friends, lobbies and events set up |
-| `<TO FILL IN>` | `<TO FILL IN>` | Second account, for testing invites between two people |
+| testuser | Testuser1234. | Account with empty states for friends and lobbies |
+| Testuser2 | Testuser1234. | Second account, for testing invites between two people |
+| Testuser3 | Testuser1234. | Third account, for testing invites between two people |
 
 You can also create a new account on the Sign Up page with any email ending in `@smu.edu.sg`.
 
@@ -190,8 +191,10 @@ Start the server and client first, then log in with a test account.
 
 ## AI use declaration
 
-This declaration follows FAQ 20 of the project brief.
+•	Generating website concepts, layouts, or themes
+•	Explaining coding errors and debugging hints
+•	Boilerplate code generation – starter code and code snippets
+•	Generating unit test cases, sample inputs, or mock data
 
-`<TO FILL IN: each team member adds any other parts that relied solely on AI, or removes any part above they wrote themselves.>`
 
 Separately, the app itself calls an AI model at runtime to generate recommendations and to read Telegram posts.
