@@ -381,43 +381,52 @@ test.describe('profile card', () => {
 test.describe('clubs', () => {
   const open = (page) => page.locator('.club-dropdown-container button').first().click();
   const items = (page) => page.locator('.club-dropdown-container .dropdown-item');
+  const input = (page) => page.getByLabel('Add a club');
+
+  async function addClub(page, name) {
+    await input(page).fill(name);
+    await input(page).press('Enter');
+  }
 
   test.beforeEach(async ({ page }) => {
-    page.state = await mockProfileApi(page);
+    page.state = await mockProfileApi(page, { profile: { ccas: [] } });
     await page.goto('/profile');
-    await expect(page.getByText('Chess Club').first()).toBeVisible();
+    // wait for the profile to load, not for a club
+    await expect(field(page, 'Course').locator('.dropdown-trigger')).toContainText('Business Management');
   });
 
-  test('lists existing clubs and opens and closes the dropdown', async ({ page }) => {
+  test('opens and closes the dropdown', async ({ page }) => {
     await open(page);
-    await expect(items(page)).toHaveCount(1);
-    await expect(items(page).first()).toContainText('Chess Club');
+    await expect(input(page)).toBeVisible();
 
     await page.getByRole('heading', { name: 'PROFILE & ALERTS' }).click();
-    await expect(items(page)).toHaveCount(0);
+    await expect(input(page)).toHaveCount(0);
   });
 
-  test('adding a club with Enter saves it', async ({ page }) => {
+  test('adding a club with Enter lists it and saves it', async ({ page }) => {
     await open(page);
-    await page.getByLabel('Add a club').fill('Robotics Club');
-    await page.getByLabel('Add a club').press('Enter');
+    await addClub(page, 'Robotics Club');
 
-    await expect(items(page)).toHaveCount(2);
-    await expect.poll(() => lastPut(page.state)?.ccas).toEqual(['Chess Club', 'Robotics Club']);
+    await expect(items(page)).toHaveCount(1);
+    await expect(items(page).first()).toContainText('Robotics Club');
+    await expect.poll(() => lastPut(page.state)?.ccas).toEqual(['Robotics Club']);
   });
 
   test('a duplicate club (any capitalisation) is ignored', async ({ page }) => {
     await open(page);
-    await page.getByLabel('Add a club').fill('chess club');
-    await page.getByLabel('Add a club').press('Enter');
+    await addClub(page, 'Chess Club');
+    await expect(items(page)).toHaveCount(1);
 
+    await addClub(page, 'chess club');
     await expect(items(page)).toHaveCount(1);
   });
 
   test('unticking a club removes it and saves', async ({ page }) => {
     await open(page);
-    await items(page).first().locator('input').click();
+    await addClub(page, 'Chess Club');
+    await expect(items(page)).toHaveCount(1);
 
+    await items(page).first().locator('input').click();
     await expect(items(page)).toHaveCount(0);
     await expect.poll(() => lastPut(page.state)?.ccas).toEqual([]);
   });
