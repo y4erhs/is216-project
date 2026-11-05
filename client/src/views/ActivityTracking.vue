@@ -9,6 +9,9 @@ import { useActivities } from '../composables/useActivities'
 import { useAuth } from '../composables/useAuth'
 import { vAutoScrollbar } from '../directives/autoScrollbar'
 
+import { useRouter } from 'vue-router'
+const router = useRouter()
+
 const isNavbarCollapsed = inject('isNavbarCollapsed')
 const showUpcomingMobile = ref(false)
 const {
@@ -113,6 +116,7 @@ const isSelectedEventAttending = computed(() => {
 
 function onInviteFriends(id) {
   console.log('Invite friends for event:', id)
+  router.push('/lobby')
 }
 
 onMounted(async () => {
