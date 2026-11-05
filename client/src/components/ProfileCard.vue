@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, onBeforeUnmount } from 'vue'
+import { computed, onMounted, onBeforeUnmount, defineEmits, ref } from 'vue'
 import BaseButton from './BaseButton.vue'
 import BaseInput from './BaseInput.vue'
 import CategoryPill from './categoryPill.vue'
@@ -38,8 +38,6 @@ const emit = defineEmits([
     'update:showInterestDropdown',
     'update:bannerFailed',
     'update:avatarFailed',
-    'triggerBannerInput',
-    'triggerAvatarInput',
     'handleBannerSelection',
     'handleAvatarSelection',
     'addClub',
@@ -70,12 +68,24 @@ onMounted(() => {
 onBeforeUnmount(() => {
     document.removeEventListener('click', handleClickOutside)
 })
+
+
+const bannerInputFile = ref(null)
+const avatarInputFile = ref(null)
+
+function triggerBannerInput() {
+  bannerInputFile.value?.click()
+}
+
+function triggerAvatarInput() {
+  avatarInputFile.value?.click()
+}
 </script>
 
 <template>
     <div class="profile-card">
         <div class="profile-header-visual">
-            <div class="banner-container" @click="emit('triggerBannerInput')">
+            <div class="banner-container" @click="triggerBannerInput">
                 <div class="profile-banner">
                     <img v-if="bannerPreview || (userImageUrl(profile?.banner) && !bannerFailed)"
                         :src="bannerPreview || userImageUrl(profile.banner)" alt=""
@@ -88,7 +98,7 @@ onBeforeUnmount(() => {
                     accept="image/*" class="d-none" />
             </div>
 
-            <div class="avatar-container" @click="emit('triggerAvatarInput')">
+            <div class="avatar-container" @click="triggerAvatarInput">
                 <div class="avatar">
                     <img v-if="avatarPreview || (userImageUrl(profile?.avatar) && !avatarFailed)"
                         :src="avatarPreview || userImageUrl(profile.avatar)" alt=""
@@ -105,7 +115,7 @@ onBeforeUnmount(() => {
 
         <div class="user-info">
             <p v-if="profileError" class="profile-error" role="alert">{{ profileError }}</p>
-            
+
             <!-- Nama & Username full width di atas -->
             <div class="profile-meta">
                 <p class="full-name header-style">{{ profileName }}</p>
@@ -175,7 +185,8 @@ onBeforeUnmount(() => {
                     <CategoryPill v-for="(cat, index) in categories" :key="index" :category="cat" />
 
                     <div class="interest-dropdown-container" style="position: relative; display: inline-block;">
-                        <BaseButton variant="small" @click.stop="emit('update:showInterestDropdown', !showInterestDropdown)">
+                        <BaseButton variant="small"
+                            @click.stop="emit('update:showInterestDropdown', !showInterestDropdown)">
                             +</BaseButton>
 
                         <!-- Floating Dropdown Box -->
@@ -218,6 +229,10 @@ onBeforeUnmount(() => {
     cursor: pointer;
     overflow: hidden;
     width: 100%;
+}
+
+.profile-card input[type="file"] {
+    display: none;
 }
 
 .edit-banner-overlay {
